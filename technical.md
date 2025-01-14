@@ -181,48 +181,46 @@ interface SetOverrideRequest {
 // Side effects:
 // - Clears overrideSongId
 // - Resolves song from playlist+seed
-```
 
 ## Game Logic
 
-### Song Selection
-1. Admin configures game with seed and optional playlist
-2. If overrideSongId set, use that song
-3. Otherwise use randomSeed to select from playlist
-4. Cache spotify and genius data on selection
+### Game State Management
+1. Word Masking
+   - Replace letters and numbers with underscores
+   - Preserve special characters and whitespace
+   - Handle case-insensitive matching
+   - No partial word matches
 
-### Gameplay Flow
-1. User requests daily game
-2. Backend:
-   - Resolves song from config
-   - Gets lyrics from cache
-   - Computes masked lyrics from guesses
-   - Returns game state
-3. Frontend:
-   - Shows masked lyrics
-   - Handles guesses
-   - Computes progress
-   - Shows metadata when won
+2. Progress Tracking
+   - Track revealed words
+   - Calculate completion percentage
+   - Handle win condition (title + artist complete)
+   - Show full lyrics at 80% completion
 
-### Masking Rules
-- All words (including "a", "the", etc) are replaced with underscores
-- Numbers are also replaced with underscores
-- All other characters are preserved exactly as they appear:
-  - Punctuation (,.!? etc)
-  - Special characters (@#$ etc)
-  - Whitespace (including newlines)
-  - Unicode characters
-- Case-insensitive matching for guesses
-- No partial word matches
+3. State Computation
+   - Compute masked content from guesses
+   - Track guess history
+   - Handle state transitions
+   - Validate win conditions
 
-### Progress Computation
-- Progress shows percentage of all words found
-- Win condition: find ALL words in both artist name AND song title
-- Finding lyrics words doesn't affect win condition
-- When won:
-  1. Full song metadata revealed (artist, title, album, preview)
-  2. Full lyrics revealed
-  3. User can continue guessing lyrics for fun
+### Admin Operations
+1. Game Configuration
+   - Create game configs with date, seed, playlist
+   - Optional song override
+   - Batch creation for date ranges
+   - Update existing configs
+
+2. Song Resolution
+   - Use override song if specified
+   - Otherwise select from playlist using seed
+   - Cache song data on selection
+   - Cache lyrics data on selection
+
+3. Playlist Management
+   - Search Spotify playlists
+   - Cache playlist data
+   - Update game config playlists
+   - Handle song overrides
 
 ## Security
 - No sensitive data in client

@@ -14,15 +14,15 @@
 
 3. Design System Setup
    - Set up JetBrains Mono as base font
-   - Define color palette constants:
-     - Primary: #9b87f5
-     - Deep Purple: #7E69AB
-     - Royal Purple: #6E59A5
-     - Light Purple: #D6BCFA
-     - Pink: #FF719A
-     - Coral: #FFA99F
-     - Yellow: #FFE29F
-     - Mint: #abecd6
+   - Define color palette constants
+     - Primary: "#9b87f5"
+     - Deep Purple: "#7E69AB"
+     - Royal Purple: "#6E59A5"
+     - Light Purple: "#D6BCFA"
+     - Pink: "#FF719A"
+     - Coral: "#FFA99F"
+     - Yellow: "#FFE29F"
+     - Mint: "#abecd6"
    - Create dark mode variables
    - Set up minimalist component base styles
 
@@ -56,17 +56,13 @@
    - Error handling
    - Cache refresh strategy
 
-4. Masking Service
+4. Game Logic Service
    - Word boundary detection
    - Special character preservation
    - Case-insensitive matching
    - Progress calculation
    - Title/artist masking
    - Lyrics masking
-
-5. Game Logic Service
-   - Song selection from playlist
-   - Random seed handling
    - Game state computation
    - Win condition checking
 
@@ -75,19 +71,37 @@
    - Route handlers
    - Error handling
    - Request validation
-   - Rate limiting (1/sec)
+   - Response types
 
 2. Admin Routes
-   - Game config management
-   - Playlist operations
-   - Song override
-   - Cache operations
+   - Game management
+     - Create game (POST /games/:date)
+     - Update game (PUT /games/:date)
+     - Refresh seed (PUT /games/:date/refresh-seed)
+   - Spotify integration
+     - Search playlists (GET /spotify/playlists/search)
+     - Get playlist details (GET /spotify/playlists/:id)
+   - Authentication
+     - Admin middleware
+     - Role validation
+   - Error handling
+     - Input validation
+     - Not found handling
+     - Unauthorized handling
 
 3. Public Routes
-   - Daily game state
-   - Guess submission
-   - Archive access
-   - Error responses
+   - Game listing
+     - List all games (GET /games)
+     - Filter sensitive metadata
+     - Include user progress
+   - Game access
+     - Get game state (GET /games/:date)
+     - Get game stats (GET /games/:date/stats)
+     - Submit guess (POST /games/:date/guess)
+   - Error handling
+     - Invalid date
+     - Not found
+     - Rate limiting
 
 4. Testing Infrastructure
    - Jest setup
