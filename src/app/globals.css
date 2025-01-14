@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 20 20 20;
+  }
+
+  .dark {
+    --background: 20 20 20;
+    --foreground: 255 255 255;
+  }
+}
+
+body {
+  @apply bg-[rgb(var(--background))] text-[rgb(var(--foreground))];
+}
+
+/* Minimalist styles */
+* {
+  @apply border-[rgb(var(--foreground)/0.1)];
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  @apply w-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-[rgb(var(--foreground)/0.1)] rounded-full hover:bg-[rgb(var(--foreground)/0.2)];
+}

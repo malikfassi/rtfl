@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Core Models
+model GameConfig {
+  id            String   @id @default(uuid())
+  date          DateTime @unique
+  randomSeed    String
+  playlistId    String
+  overrideSongId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  guesses       Guess[]
+}
+
+model Guess {
+  id           String     @id @default(uuid())
+  userId       String
+  gameConfigId String
+  word         String
+  timestamp    DateTime   @default(now())
+  gameConfig   GameConfig @relation(fields: [gameConfigId], references: [id])
+
+  @@index([userId, gameConfigId])
+}
+
+// Cache Tables
+model CachedSpotifyTrack {
+  spotifyId  String   @id
+  data       String   // JSON string of full track data
+  updatedAt  DateTime @updatedAt
+}
+
+model CachedSpotifyPlaylist {
+  spotifyId  String   @id
+  data       String   // JSON string of playlist metadata + tracks
+  updatedAt  DateTime @updatedAt
+}
+
+model CachedGeniusLyrics {
+  geniusId   String   @id
+  spotifyId  String   @unique
+  lyrics     String   // Original lyrics text
+  updatedAt  DateTime @updatedAt
+}
