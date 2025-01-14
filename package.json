@@ -53,10 +53,14 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
+    "lint:strict": "eslint --max-warnings=0 .",
     "prepare": "husky install",
     "seed": "prisma db seed",
     "start": "next start",
-    "test": "jest"
+    "test": "jest",
+    "test:all": "pnpm lint:strict && pnpm type-check && pnpm test",
+    "type-check": "tsc --noEmit"
   },
+  "type": "module",
   "version": "0.1.0"
 }
