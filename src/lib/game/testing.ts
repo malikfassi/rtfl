@@ -1,4 +1,4 @@
-import type { GameState, RevealThresholds } from './state';
+import type { GameState } from './state';
 import type { SpotifyContent, Progress } from '@/types/api';
 
 export interface TestCase {
@@ -8,13 +8,11 @@ export interface TestCase {
     title: string;
     artist: string;
     guesses: string[];
-    thresholds?: RevealThresholds;
   };
   expected: {
     progress: Progress;
     revealedWords: string[];
-    shouldRevealSpotify: boolean;
-    shouldRevealGenius: boolean;
+    isComplete: boolean;
     maskedTitle: string;
     maskedArtist: string;
     maskedLyrics?: string;
@@ -26,13 +24,11 @@ export interface GuessTestCase {
   input: {
     guess: string;
     currentState: GameState;
-    thresholds?: RevealThresholds;
   };
   expected: {
     isCorrect: boolean;
     progress: Progress;
-    shouldRevealSpotify: boolean;
-    shouldRevealGenius: boolean;
+    isComplete: boolean;
   };
 }
 
@@ -58,8 +54,7 @@ export const testCases: TestCase[] = [
         overall: 0,
       },
       revealedWords: [],
-      shouldRevealSpotify: false,
-      shouldRevealGenius: false,
+      isComplete: false,
       maskedTitle: '_____ _____',
       maskedArtist: '____ ______',
     },
@@ -78,41 +73,37 @@ export const testCases: TestCase[] = [
         overall: 0.5,
       },
       revealedWords: ['hello', 'test'],
-      shouldRevealSpotify: false,
-      shouldRevealGenius: false,
+      isComplete: false,
       maskedTitle: 'Hello _____',
       maskedArtist: 'Test ______',
     },
   },
   {
-    name: 'Should reveal Spotify at 50% progress',
+    name: 'Should complete when title and artist are revealed',
     input: {
       title: 'Hello',
       artist: 'Test',
-      guesses: ['hello'],
-      thresholds: { spotify: 0.5, genius: 0.75 },
+      guesses: ['hello', 'test'],
     },
     expected: {
       progress: {
-        titleArtist: 0.5,
+        titleArtist: 1,
         lyrics: 0,
-        overall: 0.5,
+        overall: 1,
       },
-      revealedWords: ['hello'],
-      shouldRevealSpotify: true,
-      shouldRevealGenius: false,
+      revealedWords: ['hello', 'test'],
+      isComplete: true,
       maskedTitle: 'Hello',
-      maskedArtist: '____',
+      maskedArtist: 'Test',
     },
   },
   {
-    name: 'Should reveal Genius at 75% progress',
+    name: 'Should complete when 80% of lyrics are found',
     input: {
       lyrics: 'Hello world test case',
       title: 'Hello Test',
       artist: 'World Case',
       guesses: ['hello', 'world', 'test', 'case'],
-      thresholds: { spotify: 0.5, genius: 0.75 },
     },
     expected: {
       progress: {
@@ -121,8 +112,7 @@ export const testCases: TestCase[] = [
         overall: 1,
       },
       revealedWords: ['hello', 'world', 'test', 'case'],
-      shouldRevealSpotify: true,
-      shouldRevealGenius: true,
+      isComplete: true,
       maskedTitle: 'Hello Test',
       maskedArtist: 'World Case',
       maskedLyrics: 'Hello world test case',
@@ -172,8 +162,7 @@ export const guessTestCases: GuessTestCase[] = [
         lyrics: 0,
         overall: 0.25,
       },
-      shouldRevealSpotify: false,
-      shouldRevealGenius: false,
+      isComplete: false,
     },
   },
 ];
@@ -220,7 +209,7 @@ export function createMockGameState(
     : 0;
 
   const overallProgress = Math.max(titleArtistProgress, lyricsProgress);
-  const isComplete = titleArtistProgress === 1 || lyricsProgress >= 0.8;
+  const isComplete = (titleArtistProgress === 1) || (lyricsProgress >= 0.8);
 
   return {
     maskedTitle,
@@ -231,8 +220,8 @@ export function createMockGameState(
       lyrics: lyricsProgress,
       overall: overallProgress,
     },
-    spotify: overallProgress >= 0.5 ? mockSpotifyContent : null,
-    genius: overallProgress >= 0.75 ? { lyrics: lyrics ?? '' } : null,
+    spotify: isComplete ? mockSpotifyContent : null,
+    genius: isComplete && lyrics ? { lyrics } : null,
     isComplete,
   };
 }

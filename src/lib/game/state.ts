@@ -28,20 +28,25 @@ export interface GameState {
   isComplete: boolean;
 }
 
-export interface RevealThresholds {
-  spotify: number;
-  genius: number;
-}
+export function computeGuessCorrectness(
+  guess: string,
+  content: SpotifyTrack,
+): boolean {
+  const normalizedWord = guess.toLowerCase().trim();
+  const normalizedTitle = content.title.toLowerCase();
+  const normalizedArtist = content.artist.toLowerCase();
+  const normalizedLyrics = content.lyrics?.toLowerCase() ?? '';
 
-const DEFAULT_THRESHOLDS: RevealThresholds = {
-  spotify: 0.5, // Reveal Spotify data at 50% progress
-  genius: 0.75, // Reveal Genius data at 75% progress
-};
+  return (
+    normalizedTitle.includes(normalizedWord) ||
+    normalizedArtist.includes(normalizedWord) ||
+    normalizedLyrics.includes(normalizedWord)
+  );
+}
 
 export function computeGameState(
   content: SpotifyTrack,
   guesses: Array<Guess & { wasCorrect: boolean }>,
-  thresholds: RevealThresholds = DEFAULT_THRESHOLDS,
 ): GameState {
   const revealedWords = new Set(
     guesses.filter((g) => g.wasCorrect).map((g) => g.word.toLowerCase()),
@@ -59,7 +64,6 @@ export function computeGameState(
     maskedLyrics
   );
 
-  // Use the higher progress value for overall progress
   const overallProgress = Math.max(titleArtistProgress, lyricsProgress);
 
   return {
@@ -71,7 +75,7 @@ export function computeGameState(
     maskedTitle,
     maskedArtist,
     maskedLyrics,
-    spotify: overallProgress >= thresholds.spotify
+    spotify: isComplete
       ? {
           artistName: content.artist,
           songTitle: content.title,
@@ -79,7 +83,7 @@ export function computeGameState(
           previewUrl: content.previewUrl,
         }
       : null,
-    genius: overallProgress >= thresholds.genius && content.lyrics ? { lyrics: content.lyrics } : null,
+    genius: isComplete && content.lyrics ? { lyrics: content.lyrics } : null,
     isComplete,
   };
 }
@@ -87,11 +91,9 @@ export function computeGameState(
 export function updateGameState(
   currentState: GameState,
   guess: string,
-  thresholds: RevealThresholds = DEFAULT_THRESHOLDS,
 ): GameState {
   const normalizedGuess = guess.toLowerCase().trim();
 
-  // Update masked content
   const updatedLyrics = currentState.maskedLyrics
     ? updateMasking(currentState.maskedLyrics, normalizedGuess)
     : null;
@@ -104,7 +106,6 @@ export function updateGameState(
     updatedLyrics
   );
 
-  // Use the higher progress value for overall progress
   const overallProgress = Math.max(titleArtistProgress, lyricsProgress);
 
   return {
@@ -116,8 +117,8 @@ export function updateGameState(
     maskedTitle: updatedTitle,
     maskedArtist: updatedArtist,
     maskedLyrics: updatedLyrics,
-    spotify: overallProgress >= thresholds.spotify ? currentState.spotify : null,
-    genius: overallProgress >= thresholds.genius ? currentState.genius : null,
+    spotify: isComplete ? currentState.spotify : null,
+    genius: isComplete ? currentState.genius : null,
     isComplete,
   };
 }
