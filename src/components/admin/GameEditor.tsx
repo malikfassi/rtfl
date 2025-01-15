@@ -239,13 +239,24 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
 
               <div>
                 <span className="text-sm text-gray-500">Playlist:</span>
-                <button
-                  onClick={() => setBrowserMode(browserMode === 'playlist' ? 'none' : 'playlist')}
-                  className="ml-2 text-blue-500 hover:underline block"
-                >
-                  {playlistData?.playlist?.name || '<Select from browser below>'}
-                </button>
-                <span className="text-xs text-gray-400 ml-2">ID: {playlistData?.playlistId ?? 'N/A'}</span>
+                {playlistData?.playlist ? (
+                  <div className="ml-2">
+                    <button
+                      onClick={() => setBrowserMode(browserMode === 'playlist' ? 'none' : 'playlist')}
+                      className="text-blue-500 hover:underline"
+                    >
+                      {playlistData.playlist.name}
+                    </button>
+                    <span className="text-sm text-gray-500 ml-1">({playlistData.playlistId})</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setBrowserMode(browserMode === 'playlist' ? 'none' : 'playlist')}
+                    className="ml-2 text-blue-500 hover:underline"
+                  >
+                    Select from browser below
+                  </button>
+                )}
               </div>
 
               <div>
