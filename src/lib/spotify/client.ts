@@ -8,6 +8,7 @@ const TrackSchema = z.object({
   name: z.string(),
   artist: z.string(),
   previewUrl: z.string().nullable(),
+  albumCover: z.string(),
 });
 
 const PlaylistSchema = z.object({
@@ -45,6 +46,7 @@ export class SpotifyClient {
             name: item.track.name,
             artist: item.track.artists[0]?.name || 'Unknown Artist',
             previewUrl: item.track.preview_url,
+            albumCover: item.track.album.images[0]?.url || '',
           }));
 
         playlists.push({
@@ -74,6 +76,7 @@ export class SpotifyClient {
         name: track.name,
         artist: track.artists[0]?.name || 'Unknown Artist',
         previewUrl: track.preview_url,
+        albumCover: track.album.images[0]?.url || '',
       };
 
       return TrackSchema.parse(formattedTrack);
@@ -97,6 +100,7 @@ export class SpotifyClient {
           name: item.track.name,
           artist: item.track.artists[0]?.name || 'Unknown Artist',
           previewUrl: item.track.preview_url,
+          albumCover: item.track.album.images[0]?.url || '',
         }));
 
       const formattedPlaylist = {

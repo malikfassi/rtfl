@@ -119,7 +119,6 @@
 2. Game Management
    - Calendar view
    - Game config list
-   - Batch creation
    - Config details
 
 3. Playlist Management
@@ -177,3 +176,69 @@
    - Deployment guide
    - Type documentation
    - Admin guide 
+
+phases:
+  - name: "Phase 1: Initial Setup"
+    status: completed
+    description: "Basic project setup and infrastructure"
+  
+  - name: "Phase 2: Core Game Logic"
+    status: completed
+    description: "Implement core game mechanics and basic UI"
+  
+  - name: "Phase 3: Performance Optimizations"
+    status: in_progress
+    description: "Optimize data storage and computations"
+    tasks:
+      - name: "Remove redundant stored data"
+        status: in_progress
+        description: "Convert stored properties to computed ones"
+      
+      - name: "Add stored procedures"
+        status: pending
+        description: "Create database-level optimizations"
+      
+      - name: "Centralize computations"
+        status: completed
+        description: "Create computation helpers"
+      
+      - name: "Update types"
+        status: completed
+        description: "Reflect computed vs stored properties in types"
+      
+      - name: "Update routes"
+        status: pending
+        description: "Modify route handlers to use computation helpers"
+      
+      - name: "Migration"
+        status: pending
+        description: "Deploy changes with zero downtime"
+  
+  - name: "Phase 4: Analytics and Monitoring"
+    status: pending
+    description: "Add analytics, monitoring, and performance tracking"
+    tasks:
+      - name: "Add performance metrics"
+        status: pending
+        description: "Track computation times and query performance"
+      
+      - name: "Setup monitoring"
+        status: pending
+        description: "Add monitoring for critical paths"
+      
+      - name: "Add analytics"
+        status: pending
+        description: "Track user behavior and game statistics"
+
+dependencies:
+  - from: "Phase 1"
+    to: "Phase 2"
+    type: "sequential"
+  
+  - from: "Phase 2"
+    to: "Phase 3"
+    type: "sequential"
+  
+  - from: "Phase 3"
+    to: "Phase 4"
+    type: "sequential" 

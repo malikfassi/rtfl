@@ -137,13 +137,6 @@ interface GameConfigResponse {
     };
 }
 
-// POST /admin/games/batch
-interface BatchCreateRequest {
-    startDate: string;    // inclusive
-    endDate: string;      // inclusive
-    playlistId: string;   // spotify playlist id
-}
-
 // Playlist Selection
 // GET /admin/spotify/search/playlists?q=query
 interface PlaylistSearchResponse {
@@ -207,7 +200,6 @@ interface SetOverrideRequest {
 1. Game Configuration
    - Create game configs with date, seed, playlist
    - Optional song override
-   - Batch creation for date ranges
    - Update existing configs
 
 2. Song Resolution

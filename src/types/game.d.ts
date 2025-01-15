@@ -1,16 +1,28 @@
-export interface GameConfig {
+export interface Game {
   id: string;
-  date: string;
+  date: Date;
   randomSeed: string;
   playlistId: string;
-  overrideSongId?: string;
-  createdAt: string;
-  updatedAt: string;
+  overrideSongId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  guesses: Guess[];
+}
+
+export interface Guess {
+  id: string;
+  userId: string;
+  gameId: string;
+  word: string;
+  isCorrect: boolean;
+  timestamp: Date;
+  game: Game;
 }
 
 export interface GuessAttempt {
   word: string;
   timestamp: string;
+  isCorrect: boolean;
 }
 
 export interface SpotifyTrack {
@@ -18,6 +30,7 @@ export interface SpotifyTrack {
   name: string;
   artist: string;
   previewUrl: string;
+  albumCover: string;
 }
 
 export interface SpotifyPlaylist {

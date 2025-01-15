@@ -1,75 +1,66 @@
-import { z } from 'zod';
+import type { MaskedContent } from '@/types/api';
 
-// Schema for word position and state
-const WordSchema = z.object({
-  word: z.string(),
-  startIndex: z.number(),
-  endIndex: z.number(),
-});
-
-export type Word = z.infer<typeof WordSchema>;
-
-// Schema for masked content (lyrics, title, or artist)
-const MaskedContentSchema = z.object({
-  original: z.string(),
-  maskedText: z.string(),
-  words: z.array(WordSchema),
-});
-
-export type MaskedContent = z.infer<typeof MaskedContentSchema>;
-
-/**
- * Finds all words in the given text, handling contractions and special cases.
- * Words are defined as sequences of letters optionally containing apostrophes.
- */
-export function findWords(text: string): Word[] {
-  const pattern = /[a-zA-Z0-9]+(?:'[a-zA-Z]+)?/g;
-  let match;
-  const matches = [];
-
-  while ((match = pattern.exec(text)) !== null) {
-    const word = match[0].toLowerCase();
-    matches.push({
-      word,
-      startIndex: match.index,
-      endIndex: match.index + match[0].length - 1,
-    });
+export function createMaskedText(text: string, revealedWords: string[] = []): MaskedContent {
+  if (!text) {
+    return {
+      original: '',
+      maskedText: '',
+      words: [],
+      revealedCount: 0,
+    };
   }
+  const normalizedRevealed = new Set(revealedWords.map((w) => w.toLowerCase()));
 
-  return matches;
-}
+  const words = text.split(/\s+/).map((word) => {
+    const startIndex = text.indexOf(word);
+    const isRevealed = normalizedRevealed.has(word.toLowerCase());
+    return {
+      word: word.toLowerCase(),
+      startIndex,
+      endIndex: startIndex + word.length - 1,
+      isRevealed,
+    };
+  });
 
-/**
- * Masks the given text by replacing letters and numbers with underscores.
- * Preserves all other characters (punctuation, whitespace, etc).
- */
-export function maskText(text: string, words: Word[]): string {
-  let maskedText = text;
+  const maskedText = text.replace(/\w+/g, (match) => {
+    return normalizedRevealed.has(match.toLowerCase()) ? match : '_'.repeat(match.length);
+  });
 
-  // Sort words by start index in reverse order to avoid position shifts
-  const sortedWords = [...words].sort((a, b) => b.startIndex - a.startIndex);
-
-  for (const { startIndex, endIndex } of sortedWords) {
-    const originalWord = text.substring(startIndex, endIndex + 1);
-    const maskedWord = originalWord.replace(/[a-zA-Z0-9]/g, '_');
-    maskedText =
-      maskedText.substring(0, startIndex) + maskedWord + maskedText.substring(endIndex + 1);
-  }
-
-  return maskedText;
-}
-
-/**
- * Creates a masked version of the text where words are hidden.
- * Returns the original text, masked version, and word positions.
- */
-export function createMaskedText(text: string): MaskedContent {
-  const words = findWords(text);
-  const maskedText = maskText(text, words);
-
-  return MaskedContentSchema.parse({
+  return {
     original: text,
     maskedText,
     words,
+    revealedCount: words.filter((w) => w.isRevealed).length,
+  };
+}
+
+export function updateMasking(content: MaskedContent, guess: string): MaskedContent {
+  const normalizedGuess = guess.toLowerCase().trim();
+  let updated = false;
+
+  const words = content.words.map((word) => {
+    if (!word.isRevealed && word.word === normalizedGuess) {
+      updated = true;
+      return { ...word, isRevealed: true };
+    }
+    return word;
   });
+
+  if (!updated) {
+    return content;
+  }
+
+  const maskedText = content.original.replace(/\w+/g, (match) => {
+    const matchWord = match.toLowerCase();
+    return words.some((w) => w.word === matchWord && w.isRevealed)
+      ? match
+      : '_'.repeat(match.length);
+  });
+
+  return {
+    ...content,
+    maskedText,
+    words,
+    revealedCount: words.filter((w) => w.isRevealed).length,
+  };
 }

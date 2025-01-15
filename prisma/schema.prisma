@@ -14,26 +14,29 @@ datasource db {
 }
 
 // Core Models
-model GameConfig {
+model Game {
   id            String   @id @default(uuid())
   date          DateTime @unique
   randomSeed    String
   playlistId    String
   overrideSongId String?
+  selectedTrackIndex Int   @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   guesses       Guess[]
 }
 
 model Guess {
-  id           String     @id @default(uuid())
-  userId       String
-  gameConfigId String
-  word         String
-  timestamp    DateTime   @default(now())
-  gameConfig   GameConfig @relation(fields: [gameConfigId], references: [id])
+  id        String   @id @default(uuid())
+  userId    String
+  gameId    String
+  word      String
+  timestamp DateTime @default(now())
+  wasCorrect Boolean @default(false)
+  game      Game     @relation(fields: [gameId], references: [id])
 
-  @@index([userId, gameConfigId])
+  @@index([userId])
+  @@index([gameId])
 }
 
 // Cache Tables

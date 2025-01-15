@@ -29,20 +29,25 @@ This phase is split into several milestones to make it more manageable:
 - Progress tracking implemented and tested
 
 🚧 API Implementation
-- Public Routes (In Progress)
-  - List games (GET /games)
-  - Get game info (GET /games/:date)
-  - Get game stats (GET /games/:date/stats)
-  - Submit guess (POST /games/:date/guess)
+- Route Structure (✅ Done)
+  - Move routes to new structure
+  - Set up admin middleware
+  - Create subdirectories
 
-- Admin Routes (In Progress)
-  - Game management
-    - Create game (POST /games/:date)
-    - Update game (PUT /games/:date)
-    - Refresh seed (PUT /games/:date/refresh-seed)
-  - Spotify integration
-    - Search playlists (GET /spotify/playlists/search)
-    - Get playlist details (GET /spotify/playlists/:id)
+- Game Management (In Progress)
+  - List games (✅ Done)
+  - Create game (✅ Done)
+  - Update game (✅ Done)
+  - Refresh seed (TODO)
+
+- Game Access (TODO)
+  - Get game info
+  - Get game stats
+  - Submit guess
+
+- Spotify Integration (TODO)
+  - Search playlists
+  - Get playlist details
 
 ### [2.5 Integration](./2.5-INTEGRATION.md)
 - Frontend Components

@@ -42,6 +42,7 @@ describe('SpotifyClient', () => {
             {
               id: '1',
               name: 'Test Playlist',
+              images: [{ url: 'test-image-url' }],
             },
           ],
         },
@@ -56,6 +57,9 @@ describe('SpotifyClient', () => {
               type: 'track',
               artists: [{ name: 'Test Artist' }],
               preview_url: 'test-preview-url',
+              album: {
+                images: [{ url: 'test-album-image-url' }],
+              },
             },
           },
         ],
@@ -78,6 +82,7 @@ describe('SpotifyClient', () => {
               name: 'Test Track',
               artist: 'Test Artist',
               previewUrl: 'test-preview-url',
+              albumCover: 'test-album-image-url',
             },
           ],
         },
@@ -98,6 +103,9 @@ describe('SpotifyClient', () => {
         name: 'Test Track',
         artists: [{ name: 'Test Artist' }],
         preview_url: 'test-preview-url',
+        album: {
+          images: [{ url: 'test-album-image-url' }],
+        },
       };
 
       (mockSpotifyApi.tracks.get as jest.Mock).mockResolvedValue(mockResponse);
@@ -109,6 +117,7 @@ describe('SpotifyClient', () => {
         name: 'Test Track',
         artist: 'Test Artist',
         previewUrl: 'test-preview-url',
+        albumCover: 'test-album-image-url',
       });
     });
 
@@ -124,6 +133,7 @@ describe('SpotifyClient', () => {
       const mockPlaylistResponse = {
         id: '1',
         name: 'Test Playlist',
+        images: [{ url: 'test-image-url' }],
       };
 
       const mockTracksResponse = {
@@ -135,6 +145,9 @@ describe('SpotifyClient', () => {
               type: 'track',
               artists: [{ name: 'Test Artist' }],
               preview_url: 'test-preview-url',
+              album: {
+                images: [{ url: 'test-album-image-url' }],
+              },
             },
           },
         ],
@@ -156,6 +169,7 @@ describe('SpotifyClient', () => {
             name: 'Test Track',
             artist: 'Test Artist',
             previewUrl: 'test-preview-url',
+            albumCover: 'test-album-image-url',
           },
         ],
       });

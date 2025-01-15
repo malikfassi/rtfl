@@ -1,29 +1,20 @@
-import { PrismaClient } from '@prisma/client';
-import { GameConfig, Guess } from '@prisma/client';
+import type { Game, Guess } from '@prisma/client';
+import { prisma } from './prisma';
 
-// PrismaClient singleton
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
-
-// Game Config Operations
-export async function createGameConfig(data: Omit<GameConfig, 'id' | 'createdAt' | 'updatedAt'>) {
-  return prisma.gameConfig.create({ data });
+// Game Operations
+export async function createGame(data: Omit<Game, 'id' | 'createdAt' | 'updatedAt'>) {
+  return prisma.game.create({ data });
 }
 
-export async function getGameConfigByDate(date: Date) {
-  return prisma.gameConfig.findFirst({
+export async function getGameByDate(date: Date) {
+  return prisma.game.findFirst({
     where: { date },
     include: { guesses: true },
   });
 }
 
-export async function getLatestGameConfig() {
-  return prisma.gameConfig.findFirst({
+export async function getLatestGame() {
+  return prisma.game.findFirst({
     orderBy: { date: 'desc' },
     include: { guesses: true },
   });
@@ -34,16 +25,16 @@ export async function createGuess(data: Omit<Guess, 'id' | 'timestamp'>) {
   return prisma.guess.create({ data });
 }
 
-export async function getGuessesByGameConfig(gameConfigId: string) {
+export async function getGuessesByGame(gameId: string) {
   return prisma.guess.findMany({
-    where: { gameConfigId },
+    where: { gameId },
     orderBy: { timestamp: 'asc' },
   });
 }
 
-export async function getUserGuesses(userId: string, gameConfigId: string) {
+export async function getUserGuesses(userId: string, gameId: string) {
   return prisma.guess.findMany({
-    where: { userId, gameConfigId },
+    where: { userId, gameId },
     orderBy: { timestamp: 'asc' },
   });
 }

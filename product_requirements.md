@@ -55,7 +55,6 @@
 - Calendar view of game configs
 - Spotify playlist integration
 - Manual song override capability
-- Batch creation of game configs
 - Cache management for Spotify/Genius data
 - Can generate random seeds from backend
 - Can search and select playlists via Spotify

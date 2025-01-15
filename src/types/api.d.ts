@@ -1,51 +1,75 @@
-import type { GameState, SpotifyPlaylist, SpotifyTrack } from './game';
-
-export type ApiError = {
-  code: 'GAME_NOT_FOUND' | 'INVALID_DATE' | 'RATE_LIMITED' | 'INVALID_WORD';
-  message: string;
-};
-
-export interface GuessRequest {
-  word: string;
-}
-
-export interface ArchiveResponse {
-  games: GameState[];
-}
-
-export interface GameConfigResponse {
+export interface GameResponse {
   id: string;
   date: string;
   playlistId: string;
   overrideSongId: string | null;
-  selectedSong: SpotifyTrack;
-  playlist: SpotifyPlaylist;
-  lyrics: string;
-  stats: {
-    totalPlayers: number;
+  selectedTrackIndex: number;
+  createdAt: string;
+  updatedAt: string;
+  guesses: GuessResponse[];
+}
+
+export interface GuessResponse {
+  id: string;
+  userId: string;
+  gameId: string;
+  word: string;
+  timestamp: string;
+  game: GameResponse;
+  wasCorrect?: boolean;
+}
+
+export interface GameWithProgress extends GameResponse {
+  progress: {
     totalGuesses: number;
-    completionRate: number;
+    correctGuesses: number;
+    isComplete: boolean;
+  };
+  hiddenSong: {
+    maskedLyrics: MaskedContent | null;
+    maskedTitle: MaskedContent;
+    maskedArtist: MaskedContent;
+    progress: number;
+    spotify: SpotifyContent | null;
+    genius: GeniusContent | null;
   };
 }
 
-export interface BatchCreateRequest {
-  startDate: string;
-  endDate: string;
-  playlistId: string;
+export interface GuessWithIsCorrect extends GuessResponse {
+  isCorrect: boolean;
 }
 
-export interface PlaylistSearchResponse {
-  playlists: Array<{
-    id: string;
-    name: string;
-    trackCount: number;
-  }>;
+export interface MaskedContent {
+  original: string;
+  maskedText: string;
+  words: {
+    word: string;
+    startIndex: number;
+    endIndex: number;
+    isRevealed: boolean;
+  }[];
+  revealedCount: number;
 }
 
-export interface UpdatePlaylistRequest {
-  playlistId: string;
+export interface SpotifyContent {
+  artistName: string;
+  songTitle: string;
+  albumCover?: string;
+  previewUrl: string | null;
 }
 
-export interface SetOverrideRequest {
-  songId: string;
+export interface GeniusContent {
+  lyrics: string;
+}
+
+export interface GuessResult {
+  guess: GuessWithIsCorrect;
+  maskedContent: {
+    lyrics: MaskedContent | null;
+    title: MaskedContent;
+    artist: MaskedContent;
+    progress: number;
+    spotify: SpotifyContent | null;
+    genius: GeniusContent | null;
+  };
 }
