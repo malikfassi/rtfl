@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { format } from 'date-fns';
 
 export type GameResponse = {
   id: string;
@@ -19,6 +20,7 @@ export type GameResponse = {
     name: string;
     artists: string[];
     previewUrl: string | null;
+    lyrics?: string | null;
   };
 };
 
@@ -27,7 +29,6 @@ export type UsePlaylistReturn = {
   error: Error | null;
   searchPlaylists: (query: string) => Promise<void>;
   selectPlaylist: (playlistId: string) => Promise<void>;
-  selectedPlaylistId: string | undefined;
   gameData: GameResponse | null;
   refreshGameData: () => Promise<void>;
 };
@@ -35,7 +36,6 @@ export type UsePlaylistReturn = {
 export function usePlaylist(): UsePlaylistReturn {
   const [playlists, setPlaylists] = useState<Array<{ id: string; name: string }>>([]);
   const [error, setError] = useState<Error | null>(null);
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>();
   const [gameData, setGameData] = useState<GameResponse | null>(null);
 
   const searchPlaylists = async (query: string) => {
@@ -61,14 +61,13 @@ export function usePlaylist(): UsePlaylistReturn {
     }
   };
 
-  const selectPlaylist = async (playlistId: string) => {
+  const selectPlaylist = async (_playlistId: string) => {
     try {
-      const response = await fetch(`/api/spotify/playlists/${playlistId}`);
+      const response = await fetch(`/api/admin/games/${format(new Date(), 'yyyy-MM-dd')}`);
       if (!response.ok) {
-        throw new Error('Failed to get playlist');
+        throw new Error('Failed to get game data');
       }
       const data = await response.json();
-      setSelectedPlaylistId(playlistId);
       setGameData(data);
       setError(null);
     } catch (err) {
@@ -78,9 +77,8 @@ export function usePlaylist(): UsePlaylistReturn {
   };
 
   const refreshGameData = async () => {
-    if (!selectedPlaylistId) return;
     try {
-      const response = await fetch(`/api/spotify/playlists/${selectedPlaylistId}`);
+      const response = await fetch(`/api/admin/games/${format(new Date(), 'yyyy-MM-dd')}`);
       if (!response.ok) {
         throw new Error('Failed to refresh game data');
       }
@@ -98,7 +96,6 @@ export function usePlaylist(): UsePlaylistReturn {
     error,
     searchPlaylists,
     selectPlaylist,
-    selectedPlaylistId,
     gameData,
     refreshGameData,
   };

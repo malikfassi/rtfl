@@ -23,7 +23,6 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
   const {
     error: playlistError,
     searchPlaylists,
-    selectPlaylist,
     gameData: playlistData,
     playlists,
     refreshGameData
@@ -34,35 +33,21 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
   const [error, setError] = useState<Error | null>(null);
   const [overrideSongId, setOverrideSongId] = useState<string>(initialGameData?.overrideSongId || '');
   const [browserMode, setBrowserMode] = useState<BrowserMode>('none');
-  const [lyrics, setLyrics] = useState<string | null>(null);
-  const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
 
-  // Keep overrideSongId in sync with initialGameData
+  // Load initial game data
   useEffect(() => {
-    setOverrideSongId(initialGameData?.overrideSongId || '');
-  }, [initialGameData?.overrideSongId]);
+    if (initialGameData?.playlistId) {
+      refreshGameData().catch(console.error);
+    }
+  }, [initialGameData?.playlistId]); // Only refresh when playlistId changes
 
-  // Fetch lyrics when song changes
+  // Keep overrideSongId in sync with game data
   useEffect(() => {
-    const fetchLyrics = async () => {
-      if (!playlistData?.selectedTrack) return;
-      
-      setIsLoadingLyrics(true);
-      try {
-        const response = await fetch(`/api/genius/lyrics?artist=${encodeURIComponent(playlistData.selectedTrack.artists[0])}&title=${encodeURIComponent(playlistData.selectedTrack.name)}`);
-        if (!response.ok) throw new Error('Failed to fetch lyrics');
-        const data = await response.json();
-        setLyrics(data.lyrics);
-      } catch (err) {
-        console.error('Failed to fetch lyrics:', err);
-        setLyrics(null);
-      } finally {
-        setIsLoadingLyrics(false);
-      }
-    };
-
-    fetchLyrics();
-  }, [playlistData?.selectedTrack]);
+    const currentOverride = playlistData?.overrideSongId || initialGameData?.overrideSongId || '';
+    if (currentOverride !== overrideSongId) {
+      setOverrideSongId(currentOverride);
+    }
+  }, [playlistData?.overrideSongId, initialGameData?.overrideSongId, overrideSongId]);
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query) return;
@@ -80,7 +65,7 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
       setError(null);
 
       const response = await fetch(`/api/admin/games/${format(date, 'yyyy-MM-dd')}`, {
-        method: initialGameData ? 'PUT' : 'POST',
+        method: playlistData ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           playlistId,
@@ -91,7 +76,6 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
       if (!response.ok) throw new Error('Failed to save game');
 
       await refreshGameData();
-      await selectPlaylist(playlistId);
       setBrowserMode('none');
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to save game'));
@@ -215,7 +199,7 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
       <div className="bg-white rounded-lg shadow p-6 space-y-6">
         <div className="flex justify-between items-center border-b pb-4">
           <h3 className="text-lg font-semibold">Game Configuration</h3>
-          {initialGameData && (
+          {playlistData && (
             <button
               onClick={handleDelete}
               disabled={isSaving}
@@ -234,14 +218,14 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
             <div className="space-y-3">
               <div>
                 <span className="text-sm text-gray-500">Game ID:</span>
-                <span className="ml-2 font-mono">{initialGameData?.id ?? '<Generated after creation>'}</span>
+                <span className="ml-2 font-mono">{playlistData?.id ?? '<Generated after creation>'}</span>
               </div>
 
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">Random Seed:</span>
-                  <span className="font-mono">{initialGameData?.randomSeed ?? '<Generated after creation>'}</span>
-                  {initialGameData && (
+                  <span className="font-mono">{playlistData?.randomSeed ?? '<Generated after creation>'}</span>
+                  {playlistData && (
                     <button
                       onClick={handleRegenerateRandomSeed}
                       disabled={isSaving}
@@ -259,21 +243,22 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
                   onClick={() => setBrowserMode(browserMode === 'playlist' ? 'none' : 'playlist')}
                   className="ml-2 text-blue-500 hover:underline block"
                 >
-                  {playlistData?.playlist?.name ?? initialGameData?.playlistId ?? '<Select from browser below>'}
+                  {playlistData?.playlist?.name || '<Select from browser below>'}
                 </button>
-                <span className="text-xs text-gray-400 ml-2">ID: {initialGameData?.playlistId ?? 'N/A'}</span>
+                <span className="text-xs text-gray-400 ml-2">ID: {playlistData?.playlistId ?? 'N/A'}</span>
               </div>
 
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">Selected Song:</span>
-                  <button
-                    onClick={() => setBrowserMode(browserMode === 'song' ? 'none' : 'song')}
-                    disabled={!initialGameData}
-                    className="text-blue-500 hover:underline disabled:opacity-50 disabled:no-underline"
-                  >
-                    {overrideSongId ? 'Change Override' : 'Set Override'}
-                  </button>
+                  {playlistData && (
+                    <button
+                      onClick={() => setBrowserMode(browserMode === 'song' ? 'none' : 'song')}
+                      className="text-blue-500 hover:underline"
+                    >
+                      {overrideSongId ? 'Change Override' : 'Set Override'}
+                    </button>
+                  )}
                   {overrideSongId && (
                     <button
                       onClick={handleUseRandomSeed}
@@ -287,6 +272,7 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
                 {playlistData?.selectedTrack && (
                   <div className="mt-1 text-sm text-gray-600">
                     {playlistData.selectedTrack.name} - {playlistData.selectedTrack.artists.join(', ')}
+                    {overrideSongId && <span className="text-xs text-blue-500 ml-2">(Override)</span>}
                   </div>
                 )}
               </div>
@@ -297,42 +283,47 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
           <div className="space-y-4">
             <h4 className="font-medium text-gray-600">Song Preview</h4>
             
-            {playlistData?.selectedTrack ? (
+            {playlistData ? (
               <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h5 className="font-medium mb-2">{playlistData.selectedTrack.name}</h5>
-                  <p className="text-sm text-gray-600 mb-4">by {playlistData.selectedTrack.artists.join(', ')}</p>
-                  {playlistData.selectedTrack.previewUrl ? (
-                    <audio 
-                      controls 
-                      src={playlistData.selectedTrack.previewUrl} 
-                      className="w-full"
-                    />
-                  ) : (
-                    <p className="text-sm text-gray-500">No preview available</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <h5 className="font-medium">Lyrics</h5>
-                  {isLoadingLyrics ? (
-                    <div className="animate-pulse space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-3/4" />
-                      <div className="h-4 bg-gray-200 rounded w-1/2" />
-                      <div className="h-4 bg-gray-200 rounded w-2/3" />
+                {playlistData.selectedTrack ? (
+                  <>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <h5 className="font-medium mb-2">{playlistData.selectedTrack.name}</h5>
+                      <p className="text-sm text-gray-600 mb-4">
+                        by {playlistData.selectedTrack.artists.join(', ')}
+                        {overrideSongId && <span className="text-xs text-blue-500 ml-2">(Override)</span>}
+                      </p>
+                      {playlistData.selectedTrack.previewUrl ? (
+                        <audio 
+                          controls 
+                          src={playlistData.selectedTrack.previewUrl} 
+                          className="w-full"
+                        />
+                      ) : (
+                        <p className="text-sm text-gray-500">No preview available</p>
+                      )}
                     </div>
-                  ) : lyrics ? (
-                    <pre className="whitespace-pre-wrap text-sm text-gray-600 max-h-48 overflow-y-auto">
-                      {lyrics}
-                    </pre>
-                  ) : (
-                    <p className="text-sm text-gray-500">No lyrics available</p>
-                  )}
-                </div>
+
+                    <div className="space-y-2">
+                      <h5 className="font-medium">Lyrics</h5>
+                      {playlistData.selectedTrack.lyrics ? (
+                        <pre className="whitespace-pre-wrap text-sm text-gray-600 max-h-48 overflow-y-auto">
+                          {playlistData.selectedTrack.lyrics}
+                        </pre>
+                      ) : (
+                        <p className="text-sm text-gray-500">No lyrics available</p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-sm text-gray-500">
+                    Loading song data...
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-sm text-gray-500">
-                No song selected
+                No game created yet
               </div>
             )}
           </div>
@@ -346,15 +337,15 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
             <PlaylistBrowser
               onSearch={handleSearch}
               onSelect={handlePlaylistSelect}
-              selectedPlaylistId={initialGameData?.playlistId}
+              selectedPlaylistId={playlistData?.playlistId}
               gameData={playlistData}
               playlists={playlists}
               isLoading={isSearching || isSaving}
             />
           ) : (
-            initialGameData && (
+            playlistData && (
               <PlaylistSongBrowser
-                playlistId={initialGameData.playlistId}
+                playlistId={playlistData.playlistId}
                 onSelect={handleSongSelect}
                 selectedSongId={overrideSongId}
                 isLoading={isSaving}
