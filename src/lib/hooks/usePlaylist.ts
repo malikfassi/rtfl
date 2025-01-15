@@ -29,6 +29,7 @@ export type UsePlaylistReturn = {
   selectPlaylist: (playlistId: string) => Promise<void>;
   selectedPlaylistId: string | undefined;
   gameData: GameResponse | null;
+  refreshGameData: () => Promise<void>;
 };
 
 export function usePlaylist(): UsePlaylistReturn {
@@ -76,6 +77,22 @@ export function usePlaylist(): UsePlaylistReturn {
     }
   };
 
+  const refreshGameData = async () => {
+    if (!selectedPlaylistId) return;
+    try {
+      const response = await fetch(`/api/spotify/playlists/${selectedPlaylistId}`);
+      if (!response.ok) {
+        throw new Error('Failed to refresh game data');
+      }
+      const data = await response.json();
+      setGameData(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to refresh game data'));
+      throw err;
+    }
+  };
+
   return {
     playlists,
     error,
@@ -83,5 +100,6 @@ export function usePlaylist(): UsePlaylistReturn {
     selectPlaylist,
     selectedPlaylistId,
     gameData,
+    refreshGameData,
   };
 } 
