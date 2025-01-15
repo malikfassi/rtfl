@@ -2,41 +2,57 @@ import { z } from 'zod';
 import { createGuess, getGameByDate, getCachedSpotifyTrack, getCachedLyricsBySpotifyId } from '@/lib/db';
 import { computeGameState, computeRevealState, updateGameState } from '@/lib/game/state';
 import type { GuessResult } from '@/types/api';
+import { type NextRequest } from 'next/server';
+
+type RouteContext = {
+  params: { date: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
 
 const guessSchema = z.object({
   word: z.string().min(1),
 });
 
 export async function POST(
-  request: Request,
-  { params }: { params: { date: string } }
+  request: NextRequest,
+  context: RouteContext
 ): Promise<Response> {
   try {
-    const body = await request.json();
-    const { word } = guessSchema.parse(body);
+    const { date } = context.params;
 
-    const game = await getGameByDate(new Date(params.date));
+    // Parse and validate request body
+    const body = await request.json();
+    const result = guessSchema.safeParse(body);
+    if (!result.success) {
+      return Response.json(
+        { error: 'Invalid request body', details: result.error.issues },
+        { status: 400 },
+      );
+    }
+
+    // Get game with guesses
+    const game = await getGameByDate(new Date(date));
     if (!game) {
-      return new Response('Game not found', { status: 404 });
+      return Response.json({ error: 'Game not found' }, { status: 404 });
     }
 
     // Get song data from cache
     const cachedTrack = await getCachedSpotifyTrack(game.overrideSongId ?? game.playlistId);
     if (!cachedTrack) {
-      return new Response('Song data not found', { status: 404 });
+      return Response.json({ error: 'Song data not found' }, { status: 404 });
     }
 
     const songData = JSON.parse(cachedTrack.data);
     const cachedLyrics = await getCachedLyricsBySpotifyId(songData.id);
     if (!cachedLyrics) {
-      return new Response('Lyrics not found', { status: 404 });
+      return Response.json({ error: 'Lyrics not found' }, { status: 404 });
     }
 
     // Create guess
     const guess = await createGuess({
       gameId: game.id,
       userId: 'test-user-id', // TODO: Get from auth
-      word,
+      word: result.data.word,
       wasCorrect: false, // Will be updated after checking
     });
 
@@ -53,7 +69,7 @@ export async function POST(
     );
 
     // Update state with new guess
-    const updatedState = updateGameState(gameState, word);
+    const updatedState = updateGameState(gameState, result.data.word);
     const revealState = computeRevealState(
       updatedState.maskedTitle,
       updatedState.maskedArtist,
@@ -89,14 +105,9 @@ export async function POST(
       },
     };
 
-    return new Response(JSON.stringify(response), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return Response.json(response);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return new Response('Invalid request body', { status: 400 });
-    }
     console.error('Failed to submit guess:', error);
-    return new Response('Internal server error', { status: 500 });
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

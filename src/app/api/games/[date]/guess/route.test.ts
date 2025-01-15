@@ -55,6 +55,11 @@ describe('POST /api/games/[date]/guess', () => {
     guesses: [],
   };
 
+  const mockContext = {
+    params: { date: mockDate },
+    searchParams: {},
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     (getGameByDate as jest.Mock).mockResolvedValue(mockGame);
@@ -87,7 +92,7 @@ describe('POST /api/games/[date]/guess', () => {
       }),
     });
 
-    const response = await POST(request, { params: { date: mockDate } });
+    const response = await POST(request, mockContext);
     expect(response.status).toBe(200);
     
     const data = await response.json();
@@ -103,7 +108,7 @@ describe('POST /api/games/[date]/guess', () => {
       }),
     });
 
-    const response = await POST(request, { params: { date: mockDate } });
+    const response = await POST(request, mockContext);
     expect(response.status).toBe(200);
     
     const data = await response.json();
@@ -120,7 +125,7 @@ describe('POST /api/games/[date]/guess', () => {
       }),
     });
 
-    const response = await POST(request, { params: { date: mockDate } });
+    const response = await POST(request, mockContext);
     expect(response.status).toBe(400);
   });
 
@@ -130,12 +135,11 @@ describe('POST /api/games/[date]/guess', () => {
     const request = new NextRequest('http://localhost:3000/api/games/2025-01-14/guess', {
       method: 'POST',
       body: JSON.stringify({
-        userId: mockUserId,
         word: 'Test',
       }),
     });
 
-    const response = await POST(request, { params: { date: mockDate } });
+    const response = await POST(request, mockContext);
     expect(response.status).toBe(404);
   });
 
@@ -149,7 +153,7 @@ describe('POST /api/games/[date]/guess', () => {
       }),
     });
 
-    const response = await POST(request, { params: { date: mockDate } });
+    const response = await POST(request, mockContext);
     expect(response.status).toBe(404);
   });
 
@@ -163,7 +167,7 @@ describe('POST /api/games/[date]/guess', () => {
       }),
     });
 
-    const response = await POST(request, { params: { date: mockDate } });
+    const response = await POST(request, mockContext);
     expect(response.status).toBe(404);
   });
 });

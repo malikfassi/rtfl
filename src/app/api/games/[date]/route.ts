@@ -1,28 +1,36 @@
-import { NextResponse } from 'next/server';
+import { type NextRequest } from 'next/server';
 import { getGameByDate, getCachedSpotifyTrack, getCachedLyricsBySpotifyId } from '@/lib/db';
 import { computeGameState, computeRevealState } from '@/lib/game/state';
 import type { GameWithProgress } from '@/types/api';
 
+type RouteContext = {
+  params: { date: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
 export async function GET(
-  _request: Request,
-  { params }: { params: { date: string } }
+  request: NextRequest,
+  context: RouteContext
 ): Promise<Response> {
   try {
-    const game = await getGameByDate(new Date(params.date));
+    const { date } = context.params;
+
+    // Get game with guesses
+    const game = await getGameByDate(new Date(date));
     if (!game) {
-      return new Response('Game not found', { status: 404 });
+      return Response.json({ error: 'Game not found' }, { status: 404 });
     }
 
     // Get song data from cache
     const cachedTrack = await getCachedSpotifyTrack(game.overrideSongId ?? game.playlistId);
     if (!cachedTrack) {
-      return new Response('Song data not found', { status: 404 });
+      return Response.json({ error: 'Song data not found' }, { status: 404 });
     }
 
     const songData = JSON.parse(cachedTrack.data);
     const cachedLyrics = await getCachedLyricsBySpotifyId(songData.id);
     if (!cachedLyrics) {
-      return new Response('Lyrics not found', { status: 404 });
+      return Response.json({ error: 'Lyrics not found' }, { status: 404 });
     }
 
     // Compute game state
@@ -84,9 +92,9 @@ export async function GET(
       },
     };
 
-    return NextResponse.json(response);
+    return Response.json(response);
   } catch (error) {
     console.error('Failed to get game:', error);
-    return new Response('Internal server error', { status: 500 });
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

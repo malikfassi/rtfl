@@ -28,6 +28,22 @@ export interface GameState {
   isComplete: boolean;
 }
 
+/**
+ * Configuration for game win conditions
+ */
+export interface WinConditionConfig {
+  /** Minimum percentage of lyrics that must be revealed (0-1) */
+  minLyricsProgress: number;
+  /** Whether both title AND artist must be complete */
+  requireBothTitleAndArtist: boolean;
+}
+
+/** Default win condition configuration */
+export const DEFAULT_WIN_CONDITIONS: WinConditionConfig = {
+  minLyricsProgress: 0.8,
+  requireBothTitleAndArtist: true,
+};
+
 export function computeGuessCorrectness(
   guess: string,
   content: SpotifyTrack,
@@ -37,10 +53,13 @@ export function computeGuessCorrectness(
   const normalizedArtist = content.artist.toLowerCase();
   const normalizedLyrics = content.lyrics?.toLowerCase() ?? '';
 
+  // Create word boundary regex for exact word matching
+  const wordRegex = new RegExp(`\\b${normalizedWord}\\b`);
+
   return (
-    normalizedTitle.includes(normalizedWord) ||
-    normalizedArtist.includes(normalizedWord) ||
-    normalizedLyrics.includes(normalizedWord)
+    wordRegex.test(normalizedTitle) ||
+    wordRegex.test(normalizedArtist) ||
+    wordRegex.test(normalizedLyrics)
   );
 }
 
@@ -61,7 +80,8 @@ export function computeGameState(
   const { titleArtistProgress, lyricsProgress, isComplete } = computeProgress(
     maskedTitle,
     maskedArtist,
-    maskedLyrics
+    maskedLyrics,
+    { minLyricsProgress: 0.8, requireBothTitleAndArtist: false }
   );
 
   const overallProgress = Math.max(titleArtistProgress, lyricsProgress);
@@ -151,6 +171,7 @@ export function computeProgress(
   maskedTitle: MaskedContent,
   maskedArtist: MaskedContent,
   maskedLyrics: MaskedContent | null,
+  config: WinConditionConfig = DEFAULT_WIN_CONDITIONS
 ): {
   titleArtistProgress: number;
   lyricsProgress: number;
@@ -167,8 +188,10 @@ export function computeProgress(
     ? maskedLyrics.revealedCount / maskedLyrics.words.length
     : 0;
 
-  // Win condition: (title AND artist complete) OR (80% lyrics found)
-  const isComplete = (titleComplete && artistComplete) || lyricsProgress >= 0.8;
+  // Win condition: (title AND artist complete) OR (configured % lyrics found)
+  const isComplete = config.requireBothTitleAndArtist
+    ? (titleComplete && artistComplete)
+    : (titleComplete || artistComplete) || lyricsProgress >= config.minLyricsProgress;
 
   return {
     titleArtistProgress,

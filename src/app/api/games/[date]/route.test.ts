@@ -28,6 +28,11 @@ jest.mock('@spotify/web-api-ts-sdk', () => ({
 }));
 
 describe('GET /api/games/[date]', () => {
+  const mockContext = {
+    params: { date: '2024-01-14' },
+    searchParams: {},
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -90,7 +95,7 @@ describe('GET /api/games/[date]', () => {
     mockGetPlaylistItems.mockResolvedValue(mockPlaylist);
 
     const request = new NextRequest('http://localhost:3000/api/games/2024-01-14');
-    const response = await GET(request, { params: { date: '2024-01-14' } });
+    const response = await GET(request, mockContext);
     const data = await response.json();
 
     expect(response.status).toBe(200);

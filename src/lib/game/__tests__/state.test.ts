@@ -131,6 +131,14 @@ describe('Game State Management', () => {
           timestamp: new Date(),
           wasCorrect: true,
         },
+        {
+          id: '5',
+          userId: 'user1',
+          gameId: 'game1',
+          word: 'jumps',
+          timestamp: new Date(),
+          wasCorrect: true,
+        },
       ] as Array<Guess & { wasCorrect: boolean }>;
 
       const mockContent = {
