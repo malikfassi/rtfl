@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { usePlaylist } from '@/lib/hooks/usePlaylist';
 import { PlaylistBrowser } from './PlaylistBrowser';
+import { PlaylistSongBrowser } from './PlaylistSongBrowser';
 import { format } from 'date-fns';
 
 interface GameEditorProps {
@@ -16,6 +17,8 @@ interface GameEditorProps {
   } | null;
 }
 
+type BrowserMode = 'none' | 'playlist' | 'song';
+
 export function GameEditor({ date, gameData: initialGameData }: GameEditorProps) {
   const {
     error: playlistError,
@@ -23,13 +26,20 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
     selectPlaylist,
     selectedPlaylistId,
     gameData: playlistData,
-    playlists
+    playlists,
+    refreshGameData
   } = usePlaylist();
 
   const [isSaving, setIsSaving] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [overrideSongId, setOverrideSongId] = useState<string>(initialGameData?.overrideSongId || '');
+  const [browserMode, setBrowserMode] = useState<BrowserMode>('none');
+
+  // Keep overrideSongId in sync with initialGameData
+  useEffect(() => {
+    setOverrideSongId(initialGameData?.overrideSongId || '');
+  }, [initialGameData?.overrideSongId]);
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query) {
@@ -62,10 +72,41 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
         throw new Error('Failed to save game');
       }
 
-      // After successful save, select the playlist to update the UI
+      // After successful save, refresh game data and select the playlist
+      await refreshGameData();
       await selectPlaylist(playlistId);
+      setBrowserMode('none');
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to save game'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSongSelect = async (songId: string) => {
+    try {
+      setIsSaving(true);
+      setError(null);
+
+      const response = await fetch(`/api/admin/games/${format(date, 'yyyy-MM-dd')}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playlistId: initialGameData!.playlistId,
+          overrideSongId: songId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update override song');
+      }
+
+      // After successful save, refresh game data
+      await refreshGameData();
+      setOverrideSongId(songId);
+      setBrowserMode('none');
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to update override song'));
     } finally {
       setIsSaving(false);
     }
@@ -85,6 +126,9 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
       if (!response.ok) {
         throw new Error('Failed to delete game');
       }
+
+      // After successful delete, refresh game data
+      await refreshGameData();
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to delete game'));
     } finally {
@@ -112,6 +156,9 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
       if (!response.ok) {
         throw new Error('Failed to regenerate random seed');
       }
+
+      // After successful save, refresh game data
+      await refreshGameData();
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to regenerate random seed'));
     } finally {
@@ -158,46 +205,42 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
               </div>
               <div>
                 <span className="text-sm text-gray-500">Playlist ID:</span>
-                <span className="ml-2">{initialGameData?.playlistId ?? '<Select from browser below>'}</span>
+                <button
+                  onClick={() => setBrowserMode(browserMode === 'playlist' ? 'none' : 'playlist')}
+                  className="ml-2 text-blue-500 hover:underline"
+                >
+                  {initialGameData?.playlistId ?? '<Select from browser below>'}
+                </button>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500">Override Song ID:</span>
-                <input
-                  type="text"
-                  value={overrideSongId}
-                  onChange={(e) => setOverrideSongId(e.target.value)}
-                  placeholder="None"
-                  className="ml-2 px-2 py-1 border rounded text-sm"
-                />
+                <button
+                  onClick={() => setBrowserMode(browserMode === 'song' ? 'none' : 'song')}
+                  disabled={!initialGameData}
+                  className="ml-2 text-blue-500 hover:underline disabled:opacity-50 disabled:no-underline"
+                >
+                  {overrideSongId || 'None'}
+                </button>
               </div>
             </div>
             
             <div className="space-y-2">
-              <h4 className="font-medium text-gray-600">Computed Data</h4>
+              <h4 className="font-medium text-gray-600">Selected Song</h4>
               <div>
-                <span className="text-sm text-gray-500">Selected Song Name:</span>
+                <span className="text-sm text-gray-500">Name:</span>
                 <span className="ml-2">{playlistData?.selectedTrack?.name ?? 'N/A'}</span>
               </div>
               <div>
-                <span className="text-sm text-gray-500">Selected Song ID:</span>
+                <span className="text-sm text-gray-500">ID:</span>
                 <span className="ml-2">{playlistData?.selectedTrack?.id ?? 'N/A'}</span>
               </div>
               <div>
                 <span className="text-sm text-gray-500">Artists:</span>
                 <span className="ml-2">{playlistData?.selectedTrack?.artists?.join(', ') ?? 'N/A'}</span>
               </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t">
-            <h4 className="font-medium text-gray-600 mb-2">From Cache</h4>
-            <div>
-              <span className="text-sm text-gray-500">Playlist Name:</span>
-              <span className="ml-2">{playlistData?.playlist?.name ?? 'N/A'}</span>
-            </div>
-            <div>
-              <span className="text-sm text-gray-500">Playlist Description:</span>
-              <span className="ml-2">{playlistData?.playlist?.description ?? 'N/A'}</span>
+              {playlistData?.selectedTrack?.previewUrl && (
+                <audio controls src={playlistData.selectedTrack.previewUrl} className="w-full" />
+              )}
             </div>
           </div>
         </div>
@@ -215,14 +258,25 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
         </div>
       )}
 
-      <PlaylistBrowser
-        onSearch={handleSearch}
-        onSelect={handlePlaylistSelect}
-        selectedPlaylistId={selectedPlaylistId}
-        gameData={playlistData}
-        playlists={playlists}
-        isLoading={isSearching}
-      />
+      {browserMode === 'playlist' && (
+        <PlaylistBrowser
+          onSearch={handleSearch}
+          onSelect={handlePlaylistSelect}
+          selectedPlaylistId={selectedPlaylistId}
+          gameData={playlistData}
+          playlists={playlists}
+          isLoading={isSearching}
+        />
+      )}
+
+      {browserMode === 'song' && initialGameData && (
+        <PlaylistSongBrowser
+          playlistId={initialGameData.playlistId}
+          onSelect={handleSongSelect}
+          selectedSongId={overrideSongId || undefined}
+          isLoading={isSaving}
+        />
+      )}
     </div>
   );
 } 
