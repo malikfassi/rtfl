@@ -1,46 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { CacheService } from '@/lib/cache';
 import { z } from 'zod';
 
-const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD').transform(val => val);
+const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD');
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ date: string }> },
-): Promise<NextResponse> {
+const bodySchema = z.object({
+  playlistId: z.string(),
+  randomSeed: z.string(),
+  overrideSongId: z.string().nullable().optional(),
+});
+
+type RouteRequest = NextRequest | { json(): Promise<Record<string, unknown>>; nextUrl: URL };
+
+export async function GET(request: RouteRequest, { params }: { params: { date: string } }) {
   try {
-    const { date } = await context.params;
-    const parsedDate = dateSchema.parse(date);
+    const parsedDate = dateSchema.parse(params.date);
 
-    const game = await prisma.game.findFirst({
+    const game = await prisma.game.findUnique({
       where: { date: new Date(parsedDate) },
     });
 
     if (!game) {
-      return NextResponse.json({ error: 'Game not found for this date' }, { status: 404 });
+      return NextResponse.json({ error: 'Game not found' }, { status: 404 });
     }
 
-    const cacheService = new CacheService();
-    const playlist = await cacheService.getPlaylist(game.playlistId);
-    
-    if (!playlist || !playlist.tracks.length) {
-      return NextResponse.json({ error: 'Playlist not found or empty' }, { status: 404 });
-    }
-
-    const selectedTrack = playlist.tracks[0]; // TODO: Use random seed to select track
-    const lyrics = await cacheService.getLyricsBySpotifyId(selectedTrack.id);
-
-    if (!lyrics) {
-      return NextResponse.json({ error: 'Lyrics not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({
-      ...game,
-      playlist,
-      selectedTrack,
-      lyrics,
-    });
+    return NextResponse.json(game);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
@@ -50,44 +34,18 @@ export async function GET(
   }
 }
 
-const createGameSchema = z.object({
-  playlistId: z.string(),
-  randomSeed: z.string(),
-});
-
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ date: string }> },
-): Promise<NextResponse> {
+export async function POST(request: RouteRequest, { params }: { params: { date: string } }) {
   try {
-    const { date } = await context.params;
-    console.log('POST request received for date:', date);
-    
-    const parsedDate = dateSchema.parse(date);
-    console.log('Date validation passed:', parsedDate);
-    
-    let body;
-    try {
-      body = await request.json();
-    } catch (error) {
-      console.error('Failed to parse request body:', error);
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
-    }
-    console.log('Request body:', body);
-    
-    const { playlistId, randomSeed } = createGameSchema.parse(body);
-    console.log('Body validation passed:', { playlistId, randomSeed });
+    const parsedDate = dateSchema.parse(params.date);
+    const body = await request.json();
+    const { playlistId, randomSeed } = bodySchema.parse(body);
 
-    const existingGame = await prisma.game.findFirst({
+    const existingGame = await prisma.game.findUnique({
       where: { date: new Date(parsedDate) },
     });
 
     if (existingGame) {
-      console.log('Game already exists for date:', parsedDate);
-      return NextResponse.json(
-        { error: 'Game already exists for this date' },
-        { status: 409 },
-      );
+      return NextResponse.json({ error: 'Game already exists for this date' }, { status: 400 });
     }
 
     const game = await prisma.game.create({
@@ -97,12 +55,10 @@ export async function POST(
         randomSeed,
       },
     });
-    console.log('Game created successfully:', game);
 
     return NextResponse.json(game);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error('Validation error:', error.errors);
       return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
     }
     console.error('Failed to create game:', error);
@@ -110,33 +66,27 @@ export async function POST(
   }
 }
 
-const updateGameSchema = z.object({
-  playlistId: z.string().optional(),
-  randomSeed: z.string().optional(),
-  overrideSongId: z.string().nullable().optional(),
-});
-
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ date: string }> },
-): Promise<NextResponse> {
+export async function PUT(request: RouteRequest, { params }: { params: { date: string } }) {
   try {
-    const { date } = await context.params;
-    const parsedDate = dateSchema.parse(date);
+    const parsedDate = dateSchema.parse(params.date);
     const body = await request.json();
-    const updates = updateGameSchema.parse(body);
+    const { playlistId, randomSeed, overrideSongId } = bodySchema.parse(body);
 
-    const existingGame = await prisma.game.findFirst({
+    const existingGame = await prisma.game.findUnique({
       where: { date: new Date(parsedDate) },
     });
 
     if (!existingGame) {
-      return NextResponse.json({ error: 'Game not found for this date' }, { status: 404 });
+      return NextResponse.json({ error: 'Game not found' }, { status: 404 });
     }
 
     const game = await prisma.game.update({
-      where: { id: existingGame.id },
-      data: updates,
+      where: { date: new Date(parsedDate) },
+      data: {
+        playlistId,
+        randomSeed,
+        overrideSongId,
+      },
     });
 
     return NextResponse.json(game);
@@ -144,6 +94,7 @@ export async function PUT(
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
     }
+    console.error('Failed to update game:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

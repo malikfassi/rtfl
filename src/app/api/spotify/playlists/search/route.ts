@@ -4,8 +4,7 @@ import { type SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('query');
+    const query = request.nextUrl.searchParams.get('query');
 
     if (!query) {
       return NextResponse.json({ error: 'Invalid search parameters' }, { status: 400 });
@@ -14,8 +13,8 @@ export async function GET(request: NextRequest) {
     const spotifyApi = await getSpotifyApi();
 
     // Limit must be one of the specific values allowed by Spotify SDK
-    const limit = Math.min(Math.max(Number(searchParams.get('limit')) || 20, 1), 50) as 20;
-    const offset = Number(searchParams.get('offset')) || 0;
+    const limit = Math.min(Math.max(Number(request.nextUrl.searchParams.get('limit')) || 20, 1), 50) as 20;
+    const offset = Number(request.nextUrl.searchParams.get('offset')) || 0;
 
     const searchResults = await spotifyApi.search(query, ['playlist'], undefined, limit, offset);
 

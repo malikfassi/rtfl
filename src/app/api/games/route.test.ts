@@ -1,6 +1,7 @@
-import { NextRequest } from 'next/server';
+import { createMockRequest } from '@/lib/test/mocks';
 import { GET } from './route';
 import { prisma } from '@/lib/prisma';
+import { type NextRequest } from 'next/server';
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
@@ -30,7 +31,7 @@ describe('GET /api/games', () => {
 
     (prisma.game.findMany as jest.Mock).mockResolvedValue(mockGames);
 
-    const request = new NextRequest('http://localhost:3000/api/games');
+    const request = createMockRequest('http://localhost:3000/api/games') as unknown as NextRequest;
     const response = await GET(request);
     const data = await response.json();
 
@@ -48,7 +49,7 @@ describe('GET /api/games', () => {
   it('should handle database errors', async () => {
     (prisma.game.findMany as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-    const request = new NextRequest('http://localhost:3000/api/games');
+    const request = createMockRequest('http://localhost:3000/api/games') as unknown as NextRequest;
     const response = await GET(request);
     const data = await response.json();
 
@@ -59,7 +60,7 @@ describe('GET /api/games', () => {
   it('should handle empty game list', async () => {
     (prisma.game.findMany as jest.Mock).mockResolvedValue([]);
 
-    const request = new NextRequest('http://localhost:3000/api/games');
+    const request = createMockRequest('http://localhost:3000/api/games') as unknown as NextRequest;
     const response = await GET(request);
     const data = await response.json();
 

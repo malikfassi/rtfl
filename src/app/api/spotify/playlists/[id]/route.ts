@@ -1,4 +1,4 @@
-import { type NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getSpotifyApi } from '@/lib/spotify/auth';
 
 type RouteContext = {
@@ -6,24 +6,37 @@ type RouteContext = {
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export async function GET(
-  request: NextRequest,
-  context: RouteContext
-): Promise<Response> {
+export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
-    const { id } = context.params;
-    
-    // Check for empty playlist ID
-    if (!id || id.trim() === '') {
-      return Response.json({ error: 'Failed to get playlist' }, { status: 500 });
+    if (!params.id) {
+      return NextResponse.json({ error: 'Failed to get playlist' }, { status: 500 });
     }
 
-    const spotify = await getSpotifyApi();
-    const playlist = await spotify.playlists.getPlaylist(id);
+    const spotifyApi = await getSpotifyApi();
+    const playlist = await spotifyApi.playlists.getPlaylist(params.id);
 
-    return Response.json(playlist);
+    if (!playlist) {
+      return NextResponse.json({ error: 'Playlist not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      id: playlist.id,
+      name: playlist.name,
+      description: playlist.description,
+      owner: playlist.owner ? {
+        id: playlist.owner.id,
+        name: playlist.owner.display_name,
+      } : null,
+      images: playlist.images || [],
+      totalTracks: playlist.tracks?.total || 0,
+      tracks: playlist.tracks?.items.map(item => ({
+        id: item.track.id,
+        name: item.track.name,
+        artists: item.track.artists.map(artist => artist.name),
+      })) || [],
+    });
   } catch (error) {
     console.error('Failed to get playlist:', error);
-    return Response.json({ error: 'Failed to get playlist' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to get playlist' }, { status: 500 });
   }
 }

@@ -1,143 +1,130 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import type { Game } from '@prisma/client';
-import { format } from 'date-fns';
-import { PlaylistBrowser } from './PlaylistBrowser';
+import { useState } from 'react';
 import { usePlaylist } from '@/lib/hooks/usePlaylist';
+import { PlaylistBrowser } from './PlaylistBrowser';
+import { format } from 'date-fns';
 
 interface GameEditorProps {
   date: Date;
-  game: Game | null;
-  onSave: (date: string, playlistId: string) => Promise<void>;
-  onDelete: (date: string) => Promise<void>;
-  onRefreshSeed: (date: string) => Promise<void>;
-  isLoading?: boolean;
+  gameData: {
+    id: number;
+    date: Date;
+    playlistId: string;
+    randomSeed: number;
+    overrideSongId: string | null;
+  } | null;
 }
 
-export function GameEditor({
-  date,
-  game,
-  onSave,
-  onDelete,
-  onRefreshSeed,
-  isLoading = false,
-}: GameEditorProps) {
+export function GameEditor({ date, gameData: initialGameData }: GameEditorProps) {
   const {
-    selectedPlaylistId,
-    isLoading: playlistsLoading,
-    error: playlistsError,
+    error: playlistError,
     searchPlaylists,
     selectPlaylist,
+    selectedPlaylistId,
+    gameData,
+    playlists
   } = usePlaylist();
 
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  // Set initial playlist selection if game exists
-  useEffect(() => {
-    if (game) {
-      selectPlaylist(game.playlistId);
-    } else {
-      selectPlaylist('');
+  const handleSearch = async (query: string) => {
+    setIsSearching(true);
+    try {
+      await searchPlaylists(query);
+    } finally {
+      setIsSearching(false);
     }
-  }, [game, selectPlaylist]);
+  };
 
   const handleSave = async () => {
-    if (!selectedPlaylistId) {
-      setError('Please select a playlist');
-      return;
-    }
-
     try {
       setIsSaving(true);
       setError(null);
-      await onSave(format(date, 'yyyy-MM-dd'), selectedPlaylistId);
+
+      const response = await fetch(`/api/admin/games/${format(date, 'yyyy-MM-dd')}`, {
+        method: initialGameData ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playlistId: selectedPlaylistId,
+          randomSeed: Math.floor(Math.random() * 1000000),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save game');
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save game');
+      setError(err instanceof Error ? err : new Error('Failed to save game'));
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!game) return;
-    
-    try {
-      setIsSaving(true);
-      setError(null);
-      await onDelete(format(date, 'yyyy-MM-dd'));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete game');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    if (!initialGameData) return;
 
-  const handleRefreshSeed = async () => {
-    if (!game) return;
-    
     try {
       setIsSaving(true);
       setError(null);
-      await onRefreshSeed(format(date, 'yyyy-MM-dd'));
+
+      const response = await fetch(`/api/admin/games/${format(date, 'yyyy-MM-dd')}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete game');
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh seed');
+      setError(err instanceof Error ? err : new Error('Failed to delete game'));
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">
-          {game ? 'Edit Game' : 'Create Game'} - {format(date, 'MMMM d, yyyy')}
-        </h2>
-      </div>
-
-      <div className="space-y-6">
-        <PlaylistBrowser
-          selectedPlaylistId={selectedPlaylistId}
-          onSearch={searchPlaylists}
-          onSelect={selectPlaylist}
-          isLoading={playlistsLoading}
-          error={playlistsError}
-        />
-
-        {error && (
-          <div className="text-red-600 text-sm">{error}</div>
-        )}
-
-        <div className="flex gap-4">
-          <button
-            onClick={handleSave}
-            disabled={isLoading || isSaving || !selectedPlaylistId}
-            className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSaving ? 'Saving...' : (game ? 'Update Game' : 'Create Game')}
-          </button>
-
-          {game && (
-            <>
-              <button
-                onClick={handleRefreshSeed}
-                disabled={isLoading || isSaving}
-                className="py-2 px-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Refresh Seed
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isLoading || isSaving}
-                className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Delete Game
-              </button>
-            </>
-          )}
+    <div className="space-y-4">
+      {error && (
+        <div className="p-4 bg-red-100 text-red-700 rounded-md">
+          {error.message}
         </div>
+      )}
+      {playlistError && (
+        <div className="p-4 bg-red-100 text-red-700 rounded-md">
+          {playlistError.message}
+        </div>
+      )}
+
+      <div className="flex gap-4">
+        <button
+          onClick={handleSave}
+          disabled={isSaving || !selectedPlaylistId}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+        >
+          {isSaving ? 'Saving...' : initialGameData ? 'Update Game' : 'Create Game'}
+        </button>
+
+        {initialGameData && (
+          <button
+            onClick={handleDelete}
+            disabled={isSaving}
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
+          >
+            Delete Game
+          </button>
+        )}
       </div>
+
+      <PlaylistBrowser
+        onSearch={handleSearch}
+        onSelect={selectPlaylist}
+        selectedPlaylistId={selectedPlaylistId}
+        gameData={gameData}
+        playlists={playlists}
+        isLoading={isSearching}
+      />
     </div>
   );
 } 

@@ -1,6 +1,6 @@
-import { type NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getGameByDate, getCachedSpotifyTrack, getCachedLyricsBySpotifyId } from '@/lib/db';
-import { computeGameState, computeRevealState } from '@/lib/game/state';
+import { computeGameState } from '@/lib/game/state';
 import type { GameWithProgress } from '@/types/api';
 
 type RouteContext = {
@@ -8,93 +8,72 @@ type RouteContext = {
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export async function GET(
-  request: NextRequest,
-  context: RouteContext
-): Promise<Response> {
+export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
-    const { date } = context.params;
+    const date = new Date(params.date);
+    const game = await getGameByDate(date);
 
-    // Get game with guesses
-    const game = await getGameByDate(new Date(date));
     if (!game) {
-      return Response.json({ error: 'Game not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Game not found' }, { status: 404 });
     }
 
-    // Get song data from cache
-    const cachedTrack = await getCachedSpotifyTrack(game.overrideSongId ?? game.playlistId);
-    if (!cachedTrack) {
-      return Response.json({ error: 'Song data not found' }, { status: 404 });
+    const track = await getCachedSpotifyTrack(game.playlistId);
+
+    if (!track) {
+      return NextResponse.json({ error: 'Track not found' }, { status: 404 });
     }
 
-    const songData = JSON.parse(cachedTrack.data);
-    const cachedLyrics = await getCachedLyricsBySpotifyId(songData.id);
-    if (!cachedLyrics) {
-      return Response.json({ error: 'Lyrics not found' }, { status: 404 });
+    const lyrics = await getCachedLyricsBySpotifyId(track.spotifyId);
+
+    if (!lyrics) {
+      return NextResponse.json({ error: 'Lyrics not found' }, { status: 404 });
     }
 
-    // Compute game state
-    const gameState = computeGameState(
-      {
-        title: songData.name,
-        artist: songData.artists[0].name,
-        lyrics: cachedLyrics?.lyrics ?? null,
-        albumCover: songData.album?.images[0]?.url,
-        previewUrl: songData.preview_url,
-      },
-      game.guesses
-    );
+    const trackData = JSON.parse(track.data);
+    const gameState = computeGameState({
+      title: trackData.name,
+      artist: trackData.artists[0].name,
+      lyrics: lyrics.lyrics,
+      albumCover: trackData.album?.images[0]?.url,
+      previewUrl: trackData.preview_url,
+    }, game.guesses);
 
-    const revealState = computeRevealState(
-      gameState.maskedTitle,
-      gameState.maskedArtist,
-      gameState.maskedLyrics
-    );
+    const correctGuesses = game.guesses.filter(g => g.wasCorrect).length;
 
     const response: GameWithProgress = {
-      id: game.id,
+      ...game,
       date: game.date.toISOString(),
-      playlistId: game.playlistId,
-      overrideSongId: game.overrideSongId,
-      selectedTrackIndex: game.selectedTrackIndex,
       createdAt: game.createdAt.toISOString(),
       updatedAt: game.updatedAt.toISOString(),
-      guesses: game.guesses.map((guess) => ({
-        id: guess.id,
-        userId: guess.userId,
-        gameId: guess.gameId,
-        word: guess.word,
-        timestamp: guess.timestamp.toISOString(),
+      guesses: game.guesses.map((g) => ({
+        ...g,
+        timestamp: g.timestamp.toISOString(),
         game: {
-          id: game.id,
+          ...game,
           date: game.date.toISOString(),
-          playlistId: game.playlistId,
-          overrideSongId: game.overrideSongId,
-          selectedTrackIndex: game.selectedTrackIndex,
           createdAt: game.createdAt.toISOString(),
           updatedAt: game.updatedAt.toISOString(),
           guesses: [],
         },
-        wasCorrect: guess.wasCorrect,
       })),
       progress: {
         totalGuesses: game.guesses.length,
-        correctGuesses: game.guesses.filter((g) => g.wasCorrect).length,
+        correctGuesses,
         isComplete: gameState.isComplete,
       },
       hiddenSong: {
-        maskedLyrics: gameState.maskedLyrics,
         maskedTitle: gameState.maskedTitle,
         maskedArtist: gameState.maskedArtist,
+        maskedLyrics: gameState.maskedLyrics,
         progress: gameState.progress,
-        spotify: revealState.spotify ? gameState.spotify : null,
-        genius: revealState.genius ? gameState.genius : null,
+        spotify: gameState.spotify,
+        genius: gameState.genius,
       },
     };
 
-    return Response.json(response);
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to get game:', error);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

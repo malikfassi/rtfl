@@ -1,7 +1,8 @@
-import { NextRequest } from 'next/server';
+import { createMockRequest } from '@/lib/test/mocks';
 import { POST } from './route';
 import { getGameByDate, createGuess } from '../../../../../lib/db';
 import { getCachedSpotifyTrack, getCachedLyricsBySpotifyId } from '@/lib/db';
+import { type NextRequest } from 'next/server';
 
 jest.mock('../../../../../lib/db', () => ({
   getGameByDate: jest.fn(),
@@ -27,70 +28,58 @@ jest.mock('../../../../../lib/cache', () => ({
 }));
 
 describe('POST /api/games/[date]/guess', () => {
-  const mockDate = '2025-01-14';
-  const mockUserId = 'user123';
-  const mockGameId = 'game123';
-  const mockTrack = {
-    id: 'track123',
-    name: 'Test Song',
-    artists: [{ name: 'Test Artist' }],
-    preview_url: 'https://example.com/preview',
+  const mockContext = {
+    params: { date: '2025-01-14' },
+    searchParams: {},
   };
-  const mockPlaylist = {
-    id: 'playlist123',
-    name: 'Test Playlist',
-    tracks: {
-      items: [{ track: mockTrack }],
-    },
-  };
-  const mockLyrics = 'Test lyrics for the song';
+
   const mockGame = {
-    id: mockGameId,
-    date: new Date(mockDate),
-    playlistId: mockPlaylist.id,
-    selectedTrackIndex: 0,
+    id: 'game1',
+    date: new Date('2025-01-14'),
+    playlistId: 'playlist123',
     overrideSongId: null,
+    randomSeed: 'seed1',
+    selectedTrackIndex: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
     guesses: [],
   };
 
-  const mockContext = {
-    params: { date: mockDate },
-    searchParams: {},
+  const mockTrack = {
+    spotifyId: 'track1',
+    data: JSON.stringify({
+      name: 'Test Track',
+      artists: [{ name: 'Test Artist' }],
+      album: {
+        images: [{ url: 'test.jpg' }]
+      },
+      preview_url: 'test.mp3'
+    })
+  };
+
+  const mockLyrics = {
+    spotifyId: 'track1',
+    lyrics: 'Test lyrics with Test word'
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     (getGameByDate as jest.Mock).mockResolvedValue(mockGame);
-    mockGetPlaylist.mockResolvedValue(mockPlaylist);
-    mockGetLyricsBySpotifyId.mockResolvedValue(mockLyrics);
-    (createGuess as jest.Mock).mockImplementation((args) => ({
-      id: 'guess123',
-      ...args,
+    (getCachedSpotifyTrack as jest.Mock).mockResolvedValue(mockTrack);
+    (getCachedLyricsBySpotifyId as jest.Mock).mockResolvedValue(mockLyrics);
+    (createGuess as jest.Mock).mockImplementation((data) => ({
+      ...data,
+      id: 'guess1',
       timestamp: new Date(),
-      game: mockGame,
+      wasCorrect: data.word === 'Test',
     }));
-    (getCachedSpotifyTrack as jest.Mock).mockResolvedValue({
-      spotifyId: mockTrack.id,
-      data: JSON.stringify(mockTrack),
-      updatedAt: new Date(),
-    });
-    (getCachedLyricsBySpotifyId as jest.Mock).mockResolvedValue({
-      spotifyId: mockTrack.id,
-      lyrics: mockLyrics,
-      geniusId: 'genius123',
-      updatedAt: new Date(),
-    });
   });
 
   it('should create a correct guess when word matches', async () => {
-    const request = new NextRequest('http://localhost:3000/api/games/2025-01-14/guess', {
+    const request = createMockRequest('http://localhost:3000/api/games/2025-01-14/guess', {
       method: 'POST',
-      body: JSON.stringify({
-        word: 'Test',
-      }),
-    });
+      body: { word: 'Test' },
+    }) as unknown as NextRequest;
 
     const response = await POST(request, mockContext);
     expect(response.status).toBe(200);
@@ -101,12 +90,10 @@ describe('POST /api/games/[date]/guess', () => {
   });
 
   it('should create an incorrect guess when word does not match', async () => {
-    const request = new NextRequest('http://localhost:3000/api/games/2025-01-14/guess', {
+    const request = createMockRequest('http://localhost:3000/api/games/2025-01-14/guess', {
       method: 'POST',
-      body: JSON.stringify({
-        word: 'Wrong',
-      }),
-    });
+      body: { word: 'Wrong' },
+    }) as unknown as NextRequest;
 
     const response = await POST(request, mockContext);
     expect(response.status).toBe(200);
@@ -117,13 +104,10 @@ describe('POST /api/games/[date]/guess', () => {
   });
 
   it('should return 400 for invalid request body', async () => {
-    const request = new NextRequest('http://localhost:3000/api/games/2025-01-14/guess', {
+    const request = createMockRequest('http://localhost:3000/api/games/2025-01-14/guess', {
       method: 'POST',
-      body: JSON.stringify({
-        userId: mockUserId,
-        // Missing word
-      }),
-    });
+      body: {}, // Missing word
+    }) as unknown as NextRequest;
 
     const response = await POST(request, mockContext);
     expect(response.status).toBe(400);
@@ -132,12 +116,10 @@ describe('POST /api/games/[date]/guess', () => {
   it('should return 404 when game not found', async () => {
     (getGameByDate as jest.Mock).mockResolvedValue(null);
 
-    const request = new NextRequest('http://localhost:3000/api/games/2025-01-14/guess', {
+    const request = createMockRequest('http://localhost:3000/api/games/2025-01-14/guess', {
       method: 'POST',
-      body: JSON.stringify({
-        word: 'Test',
-      }),
-    });
+      body: { word: 'Test' },
+    }) as unknown as NextRequest;
 
     const response = await POST(request, mockContext);
     expect(response.status).toBe(404);
@@ -146,12 +128,10 @@ describe('POST /api/games/[date]/guess', () => {
   it('should return 404 when playlist not found', async () => {
     (getCachedSpotifyTrack as jest.Mock).mockResolvedValue(null);
 
-    const request = new NextRequest('http://localhost:3000/api/games/2025-01-14/guess', {
+    const request = createMockRequest('http://localhost:3000/api/games/2025-01-14/guess', {
       method: 'POST',
-      body: JSON.stringify({
-        word: 'Test',
-      }),
-    });
+      body: { word: 'Test' },
+    }) as unknown as NextRequest;
 
     const response = await POST(request, mockContext);
     expect(response.status).toBe(404);
@@ -160,12 +140,10 @@ describe('POST /api/games/[date]/guess', () => {
   it('should return 404 when lyrics not found', async () => {
     (getCachedLyricsBySpotifyId as jest.Mock).mockResolvedValue(null);
 
-    const request = new NextRequest('http://localhost:3000/api/games/2025-01-14/guess', {
+    const request = createMockRequest('http://localhost:3000/api/games/2025-01-14/guess', {
       method: 'POST',
-      body: JSON.stringify({
-        word: 'Test',
-      }),
-    });
+      body: { word: 'Test' },
+    }) as unknown as NextRequest;
 
     const response = await POST(request, mockContext);
     expect(response.status).toBe(404);
