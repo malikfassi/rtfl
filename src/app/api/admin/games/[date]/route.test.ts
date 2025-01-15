@@ -67,7 +67,7 @@ describe('Admin Games API', () => {
       (prisma.game.create as jest.Mock).mockResolvedValue(mockGame);
       const request = createMockRequest('http://localhost:3000', {
         method: 'POST',
-        body: { playlistId: 'playlist123', randomSeed: '42' },
+        body: { playlistId: 'playlist123', randomSeed: 42 },
       });
       const response = await POST(request, { params: { date: mockDate } });
       expect(response.status).toBe(200);
@@ -77,7 +77,7 @@ describe('Admin Games API', () => {
     it('should return 400 for invalid date format', async () => {
       const request = createMockRequest('http://localhost:3000', {
         method: 'POST',
-        body: { playlistId: 'playlist123', randomSeed: '42' },
+        body: { playlistId: 'playlist123', randomSeed: 42 },
       });
       const response = await POST(request, { params: { date: 'invalid-date' } });
       expect(response.status).toBe(400);
@@ -87,7 +87,7 @@ describe('Admin Games API', () => {
       (prisma.game.findUnique as jest.Mock).mockResolvedValue(mockGame);
       const request = createMockRequest('http://localhost:3000', {
         method: 'POST',
-        body: { playlistId: 'playlist123', randomSeed: '42' },
+        body: { playlistId: 'playlist123', randomSeed: 42 },
       });
       const response = await POST(request, { params: { date: mockDate } });
       expect(response.status).toBe(400);
@@ -100,7 +100,7 @@ describe('Admin Games API', () => {
       (prisma.game.update as jest.Mock).mockResolvedValue({ ...mockGame, randomSeed: '43' });
       const request = createMockRequest('http://localhost:3000', {
         method: 'PUT',
-        body: { playlistId: 'playlist123', randomSeed: '43', overrideSongId: null },
+        body: { playlistId: 'playlist123', randomSeed: 43, overrideSongId: null },
       });
       const response = await PUT(request, { params: { date: mockDate } });
       expect(response.status).toBe(200);
@@ -111,7 +111,7 @@ describe('Admin Games API', () => {
       (prisma.game.findUnique as jest.Mock).mockResolvedValue(null);
       const request = createMockRequest('http://localhost:3000', {
         method: 'PUT',
-        body: { playlistId: 'playlist123', randomSeed: '43', overrideSongId: null },
+        body: { playlistId: 'playlist123', randomSeed: 43, overrideSongId: null },
       });
       const response = await PUT(request, { params: { date: mockDate } });
       expect(response.status).toBe(404);
@@ -120,7 +120,7 @@ describe('Admin Games API', () => {
     it('should return 400 for invalid date format', async () => {
       const request = createMockRequest('http://localhost:3000', {
         method: 'PUT',
-        body: { playlistId: 'playlist123', randomSeed: '43', overrideSongId: null },
+        body: { playlistId: 'playlist123', randomSeed: 43, overrideSongId: null },
       });
       const response = await PUT(request, { params: { date: 'invalid-date' } });
       expect(response.status).toBe(400);

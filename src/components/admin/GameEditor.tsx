@@ -85,7 +85,7 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {error && (
         <div className="p-4 bg-red-100 text-red-700 rounded-md">
           {error.message}
@@ -96,6 +96,68 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
           {playlistError.message}
         </div>
       )}
+
+      <div className="bg-white rounded-lg shadow p-6 space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">Game Data</h3>
+        
+        {initialGameData ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-600">From Database</h4>
+                <div>
+                  <span className="text-sm text-gray-500">Game ID:</span>
+                  <span className="ml-2">{initialGameData.id}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Random Seed:</span>
+                  <span className="ml-2">{initialGameData.randomSeed}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Playlist ID:</span>
+                  <span className="ml-2">{initialGameData.playlistId}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Override Song ID:</span>
+                  <span className="ml-2">{initialGameData.overrideSongId || 'None'}</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-600">Computed Data</h4>
+                <div>
+                  <span className="text-sm text-gray-500">Selected Song Name:</span>
+                  <span className="ml-2">{gameData?.selectedTrack?.name ?? 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Selected Song ID:</span>
+                  <span className="ml-2">{gameData?.selectedTrack?.id ?? 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Artists:</span>
+                  <span className="ml-2">{gameData?.selectedTrack?.artists?.join(', ') ?? 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t">
+              <h4 className="font-medium text-gray-600 mb-2">From Cache</h4>
+              <div>
+                <span className="text-sm text-gray-500">Playlist Name:</span>
+                <span className="ml-2">{gameData?.playlist?.name ?? 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">Playlist Description:</span>
+                <span className="ml-2">{gameData?.playlist?.description ?? 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-gray-500 italic">
+            No game exists for this date. Create one below.
+          </div>
+        )}
+      </div>
 
       <div className="flex gap-4">
         <button

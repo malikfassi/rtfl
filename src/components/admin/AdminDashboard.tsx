@@ -22,8 +22,8 @@ export function AdminDashboard() {
       try {
         const response = await fetch('/api/games');
         if (!response.ok) throw new Error('Failed to fetch games');
-        const data = await response.json();
-        setGames(data.map((game: Game) => ({ ...game, date: new Date(game.date) })));
+        const { games } = await response.json();
+        setGames(games.map((game: Game) => ({ ...game, date: new Date(game.date) })));
       } catch (error) {
         console.error('Failed to fetch games:', error);
       } finally {

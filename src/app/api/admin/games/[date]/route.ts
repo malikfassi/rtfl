@@ -6,7 +6,7 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format.
 
 const bodySchema = z.object({
   playlistId: z.string(),
-  randomSeed: z.string(),
+  randomSeed: z.number().transform(n => n.toString()),
   overrideSongId: z.string().nullable().optional(),
 });
 
@@ -52,7 +52,7 @@ export async function POST(request: RouteRequest, { params }: { params: { date: 
       data: {
         date: new Date(parsedDate),
         playlistId,
-        randomSeed,
+        randomSeed: randomSeed.toString(),
       },
     });
 
@@ -84,7 +84,7 @@ export async function PUT(request: RouteRequest, { params }: { params: { date: s
       where: { date: new Date(parsedDate) },
       data: {
         playlistId,
-        randomSeed,
+        randomSeed: randomSeed.toString(),
         overrideSongId,
       },
     });
