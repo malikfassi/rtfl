@@ -1,83 +1,104 @@
-import React from 'react';
+'use client';
+
+import { useEffect, useState } from 'react';
 import type { GameState } from '@/lib/game/state';
+import { GuessInput } from './GuessInput';
 
 interface GameBoardProps {
-  gameState: GameState;
+  gameState: GameState | null;
+  onSubmitGuess: (guess: string) => Promise<void>;
+  isLoading?: boolean;
 }
 
-export function GameBoard({ gameState }: GameBoardProps) {
-  const { maskedTitle, maskedArtist, maskedLyrics, progress, spotify, genius } = gameState;
+export function GameBoard({ gameState, onSubmitGuess, isLoading = false }: GameBoardProps) {
+  const [showSpotify, setShowSpotify] = useState(false);
+
+  // Show Spotify player when game is complete
+  useEffect(() => {
+    if (gameState?.isComplete) {
+      setShowSpotify(true);
+    }
+  }, [gameState?.isComplete]);
+
+  if (!gameState) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-6 p-4">
+    <div className="space-y-8">
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-2.5">
-        <div 
-          className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
-          style={{ width: `${progress.overall * 100}%` }}
+      <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+        <div
+          className="bg-blue-500 h-full transition-all duration-500"
+          style={{ width: `${gameState.progress.overall * 100}%` }}
         />
       </div>
 
-      {/* Title and Artist */}
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold font-mono">{maskedTitle.maskedText}</h2>
-        <p className="text-xl font-mono">{maskedArtist.maskedText}</p>
-      </div>
-
-      {/* Lyrics */}
-      {maskedLyrics && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <pre className="whitespace-pre-wrap font-mono text-lg">
-            {maskedLyrics.maskedText}
-          </pre>
-        </div>
+      {/* Lyrics Section */}
+      {gameState.maskedLyrics && (
+        <section className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Lyrics</h2>
+          <p className="whitespace-pre-wrap font-mono">
+            {gameState.maskedLyrics.maskedText}
+          </p>
+          <div className="mt-2 text-sm text-gray-500">
+            Progress: {Math.round(gameState.progress.lyrics * 100)}%
+          </div>
+        </section>
       )}
 
+      {/* Title & Artist Section */}
+      <section className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold mb-4">Song Details</h2>
+        <div className="space-y-4">
+          <div>
+            <div className="text-sm text-gray-500 mb-1">Title</div>
+            <div className="font-mono">{gameState.maskedTitle.maskedText}</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-500 mb-1">Artist</div>
+            <div className="font-mono">{gameState.maskedArtist.maskedText}</div>
+          </div>
+        </div>
+        <div className="mt-2 text-sm text-gray-500">
+          Progress: {Math.round(gameState.progress.titleArtist * 100)}%
+        </div>
+      </section>
+
       {/* Spotify Preview */}
-      {spotify && (
-        <div className="mt-4 p-4 bg-green-50 rounded-lg">
-          <h3 className="text-xl font-bold mb-2">🎵 {spotify.songTitle}</h3>
-          <p className="text-lg mb-4">by {spotify.artistName}</p>
-          {spotify.albumCover && (
-            <img 
-              src={spotify.albumCover} 
-              alt="Album Cover" 
-              className="w-32 h-32 object-cover rounded-lg mx-auto"
-            />
-          )}
-          {spotify.previewUrl && (
-            <audio 
-              controls 
-              className="w-full mt-4"
-              src={spotify.previewUrl}
+      {showSpotify && gameState.spotify && (
+        <section className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Song Preview</h2>
+          {gameState.spotify.previewUrl ? (
+            <audio
+              controls
+              src={gameState.spotify.previewUrl}
+              className="w-full"
             >
               Your browser does not support the audio element.
             </audio>
+          ) : (
+            <p className="text-gray-500">No preview available</p>
           )}
-        </div>
+          {gameState.spotify.albumCover && (
+            <img
+              src={gameState.spotify.albumCover}
+              alt="Album Cover"
+              className="mt-4 w-32 h-32 object-cover rounded-lg"
+            />
+          )}
+        </section>
       )}
 
-      {/* Genius Lyrics */}
-      {genius && (
-        <div className="mt-4 p-4 bg-purple-50 rounded-lg">
-          <h3 className="text-xl font-bold mb-2">📝 Full Lyrics</h3>
-          <pre className="whitespace-pre-wrap">
-            {genius.lyrics}
-          </pre>
-        </div>
-      )}
-
-      {/* Progress Stats */}
-      <div className="grid grid-cols-2 gap-4 text-center mt-4">
-        <div>
-          <p className="text-sm text-gray-600">Title/Artist Progress</p>
-          <p className="text-lg font-bold">{Math.round(progress.titleArtist * 100)}%</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Lyrics Progress</p>
-          <p className="text-lg font-bold">{Math.round(progress.lyrics * 100)}%</p>
-        </div>
-      </div>
+      {/* Guess Input */}
+      <GuessInput
+        onSubmit={onSubmitGuess}
+        disabled={isLoading || gameState.isComplete}
+      />
     </div>
   );
 } 

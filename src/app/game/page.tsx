@@ -1,6 +1,5 @@
 import React from 'react';
 import { GameBoard } from '@/components/game/GameBoard';
-import { GuessInput } from '@/components/game/GuessInput';
 import { Stats } from '@/components/game/Stats';
 import { GameProvider, useGame } from '@/lib/contexts/GameContext';
 
@@ -14,6 +13,7 @@ function GameContent() {
     guessCount,
     correctGuesses,
     averageGuessTime,
+    totalPlayTime,
   } = currentGame;
 
   if (isLoading) {
@@ -52,29 +52,24 @@ function GameContent() {
 
       {/* Game Board */}
       <div className="mb-8">
-        <GameBoard gameState={gameState} />
-      </div>
-
-      {/* Guess Input */}
-      <div className="mb-8">
-        <GuessInput 
-          onSubmit={submitGuess} 
-          disabled={gameState.isComplete} 
+        <GameBoard 
+          gameState={gameState}
+          onSubmitGuess={submitGuess}
+          isLoading={isLoading}
         />
-        {gameState.isComplete && (
-          <p className="text-center text-green-600 mt-4 font-bold">
-            Congratulations! You've completed the game!
-          </p>
-        )}
       </div>
 
       {/* Stats */}
       <div>
         <Stats 
-          gameState={gameState}
-          guessCount={guessCount}
-          correctGuesses={correctGuesses}
-          averageGuessTime={averageGuessTime}
+          gameStats={{
+            totalGuesses: guessCount,
+            correctGuesses,
+            averageGuessTime,
+            totalPlayTime,
+          }}
+          topPlayers={[]}
+          isLoading={isLoading}
         />
       </div>
     </div>

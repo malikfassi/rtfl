@@ -1,110 +1,106 @@
-import React from 'react';
-import type { GameState } from '@/lib/game/state';
+'use client';
 
-interface StatsProps {
-  gameState: GameState;
-  guessCount: number;
+interface GameStats {
+  totalGuesses: number;
   correctGuesses: number;
-  averageGuessTime?: number; // in seconds
-  leaderboard?: Array<{
-    username: string;
-    score: number;
-    completionTime: number; // in seconds
-  }>;
+  averageGuessTime?: number;
+  totalPlayTime?: number;
 }
 
-export function Stats({ 
-  gameState, 
-  guessCount, 
-  correctGuesses,
-  averageGuessTime,
-  leaderboard = []
-}: StatsProps) {
-  const accuracy = guessCount > 0 ? (correctGuesses / guessCount) * 100 : 0;
+interface PlayerStats {
+  userId: string;
+  username: string;
+  gamesPlayed: number;
+  gamesWon: number;
+  averageGuesses: number;
+  averageTime: number;
+}
+
+interface StatsProps {
+  gameStats: GameStats;
+  topPlayers?: PlayerStats[];
+  isLoading?: boolean;
+}
+
+export function Stats({ gameStats, topPlayers = [], isLoading = false }: StatsProps) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4">
+    <div className="space-y-8">
       {/* Current Game Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-          <p className="text-sm text-gray-600">Total Guesses</p>
-          <p className="text-2xl font-bold">{guessCount}</p>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-          <p className="text-sm text-gray-600">Correct Guesses</p>
-          <p className="text-2xl font-bold text-green-600">{correctGuesses}</p>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-          <p className="text-sm text-gray-600">Accuracy</p>
-          <p className="text-2xl font-bold">{Math.round(accuracy)}%</p>
-        </div>
-        {averageGuessTime && (
-          <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-            <p className="text-sm text-gray-600">Avg Time per Guess</p>
-            <p className="text-2xl font-bold">{Math.round(averageGuessTime)}s</p>
+      <section className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold mb-4">Game Statistics</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <div className="text-3xl font-bold text-blue-600">
+              {gameStats.totalGuesses}
+            </div>
+            <div className="text-sm text-gray-500 mt-1">Total Guesses</div>
           </div>
-        )}
-      </div>
-
-      {/* Progress Breakdown */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-8">
-        <h3 className="text-lg font-semibold mb-4">Progress Breakdown</h3>
-        <div className="space-y-4">
-          <div>
-            <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">Title & Artist</span>
-              <span className="text-sm font-medium">
-                {Math.round(gameState.progress.titleArtist * 100)}%
-              </span>
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <div className="text-3xl font-bold text-green-600">
+              {gameStats.correctGuesses}
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full" 
-                style={{ width: `${gameState.progress.titleArtist * 100}%` }}
-              />
-            </div>
+            <div className="text-sm text-gray-500 mt-1">Correct Guesses</div>
           </div>
-          <div>
-            <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-600">Lyrics</span>
-              <span className="text-sm font-medium">
-                {Math.round(gameState.progress.lyrics * 100)}%
-              </span>
+          {gameStats.averageGuessTime && (
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-3xl font-bold text-purple-600">
+                {Math.round(gameStats.averageGuessTime)}s
+              </div>
+              <div className="text-sm text-gray-500 mt-1">Average Time per Guess</div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full" 
-                style={{ width: `${gameState.progress.lyrics * 100}%` }}
-              />
+          )}
+          {gameStats.totalPlayTime && (
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-3xl font-bold text-orange-600">
+                {Math.round(gameStats.totalPlayTime / 60)}m
+              </div>
+              <div className="text-sm text-gray-500 mt-1">Total Play Time</div>
             </div>
-          </div>
+          )}
         </div>
-      </div>
+      </section>
 
       {/* Leaderboard */}
-      {leaderboard.length > 0 && (
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Leaderboard</h3>
-          <div className="space-y-2">
-            {leaderboard.map((entry, index) => (
-              <div 
-                key={entry.username} 
-                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg"
+      {topPlayers.length > 0 && (
+        <section className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Top Players</h2>
+          <div className="space-y-4">
+            {topPlayers.map((player, index) => (
+              <div
+                key={player.userId}
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold text-gray-500">#{index + 1}</span>
-                  <span className="font-medium">{entry.username}</span>
-                </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-600">
-                    {Math.floor(entry.completionTime / 60)}m {entry.completionTime % 60}s
-                  </span>
-                  <span className="font-bold">{entry.score}</span>
+                  <div className="text-2xl font-bold text-gray-400">
+                    #{index + 1}
+                  </div>
+                  <div>
+                    <div className="font-semibold">{player.username}</div>
+                    <div className="text-sm text-gray-500">
+                      {player.gamesWon} / {player.gamesPlayed} games won
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-medium">
+                    {Math.round(player.averageGuesses * 10) / 10} guesses/game
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {Math.round(player.averageTime / 60)}m avg. time
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
     </div>
   );

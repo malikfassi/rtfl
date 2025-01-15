@@ -24,6 +24,7 @@ interface GameContextValue {
     guessCount: number;
     correctGuesses: number;
     averageGuessTime: number | undefined;
+    totalPlayTime: number | undefined;
   };
   gameList: {
     games: GameWithProgress[];
