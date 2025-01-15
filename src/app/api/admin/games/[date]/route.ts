@@ -1,291 +1,131 @@
-import { type NextRequest } from 'next/server';
-import { prisma } from '../../../../../lib/prisma';
-import { CacheService } from '../../../../../lib/cache';
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { CacheService } from '@/lib/cache';
 import { z } from 'zod';
 
-type RouteContext = {
-  params: { date: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
+type RouteParams = { date: string };
 
-const CreateGameSchema = z.object({
-  playlistId: z.string(),
-  overrideSongId: z.string().optional(),
-  randomSeed: z.string(),
-});
-
-const UpdateGameSchema = z.object({
-  playlistId: z.string().optional(),
-  overrideSongId: z.string().optional(),
-});
-
-const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-
-function validateDate(date: string): boolean {
-  return dateRegex.test(date);
-}
+const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD').transform(val => val);
 
 export async function GET(
   request: NextRequest,
-  context: RouteContext
-): Promise<Response> {
+  { params }: { params: RouteParams },
+): Promise<NextResponse> {
   try {
-    const { date } = context.params;
+    const parsedDate = dateSchema.parse(params.date);
 
-    // Validate date format
-    if (!validateDate(date)) {
-      return Response.json({ error: 'Invalid date format. Use YYYY-MM-DD' }, { status: 400 });
-    }
-
-    // Get game with guesses
     const game = await prisma.game.findFirst({
-      where: { date: new Date(date) },
-      include: {
-        guesses: true,
-      },
+      where: { date: new Date(parsedDate) },
     });
 
     if (!game) {
-      return Response.json({ error: 'Game not found for this date' }, { status: 404 });
+      return NextResponse.json({ error: 'Game not found for this date' }, { status: 404 });
     }
 
-    // Get playlist data
-    const cache = new CacheService();
-    const playlist = await cache.getPlaylist(game.playlistId);
-    if (!playlist) {
-      return Response.json({ error: 'Playlist not found in cache' }, { status: 404 });
+    const cacheService = new CacheService();
+    const playlist = await cacheService.getPlaylist(game.playlistId);
+    
+    if (!playlist || !playlist.tracks.length) {
+      return NextResponse.json({ error: 'Playlist not found or empty' }, { status: 404 });
     }
 
-    // Get selected track
-    const selectedTrack = game.overrideSongId
-      ? playlist.tracks.find((track) => track.id === game.overrideSongId)
-      : playlist.tracks[Math.floor(Math.random() * playlist.tracks.length)];
+    const selectedTrack = playlist.tracks[0]; // TODO: Use random seed to select track
+    const lyrics = await cacheService.getLyricsBySpotifyId(selectedTrack.id);
 
-    if (!selectedTrack) {
-      return Response.json({ error: 'Selected track not found in playlist' }, { status: 404 });
-    }
-
-    // Get lyrics
-    const lyrics = await cache.getLyricsBySpotifyId(selectedTrack.id);
     if (!lyrics) {
-      return Response.json({ error: 'Lyrics not found for selected track' }, { status: 404 });
+      return NextResponse.json({ error: 'Lyrics not found' }, { status: 404 });
     }
 
-    // Compute statistics
-    const uniqueUsers = new Set(game.guesses.map((g) => g.userId));
-    const totalGuesses = game.guesses.length;
-    const winningGuesses = game.guesses.filter((g) => g.wasCorrect).length;
-
-    return Response.json({
+    return NextResponse.json({
       ...game,
-      date: game.date.toISOString(),
-      createdAt: game.createdAt.toISOString(),
-      updatedAt: game.updatedAt.toISOString(),
-      playlist: {
-        id: playlist.id,
-        name: playlist.name,
-        trackCount: playlist.tracks.length,
-        tracks: playlist.tracks,
-      },
+      playlist,
       selectedTrack,
       lyrics,
-      stats: {
-        totalPlayers: uniqueUsers.size,
-        totalGuesses,
-        winningGuesses,
-        completionRate: totalGuesses > 0 ? winningGuesses / uniqueUsers.size : 0,
-      },
-      guesses: game.guesses.map((guess) => ({
-        id: guess.id,
-        userId: guess.userId,
-        word: guess.word,
-        wasCorrect: guess.wasCorrect,
-        timestamp: guess.timestamp.toISOString(),
-      })),
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
+    }
     console.error('Failed to get game:', error);
-    return Response.json({ error: 'Failed to get game' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+const createGameSchema = z.object({
+  playlistId: z.string(),
+  randomSeed: z.string(),
+});
 
 export async function POST(
   request: NextRequest,
-  context: RouteContext
-): Promise<Response> {
+  { params }: { params: RouteParams },
+): Promise<NextResponse> {
   try {
-    const { date } = context.params;
-
-    // Validate date format
-    if (!validateDate(date)) {
-      return Response.json({ error: 'Invalid date format. Use YYYY-MM-DD' }, { status: 400 });
-    }
-
-    // Parse and validate request body
+    const parsedDate = dateSchema.parse(params.date);
     const body = await request.json();
-    const result = CreateGameSchema.safeParse(body);
-    if (!result.success) {
-      return Response.json(
-        { error: 'Invalid request body', details: result.error.issues },
-        { status: 400 },
-      );
-    }
+    const { playlistId, randomSeed } = createGameSchema.parse(body);
 
-    // Check if game already exists for this date
     const existingGame = await prisma.game.findFirst({
-      where: { date: new Date(date) },
+      where: { date: new Date(parsedDate) },
     });
 
     if (existingGame) {
-      return Response.json({ error: 'Game already exists for this date' }, { status: 409 });
-    }
-
-    // Verify playlist exists in cache
-    const cache = new CacheService();
-    const playlist = await cache.getPlaylist(result.data.playlistId);
-    if (!playlist) {
-      return Response.json({ error: 'Playlist not found in cache' }, { status: 404 });
-    }
-
-    // If override song is provided, verify it exists in the playlist
-    if (result.data.overrideSongId) {
-      const songExists = playlist.tracks.some((track) => track.id === result.data.overrideSongId);
-      if (!songExists) {
-        return Response.json({ error: 'Override song not found in playlist' }, { status: 404 });
-      }
-    }
-
-    // Create new game
-    const game = await prisma.game.create({
-      data: {
-        date: new Date(date),
-        playlistId: result.data.playlistId,
-        overrideSongId: result.data.overrideSongId,
-        randomSeed: result.data.randomSeed,
-      },
-    });
-
-    return Response.json({
-      ...game,
-      date: game.date.toISOString(),
-      createdAt: game.createdAt.toISOString(),
-      updatedAt: game.updatedAt.toISOString(),
-    });
-  } catch (error) {
-    console.error('Failed to create game:', error);
-    return Response.json({ error: 'Failed to create game' }, { status: 500 });
-  }
-}
-
-export async function PUT(
-  request: NextRequest,
-  context: RouteContext
-): Promise<Response> {
-  try {
-    const { date } = context.params;
-
-    // Validate date format
-    if (!validateDate(date)) {
-      return Response.json({ error: 'Invalid date format. Use YYYY-MM-DD' }, { status: 400 });
-    }
-
-    // Parse and validate request body
-    const body = await request.json();
-    const result = UpdateGameSchema.safeParse(body);
-    if (!result.success) {
-      return Response.json(
-        { error: 'Invalid request body', details: result.error.issues },
-        { status: 400 },
+      return NextResponse.json(
+        { error: 'Game already exists for this date' },
+        { status: 409 },
       );
     }
 
-    // Get existing game
-    const existingGame = await prisma.game.findFirst({
-      where: { date: new Date(date) },
-    });
-
-    if (!existingGame) {
-      return Response.json({ error: 'Game not found for this date' }, { status: 404 });
-    }
-
-    // Verify playlist exists in cache if updating
-    const cache = new CacheService();
-    if (result.data.playlistId) {
-      const playlist = await cache.getPlaylist(result.data.playlistId);
-      if (!playlist) {
-        return Response.json({ error: 'Playlist not found in cache' }, { status: 404 });
-      }
-
-      // If override song is provided, verify it exists in the playlist
-      if (result.data.overrideSongId) {
-        const songExists = playlist.tracks.some((track) => track.id === result.data.overrideSongId);
-        if (!songExists) {
-          return Response.json(
-            { error: 'Override song not found in playlist' },
-            { status: 404 },
-          );
-        }
-      }
-    }
-
-    // Update game
-    const game = await prisma.game.update({
-      where: { id: existingGame.id },
+    const game = await prisma.game.create({
       data: {
-        playlistId: result.data.playlistId,
-        overrideSongId: result.data.overrideSongId,
+        date: new Date(parsedDate),
+        playlistId,
+        randomSeed,
       },
     });
 
-    return Response.json({
-      ...game,
-      date: game.date.toISOString(),
-      createdAt: game.createdAt.toISOString(),
-      updatedAt: game.updatedAt.toISOString(),
-    });
+    return NextResponse.json(game);
   } catch (error) {
-    console.error('Failed to update game:', error);
-    return Response.json({ error: 'Failed to update game' }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PATCH(
+const updateGameSchema = z.object({
+  playlistId: z.string().optional(),
+  randomSeed: z.string().optional(),
+  overrideSongId: z.string().nullable().optional(),
+});
+
+export async function PUT(
   request: NextRequest,
-  context: RouteContext
-): Promise<Response> {
+  { params }: { params: RouteParams },
+): Promise<NextResponse> {
   try {
-    const { date } = context.params;
+    const parsedDate = dateSchema.parse(params.date);
+    const body = await request.json();
+    const updates = updateGameSchema.parse(body);
 
-    // Validate date format
-    if (!validateDate(date)) {
-      return Response.json({ error: 'Invalid date format. Use YYYY-MM-DD' }, { status: 400 });
-    }
-
-    // Get existing game
     const existingGame = await prisma.game.findFirst({
-      where: { date: new Date(date) },
+      where: { date: new Date(parsedDate) },
     });
 
     if (!existingGame) {
-      return Response.json({ error: 'Game not found for this date' }, { status: 404 });
+      return NextResponse.json({ error: 'Game not found for this date' }, { status: 404 });
     }
 
-    // Update game
     const game = await prisma.game.update({
       where: { id: existingGame.id },
-      data: {
-        randomSeed: Math.random().toString(),
-      },
+      data: updates,
     });
 
-    return Response.json({
-      ...game,
-      date: game.date.toISOString(),
-      createdAt: game.createdAt.toISOString(),
-      updatedAt: game.updatedAt.toISOString(),
-    });
+    return NextResponse.json(game);
   } catch (error) {
-    console.error('Failed to update game:', error);
-    return Response.json({ error: 'Failed to update game' }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -17,26 +17,34 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(Math.max(Number(searchParams.get('limit')) || 20, 1), 50) as 20;
     const offset = Number(searchParams.get('offset')) || 0;
 
-    const playlists = await spotifyApi.search(query, ['playlist'], undefined, limit, offset);
+    const searchResults = await spotifyApi.search(query, ['playlist'], undefined, limit, offset);
+
+    // Validate search results structure
+    if (!searchResults?.playlists?.items) {
+      console.error('Invalid search results structure:', searchResults);
+      return NextResponse.json({ error: 'Invalid search results from Spotify' }, { status: 500 });
+    }
 
     return NextResponse.json(
       {
-        items: playlists.playlists.items.map((playlist) => ({
-          id: playlist.id,
-          name: playlist.name,
-          description: playlist.description,
-          owner: {
-            id: playlist.owner.id,
-            name: playlist.owner.display_name,
-          },
-          images: playlist.images,
-          totalTracks: (playlist as SimplifiedPlaylist).tracks?.total ?? 0,
-        })),
-        total: playlists.playlists.total,
+        items: searchResults.playlists.items
+          .filter(playlist => playlist && typeof playlist === 'object')
+          .map((playlist) => ({
+            id: playlist.id,
+            name: playlist.name,
+            description: playlist.description,
+            owner: playlist.owner ? {
+              id: playlist.owner.id,
+              name: playlist.owner.display_name,
+            } : null,
+            images: playlist.images || [],
+            totalTracks: (playlist as SimplifiedPlaylist).tracks?.total ?? 0,
+          })),
+        total: searchResults.playlists.total || 0,
         limit,
         offset,
-        next: playlists.playlists.next,
-        previous: playlists.playlists.previous,
+        next: searchResults.playlists.next || null,
+        previous: searchResults.playlists.previous || null,
       },
       { status: 200 },
     );

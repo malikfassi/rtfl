@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { z } from 'zod';
 
 interface Playlist {
@@ -32,14 +32,18 @@ export function PlaylistBrowser({
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const debouncedSearch = useCallback(async (query: string) => {
+    if (!query) {
+      setPlaylists([]);
+      return;
+    }
+
     setSearchError(null);
 
     try {
       // Validate search query
-      searchSchema.parse(searchQuery);
-      const results = await onSearch(searchQuery);
+      searchSchema.parse(query);
+      const results = await onSearch(query);
       setPlaylists(results);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -48,11 +52,19 @@ export function PlaylistBrowser({
         setSearchError('Failed to search playlists. Please try again.');
       }
     }
-  };
+  }, [onSearch]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      debouncedSearch(searchQuery);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, debouncedSearch]);
 
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSearch} className="flex gap-2">
+      <div className="flex gap-2">
         <input
           type="text"
           value={searchQuery}
@@ -61,14 +73,7 @@ export function PlaylistBrowser({
           className="flex-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={isLoading}
         />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-          disabled={isLoading}
-        >
-          Search
-        </button>
-      </form>
+      </div>
 
       {searchError && (
         <p className="text-red-500">{searchError}</p>

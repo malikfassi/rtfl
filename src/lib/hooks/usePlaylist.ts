@@ -10,6 +10,16 @@ interface Playlist {
   trackCount: number;
 }
 
+interface SpotifyPlaylistResponse {
+  items: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    images: Array<{ url: string }>;
+    totalTracks: number;
+  }>;
+}
+
 interface UsePlaylistReturn {
   selectedPlaylistId: string | undefined;
   isLoading: boolean;
@@ -28,13 +38,23 @@ export function usePlaylist(): UsePlaylistReturn {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/spotify/playlists/search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`/api/spotify/playlists/search?query=${encodeURIComponent(query)}`, {
+        headers: {
+          'x-api-key': process.env.NEXT_PUBLIC_ADMIN_API_KEY || '',
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to search playlists');
       }
 
-      const data = await response.json();
-      return data.playlists;
+      const data = await response.json() as SpotifyPlaylistResponse;
+      return data.items.map((playlist) => ({
+        id: playlist.id,
+        name: playlist.name,
+        description: playlist.description,
+        imageUrl: playlist.images?.[0]?.url ?? null,
+        trackCount: playlist.totalTracks,
+      }));
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'));
       throw err;
