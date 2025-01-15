@@ -49,7 +49,6 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           playlistId: selectedPlaylistId,
-          randomSeed: Math.floor(Math.random() * 1000000),
         }),
       });
 

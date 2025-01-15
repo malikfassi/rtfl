@@ -21,24 +21,38 @@ export function PlaylistBrowser({
   isLoading = false,
 }: PlaylistBrowserProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
 
+  // Update debounced value after delay
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (searchQuery) {
-        onSearch(searchQuery);
-      }
-    }, 300);
+      setDebouncedQuery(searchQuery);
+    }, 500); // 500ms delay
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, onSearch]);
+  }, [searchQuery]);
+
+  // Only trigger search when debounced query changes and is not empty
+  useEffect(() => {
+    if (debouncedQuery.trim()) {
+      onSearch(debouncedQuery);
+    } else {
+      // Clear results when query is empty
+      onSearch('');
+    }
+  }, [debouncedQuery, onSearch]);
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    const value = e.target.value;
+    // Only update if value is empty or at least 3 characters
+    if (!value || value.length >= 3) {
+      setSearchQuery(value);
+    }
   };
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="relative">
         <input
           type="text"
           value={searchQuery}
@@ -47,13 +61,12 @@ export function PlaylistBrowser({
           className="w-full p-2 border rounded-md"
           autoFocus
         />
+        {isLoading && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
       </div>
-
-      {isLoading && (
-        <div className="flex justify-center">
-          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
 
       <div className="grid grid-cols-1 gap-2">
         {playlists.map((playlist) => (

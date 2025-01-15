@@ -6,15 +6,12 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format.
 
 const bodySchema = z.object({
   playlistId: z.string(),
-  randomSeed: z.number().transform(n => n.toString()),
-  overrideSongId: z.string().nullable().optional(),
 });
 
-type RouteRequest = NextRequest | { json(): Promise<Record<string, unknown>>; nextUrl: URL };
-
-export async function GET(request: RouteRequest, { params }: { params: { date: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ date: string }> }) {
   try {
-    const parsedDate = dateSchema.parse(params.date);
+    const { date } = await context.params;
+    const parsedDate = dateSchema.parse(date);
 
     const game = await prisma.game.findUnique({
       where: { date: new Date(parsedDate) },
@@ -34,11 +31,12 @@ export async function GET(request: RouteRequest, { params }: { params: { date: s
   }
 }
 
-export async function POST(request: RouteRequest, { params }: { params: { date: string } }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ date: string }> }) {
   try {
-    const parsedDate = dateSchema.parse(params.date);
+    const { date } = await context.params;
+    const parsedDate = dateSchema.parse(date);
     const body = await request.json();
-    const { playlistId, randomSeed } = bodySchema.parse(body);
+    const { playlistId } = bodySchema.parse(body);
 
     const existingGame = await prisma.game.findUnique({
       where: { date: new Date(parsedDate) },
@@ -52,7 +50,7 @@ export async function POST(request: RouteRequest, { params }: { params: { date: 
       data: {
         date: new Date(parsedDate),
         playlistId,
-        randomSeed: randomSeed.toString(),
+        randomSeed: Math.floor(Math.random() * 1000000).toString(),
       },
     });
 
@@ -66,11 +64,12 @@ export async function POST(request: RouteRequest, { params }: { params: { date: 
   }
 }
 
-export async function PUT(request: RouteRequest, { params }: { params: { date: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ date: string }> }) {
   try {
-    const parsedDate = dateSchema.parse(params.date);
+    const { date } = await context.params;
+    const parsedDate = dateSchema.parse(date);
     const body = await request.json();
-    const { playlistId, randomSeed, overrideSongId } = bodySchema.parse(body);
+    const { playlistId } = bodySchema.parse(body);
 
     const existingGame = await prisma.game.findUnique({
       where: { date: new Date(parsedDate) },
@@ -84,8 +83,7 @@ export async function PUT(request: RouteRequest, { params }: { params: { date: s
       where: { date: new Date(parsedDate) },
       data: {
         playlistId,
-        randomSeed: randomSeed.toString(),
-        overrideSongId,
+        randomSeed: Math.floor(Math.random() * 1000000).toString(),
       },
     });
 

@@ -7,22 +7,53 @@ type MockRequestInit = {
 
 // Simple mock for testing that provides just what we need
 export class MockRequest {
-  url: string;
-  nextUrl: URL;
-  private method: string;
-  private bodyData?: Record<string, unknown>;
+  readonly url: string;
+  readonly nextUrl: URL;
+  readonly method: string;
+  readonly bodyData: Record<string, unknown> | undefined;
+  readonly headers = new Headers();
+  readonly cache = 'default';
+  readonly credentials = 'same-origin';
+  readonly destination = '';
+  readonly integrity = '';
+  readonly keepalive = false;
+  readonly mode = 'cors';
+  readonly redirect = 'follow';
+  readonly referrer = '';
+  readonly referrerPolicy = '';
+  readonly signal = new AbortController().signal;
+  readonly body = null;
+  readonly bodyUsed = false;
 
   constructor(url: string, init?: MockRequestInit) {
     this.url = url;
-    const parsedUrl = new URL(url);
-    // Create a proper URL object with searchParams
-    this.nextUrl = parsedUrl;
+    this.nextUrl = new URL(url);
     this.method = init?.method || 'GET';
     this.bodyData = init?.body;
   }
 
-  json() {
-    return Promise.resolve(this.bodyData || {});
+  async json() {
+    return this.bodyData || {};
+  }
+
+  async text() {
+    return '';
+  }
+
+  async blob() {
+    return new Blob();
+  }
+
+  async arrayBuffer() {
+    return new ArrayBuffer(0);
+  }
+
+  async formData() {
+    return new FormData();
+  }
+
+  clone() {
+    return new MockRequest(this.url, { method: this.method, body: this.bodyData });
   }
 }
 

@@ -1,19 +1,15 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSpotifyApi } from '@/lib/spotify/auth';
 
-type RouteContext = {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
-export async function GET(request: NextRequest, { params }: RouteContext) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    if (!params.id) {
-      return NextResponse.json({ error: 'Failed to get playlist' }, { status: 500 });
+    const { id } = await context.params;
+    if (!id) {
+      return NextResponse.json({ error: 'Playlist ID is required' }, { status: 500 });
     }
 
     const spotifyApi = await getSpotifyApi();
-    const playlist = await spotifyApi.playlists.getPlaylist(params.id);
+    const playlist = await spotifyApi.playlists.getPlaylist(id);
 
     if (!playlist) {
       return NextResponse.json({ error: 'Playlist not found' }, { status: 404 });
