@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { usePlaylist } from '@/lib/hooks/usePlaylist';
 import { PlaylistBrowser } from './PlaylistBrowser';
 import { format } from 'date-fns';
@@ -22,7 +22,7 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
     searchPlaylists,
     selectPlaylist,
     selectedPlaylistId,
-    gameData,
+    gameData: playlistData,
     playlists
   } = usePlaylist();
 
@@ -30,16 +30,21 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = useCallback(async (query: string) => {
+    if (!query) {
+      return;
+    }
     setIsSearching(true);
     try {
       await searchPlaylists(query);
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [searchPlaylists]);
 
   const handleSave = async () => {
+    if (!selectedPlaylistId) return;
+
     try {
       setIsSaving(true);
       setError(null);
@@ -126,15 +131,15 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
                 <h4 className="font-medium text-gray-600">Computed Data</h4>
                 <div>
                   <span className="text-sm text-gray-500">Selected Song Name:</span>
-                  <span className="ml-2">{gameData?.selectedTrack?.name ?? 'N/A'}</span>
+                  <span className="ml-2">{playlistData?.selectedTrack?.name ?? 'N/A'}</span>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Selected Song ID:</span>
-                  <span className="ml-2">{gameData?.selectedTrack?.id ?? 'N/A'}</span>
+                  <span className="ml-2">{playlistData?.selectedTrack?.id ?? 'N/A'}</span>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Artists:</span>
-                  <span className="ml-2">{gameData?.selectedTrack?.artists?.join(', ') ?? 'N/A'}</span>
+                  <span className="ml-2">{playlistData?.selectedTrack?.artists?.join(', ') ?? 'N/A'}</span>
                 </div>
               </div>
             </div>
@@ -143,11 +148,11 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
               <h4 className="font-medium text-gray-600 mb-2">From Cache</h4>
               <div>
                 <span className="text-sm text-gray-500">Playlist Name:</span>
-                <span className="ml-2">{gameData?.playlist?.name ?? 'N/A'}</span>
+                <span className="ml-2">{playlistData?.playlist?.name ?? 'N/A'}</span>
               </div>
               <div>
                 <span className="text-sm text-gray-500">Playlist Description:</span>
-                <span className="ml-2">{gameData?.playlist?.description ?? 'N/A'}</span>
+                <span className="ml-2">{playlistData?.playlist?.description ?? 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -182,7 +187,7 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
         onSearch={handleSearch}
         onSelect={selectPlaylist}
         selectedPlaylistId={selectedPlaylistId}
-        gameData={gameData}
+        gameData={playlistData}
         playlists={playlists}
         isLoading={isSearching}
       />

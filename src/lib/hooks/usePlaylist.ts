@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { format } from 'date-fns';
 
 export type GameResponse = {
   id: string;
@@ -67,24 +66,10 @@ export function usePlaylist(): UsePlaylistReturn {
       if (!response.ok) {
         throw new Error('Failed to get playlist');
       }
+      const data = await response.json();
       setSelectedPlaylistId(playlistId);
+      setGameData(data);
       setError(null);
-
-      // Create game for today
-      const today = new Date();
-      const formattedDate = format(today, 'yyyy-MM-dd');
-      const gameResponse = await fetch(`/api/admin/games/${formattedDate}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playlistId, randomSeed: Math.random() })
-      });
-
-      if (!gameResponse.ok) {
-        throw new Error('Failed to create game');
-      }
-
-      const game = await gameResponse.json();
-      setGameData(game);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to select playlist'));
       throw err;

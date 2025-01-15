@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState, useCallback } from 'react';
 import { GameResponse } from '@/lib/hooks/usePlaylist';
 
 interface PlaylistBrowserProps {
@@ -21,34 +21,38 @@ export function PlaylistBrowser({
   isLoading = false,
 }: PlaylistBrowserProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
-  // Update debounced value after delay
+  // Handle search with debouncing
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 500); // 500ms delay
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
-
-  // Only trigger search when debounced query changes and is not empty
-  useEffect(() => {
-    if (debouncedQuery.trim()) {
-      onSearch(debouncedQuery);
-    } else {
-      // Clear results when query is empty
-      onSearch('');
+    const trimmedQuery = searchQuery.trim();
+    
+    // Don't search if query is too short
+    if (trimmedQuery.length < 3) {
+      if (trimmedQuery.length === 0) {
+        onSearch(''); // Clear results immediately for empty query
+      }
+      return;
     }
-  }, [debouncedQuery, onSearch]);
 
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Only update if value is empty or at least 3 characters
-    if (!value || value.length >= 3) {
-      setSearchQuery(value);
-    }
-  };
+    // Set typing indicator
+    setIsTyping(true);
+
+    // Debounce the search
+    const timeoutId = setTimeout(async () => {
+      await onSearch(trimmedQuery);
+      setIsTyping(false);
+    }, 500);
+
+    return () => {
+      clearTimeout(timeoutId);
+      setIsTyping(false);
+    };
+  }, [searchQuery, onSearch]);
+
+  const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -61,7 +65,7 @@ export function PlaylistBrowser({
           className="w-full p-2 border rounded-md"
           autoFocus
         />
-        {isLoading && (
+        {(isLoading || isTyping) && (
           <div className="absolute right-2 top-1/2 -translate-y-1/2">
             <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
@@ -82,7 +86,7 @@ export function PlaylistBrowser({
         ))}
       </div>
 
-      {gameData && (
+      {gameData && gameData.playlist && gameData.selectedTrack && (
         <div className="space-y-2">
           <h3 className="font-bold">Selected Game</h3>
           <div>Date: {new Date(gameData.date).toLocaleDateString()}</div>
