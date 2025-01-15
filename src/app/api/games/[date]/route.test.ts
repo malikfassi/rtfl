@@ -8,7 +8,7 @@ jest.mock('@/lib/prisma', () => ({
       findFirst: jest.fn(),
     },
     cachedSpotifyTrack: {
-      findFirst: jest.fn(),
+      findUnique: jest.fn(),
     },
     cachedGeniusLyrics: {
       findUnique: jest.fn(),
@@ -73,17 +73,19 @@ describe('GET /api/games/[date]', () => {
 
     const mockCachedTrack = {
       spotifyId: mockTrack.id,
-      title: mockTrack.name,
-      artist: mockTrack.artists[0].name,
+      data: JSON.stringify(mockTrack),
+      updatedAt: new Date(),
     };
 
     const mockCachedLyrics = {
       spotifyId: mockTrack.id,
       lyrics: 'Test lyrics for the song',
+      geniusId: 'genius123',
+      updatedAt: new Date(),
     };
 
     (prisma.game.findFirst as jest.Mock).mockResolvedValue(mockGame);
-    (prisma.cachedSpotifyTrack.findFirst as jest.Mock).mockResolvedValue(mockCachedTrack);
+    (prisma.cachedSpotifyTrack.findUnique as jest.Mock).mockResolvedValue(mockCachedTrack);
     (prisma.cachedGeniusLyrics.findUnique as jest.Mock).mockResolvedValue(mockCachedLyrics);
     mockGetPlaylistItems.mockResolvedValue(mockPlaylist);
 

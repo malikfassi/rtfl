@@ -1,5 +1,6 @@
 import type { Game, Guess } from '@prisma/client';
 import { prisma } from './prisma';
+import type { NextRequest } from 'next/server';
 
 // Game Operations
 export async function createGame(data: Omit<Game, 'id' | 'createdAt' | 'updatedAt'>) {
@@ -79,5 +80,30 @@ export async function cacheLyrics(geniusId: string, spotifyId: string, lyrics: s
 export async function getCachedLyricsBySpotifyId(spotifyId: string) {
   return prisma.cachedGeniusLyrics.findUnique({
     where: { spotifyId },
+  });
+}
+
+// Add new functions alongside existing ones
+export async function getGame(dateStr: string): Promise<Game | null> {
+  const date = new Date(dateStr);
+  return getGameByDate(date); // Reuse existing function
+}
+
+export async function getGuesses(gameId: string, userId: string): Promise<Array<Guess & { wasCorrect: boolean }>> {
+  return getUserGuesses(userId, gameId); // Reuse existing function
+}
+
+export function getUserId(_request: NextRequest | Request): string {
+  // TODO: Implement proper user ID extraction from request
+  // For now, return a dummy ID for testing
+  return 'test-user-id';
+}
+
+export async function storeGuess(gameId: string, userId: string, word: string): Promise<Guess> {
+  return createGuess({
+    gameId,
+    userId,
+    word,
+    wasCorrect: false, // Will be updated after checking
   });
 }

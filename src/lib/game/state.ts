@@ -29,8 +29,8 @@ export interface RevealThresholds {
 }
 
 const DEFAULT_THRESHOLDS: RevealThresholds = {
-  spotify: 0.5, // Reveal Spotify data at 50% progress
-  genius: 0.75, // Reveal Genius data at 75% progress
+  spotify: 1.0, // Only reveal Spotify data on completion
+  genius: 1.0, // Only reveal Genius data on completion
 };
 
 export function computeGameState(
@@ -71,7 +71,7 @@ export function computeGameState(
 export function updateGameState(
   currentState: GameState,
   guess: string,
-  thresholds: RevealThresholds = DEFAULT_THRESHOLDS,
+  _thresholds: RevealThresholds = DEFAULT_THRESHOLDS,
 ): GameState {
   const normalizedGuess = guess.toLowerCase().trim();
 
@@ -82,21 +82,22 @@ export function updateGameState(
   const updatedTitle = updateMasking(currentState.maskedTitle, normalizedGuess);
   const updatedArtist = updateMasking(currentState.maskedArtist, normalizedGuess);
 
-  // Recalculate progress
-  const totalWords =
-    (updatedLyrics?.words.length ?? 0) + updatedTitle.words.length + updatedArtist.words.length;
-  const revealedWords =
-    (updatedLyrics?.revealedCount ?? 0) + updatedTitle.revealedCount + updatedArtist.revealedCount;
-  const progress = totalWords > 0 ? revealedWords / totalWords : 0;
+  const { titleArtistProgress, lyricsProgress, isComplete } = computeProgress(
+    updatedTitle,
+    updatedArtist,
+    updatedLyrics
+  );
 
-  // Update revealed content based on new progress
+  // Use the higher progress value
+  const progress = Math.max(titleArtistProgress, lyricsProgress);
+
   return {
     maskedLyrics: updatedLyrics,
     maskedTitle: updatedTitle,
     maskedArtist: updatedArtist,
     progress,
-    spotify: progress >= thresholds.spotify ? currentState.spotify : null,
-    genius: progress >= thresholds.genius ? currentState.genius : null,
+    spotify: isComplete ? currentState.spotify : null,
+    genius: isComplete ? currentState.genius : null,
   };
 }
 
@@ -117,4 +118,80 @@ function getUniqueWords(content: SpotifyTrack): string[] {
       .forEach((w: string) => words.add(w));
   }
   return Array.from(words);
+}
+
+interface RevealState {
+  lyrics: boolean;
+  artist: boolean;
+  title: boolean;
+  spotify: boolean;
+  genius: boolean;
+}
+
+export function computeRevealState(
+  maskedTitle: MaskedContent,
+  maskedArtist: MaskedContent,
+  maskedLyrics: MaskedContent | null,
+): RevealState {
+  const { isComplete } = computeProgress(maskedTitle, maskedArtist, maskedLyrics);
+  
+  return {
+    lyrics: true, // Always show masked lyrics
+    artist: isComplete, // Only reveal on completion
+    title: isComplete, // Only reveal on completion
+    spotify: isComplete, // Only reveal on completion
+    genius: isComplete, // Only reveal on completion
+  };
+}
+
+export function computeProgress(
+  maskedTitle: MaskedContent,
+  maskedArtist: MaskedContent,
+  maskedLyrics: MaskedContent | null,
+): {
+  titleArtistProgress: number;
+  lyricsProgress: number;
+  isComplete: boolean;
+} {
+  // Calculate title/artist progress
+  const titleComplete = maskedTitle.revealedCount === maskedTitle.words.length;
+  const artistComplete = maskedArtist.revealedCount === maskedArtist.words.length;
+  const titleArtistProgress = (maskedTitle.revealedCount + maskedArtist.revealedCount) / 
+                             (maskedTitle.words.length + maskedArtist.words.length);
+
+  // Calculate lyrics progress
+  const lyricsProgress = maskedLyrics 
+    ? maskedLyrics.revealedCount / maskedLyrics.words.length
+    : 0;
+
+  // Win condition: (title AND artist complete) OR (80% lyrics found)
+  const isComplete = (titleComplete && artistComplete) || lyricsProgress >= 0.8;
+
+  return {
+    titleArtistProgress,
+    lyricsProgress,
+    isComplete,
+  };
+}
+
+export function updateMaskingState(
+  currentState: GameState,
+  guess: string,
+  _allGuesses: Guess[],
+  _totalWords: number
+): GameState {
+  const revealState = computeRevealState(
+    currentState.maskedTitle, 
+    currentState.maskedArtist, 
+    currentState.maskedLyrics
+  );
+  
+  const updatedState = updateGameState(currentState, guess);
+  
+  return {
+    ...updatedState,
+    progress: updatedState.progress,
+    spotify: revealState.spotify ? updatedState.spotify : null,
+    genius: revealState.genius ? updatedState.genius : null,
+  };
 }

@@ -64,7 +64,10 @@ describe('Game State Management', () => {
         previewUrl: 'test-url',
       };
 
-      const state = computeGameState(mockContent, mockGuesses);
+      const state = computeGameState(mockContent, mockGuesses, {
+        spotify: 0.5,
+        genius: 0.75,
+      });
 
       expect(state.spotify).toEqual({
         artistName: 'Test Artist',
@@ -108,7 +111,10 @@ describe('Game State Management', () => {
         previewUrl: null,
       };
 
-      const state = computeGameState(mockContent, mockGuesses);
+      const state = computeGameState(mockContent, mockGuesses, {
+        spotify: 0.5,
+        genius: 0.75,
+      });
 
       expect(state.genius).toEqual({
         lyrics: 'Test lyrics',
