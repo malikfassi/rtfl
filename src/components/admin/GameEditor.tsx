@@ -29,6 +29,7 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
   const [isSaving, setIsSaving] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [overrideSongId, setOverrideSongId] = useState<string>(initialGameData?.overrideSongId || '');
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query) {
@@ -42,24 +43,27 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
     }
   }, [searchPlaylists]);
 
-  const handleSave = async () => {
-    if (!selectedPlaylistId) return;
-
+  const handlePlaylistSelect = async (playlistId: string) => {
     try {
       setIsSaving(true);
       setError(null);
 
+      // Create or update game when playlist is selected
       const response = await fetch(`/api/admin/games/${format(date, 'yyyy-MM-dd')}`, {
         method: initialGameData ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          playlistId: selectedPlaylistId,
+          playlistId,
+          overrideSongId: overrideSongId || null,
         }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to save game');
       }
+
+      // After successful save, select the playlist to update the UI
+      await selectPlaylist(playlistId);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to save game'));
     } finally {
@@ -88,6 +92,33 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
     }
   };
 
+  const handleRegenerateRandomSeed = async () => {
+    if (!initialGameData) return;
+
+    try {
+      setIsSaving(true);
+      setError(null);
+
+      const response = await fetch(`/api/admin/games/${format(date, 'yyyy-MM-dd')}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playlistId: initialGameData.playlistId,
+          overrideSongId: overrideSongId || null,
+          regenerateRandomSeed: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to regenerate random seed');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to regenerate random seed'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {error && (
@@ -104,75 +135,76 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
       <div className="bg-white rounded-lg shadow p-6 space-y-4">
         <h3 className="text-lg font-semibold border-b pb-2">Game Data</h3>
         
-        {initialGameData ? (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="font-medium text-gray-600">From Database</h4>
-                <div>
-                  <span className="text-sm text-gray-500">Game ID:</span>
-                  <span className="ml-2">{initialGameData.id}</span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Random Seed:</span>
-                  <span className="ml-2">{initialGameData.randomSeed}</span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Playlist ID:</span>
-                  <span className="ml-2">{initialGameData.playlistId}</span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Override Song ID:</span>
-                  <span className="ml-2">{initialGameData.overrideSongId || 'None'}</span>
-                </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-600">From Database</h4>
+              <div>
+                <span className="text-sm text-gray-500">Game ID:</span>
+                <span className="ml-2">{initialGameData?.id ?? '<Generated after creation>'}</span>
               </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium text-gray-600">Computed Data</h4>
-                <div>
-                  <span className="text-sm text-gray-500">Selected Song Name:</span>
-                  <span className="ml-2">{playlistData?.selectedTrack?.name ?? 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Selected Song ID:</span>
-                  <span className="ml-2">{playlistData?.selectedTrack?.id ?? 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Artists:</span>
-                  <span className="ml-2">{playlistData?.selectedTrack?.artists?.join(', ') ?? 'N/A'}</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Random Seed:</span>
+                <span>{initialGameData?.randomSeed ?? '<Generated after creation>'}</span>
+                {initialGameData && (
+                  <button
+                    onClick={handleRegenerateRandomSeed}
+                    disabled={isSaving}
+                    className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                  >
+                    Regenerate
+                  </button>
+                )}
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">Playlist ID:</span>
+                <span className="ml-2">{initialGameData?.playlistId ?? '<Select from browser below>'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Override Song ID:</span>
+                <input
+                  type="text"
+                  value={overrideSongId}
+                  onChange={(e) => setOverrideSongId(e.target.value)}
+                  placeholder="None"
+                  className="ml-2 px-2 py-1 border rounded text-sm"
+                />
               </div>
             </div>
+            
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-600">Computed Data</h4>
+              <div>
+                <span className="text-sm text-gray-500">Selected Song Name:</span>
+                <span className="ml-2">{playlistData?.selectedTrack?.name ?? 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">Selected Song ID:</span>
+                <span className="ml-2">{playlistData?.selectedTrack?.id ?? 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">Artists:</span>
+                <span className="ml-2">{playlistData?.selectedTrack?.artists?.join(', ') ?? 'N/A'}</span>
+              </div>
+            </div>
+          </div>
 
-            <div className="pt-4 border-t">
-              <h4 className="font-medium text-gray-600 mb-2">From Cache</h4>
-              <div>
-                <span className="text-sm text-gray-500">Playlist Name:</span>
-                <span className="ml-2">{playlistData?.playlist?.name ?? 'N/A'}</span>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500">Playlist Description:</span>
-                <span className="ml-2">{playlistData?.playlist?.description ?? 'N/A'}</span>
-              </div>
+          <div className="pt-4 border-t">
+            <h4 className="font-medium text-gray-600 mb-2">From Cache</h4>
+            <div>
+              <span className="text-sm text-gray-500">Playlist Name:</span>
+              <span className="ml-2">{playlistData?.playlist?.name ?? 'N/A'}</span>
+            </div>
+            <div>
+              <span className="text-sm text-gray-500">Playlist Description:</span>
+              <span className="ml-2">{playlistData?.playlist?.description ?? 'N/A'}</span>
             </div>
           </div>
-        ) : (
-          <div className="text-gray-500 italic">
-            No game exists for this date. Create one below.
-          </div>
-        )}
+        </div>
       </div>
 
-      <div className="flex gap-4">
-        <button
-          onClick={handleSave}
-          disabled={isSaving || !selectedPlaylistId}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-        >
-          {isSaving ? 'Saving...' : initialGameData ? 'Update Game' : 'Create Game'}
-        </button>
-
-        {initialGameData && (
+      {initialGameData && (
+        <div>
           <button
             onClick={handleDelete}
             disabled={isSaving}
@@ -180,12 +212,12 @@ export function GameEditor({ date, gameData: initialGameData }: GameEditorProps)
           >
             Delete Game
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <PlaylistBrowser
         onSearch={handleSearch}
-        onSelect={selectPlaylist}
+        onSelect={handlePlaylistSelect}
         selectedPlaylistId={selectedPlaylistId}
         gameData={playlistData}
         playlists={playlists}
