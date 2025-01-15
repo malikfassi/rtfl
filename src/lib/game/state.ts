@@ -15,12 +15,17 @@ export interface SpotifyTrack {
 }
 
 export interface GameState {
-  progress: number;
+  progress: {
+    titleArtist: number;
+    lyrics: number;
+    overall: number;
+  };
   maskedTitle: MaskedContent;
   maskedArtist: MaskedContent;
   maskedLyrics: MaskedContent | null;
   spotify: ApiSpotifyContent | null;
   genius: GeniusContent | null;
+  isComplete: boolean;
 }
 
 export interface RevealThresholds {
@@ -29,8 +34,8 @@ export interface RevealThresholds {
 }
 
 const DEFAULT_THRESHOLDS: RevealThresholds = {
-  spotify: 1.0, // Only reveal Spotify data on completion
-  genius: 1.0, // Only reveal Genius data on completion
+  spotify: 0.5, // Reveal Spotify data at 50% progress
+  genius: 0.75, // Reveal Genius data at 75% progress
 };
 
 export function computeGameState(
@@ -42,36 +47,47 @@ export function computeGameState(
     guesses.filter((g) => g.wasCorrect).map((g) => g.word.toLowerCase()),
   );
 
-  const progress = revealedWords.size / getUniqueWords(content).length;
-
   const maskedTitle = createMaskedText(content.title, Array.from(revealedWords));
   const maskedArtist = createMaskedText(content.artist, Array.from(revealedWords));
   const maskedLyrics = content.lyrics
     ? createMaskedText(content.lyrics, Array.from(revealedWords))
     : null;
 
+  const { titleArtistProgress, lyricsProgress, isComplete } = computeProgress(
+    maskedTitle,
+    maskedArtist,
+    maskedLyrics
+  );
+
+  // Use the higher progress value for overall progress
+  const overallProgress = Math.max(titleArtistProgress, lyricsProgress);
+
   return {
-    progress,
+    progress: {
+      titleArtist: titleArtistProgress,
+      lyrics: lyricsProgress,
+      overall: overallProgress,
+    },
     maskedTitle,
     maskedArtist,
     maskedLyrics,
-    spotify:
-      progress >= thresholds.spotify
-        ? {
-            artistName: content.artist,
-            songTitle: content.title,
-            albumCover: content.albumCover,
-            previewUrl: content.previewUrl,
-          }
-        : null,
-    genius: progress >= thresholds.genius && content.lyrics ? { lyrics: content.lyrics } : null,
+    spotify: overallProgress >= thresholds.spotify
+      ? {
+          artistName: content.artist,
+          songTitle: content.title,
+          albumCover: content.albumCover,
+          previewUrl: content.previewUrl,
+        }
+      : null,
+    genius: overallProgress >= thresholds.genius && content.lyrics ? { lyrics: content.lyrics } : null,
+    isComplete,
   };
 }
 
 export function updateGameState(
   currentState: GameState,
   guess: string,
-  _thresholds: RevealThresholds = DEFAULT_THRESHOLDS,
+  thresholds: RevealThresholds = DEFAULT_THRESHOLDS,
 ): GameState {
   const normalizedGuess = guess.toLowerCase().trim();
 
@@ -88,36 +104,22 @@ export function updateGameState(
     updatedLyrics
   );
 
-  // Use the higher progress value
-  const progress = Math.max(titleArtistProgress, lyricsProgress);
+  // Use the higher progress value for overall progress
+  const overallProgress = Math.max(titleArtistProgress, lyricsProgress);
 
   return {
-    maskedLyrics: updatedLyrics,
+    progress: {
+      titleArtist: titleArtistProgress,
+      lyrics: lyricsProgress,
+      overall: overallProgress,
+    },
     maskedTitle: updatedTitle,
     maskedArtist: updatedArtist,
-    progress,
-    spotify: isComplete ? currentState.spotify : null,
-    genius: isComplete ? currentState.genius : null,
+    maskedLyrics: updatedLyrics,
+    spotify: overallProgress >= thresholds.spotify ? currentState.spotify : null,
+    genius: overallProgress >= thresholds.genius ? currentState.genius : null,
+    isComplete,
   };
-}
-
-function getUniqueWords(content: SpotifyTrack): string[] {
-  const words = new Set<string>();
-  content.title
-    .toLowerCase()
-    .split(/\s+/)
-    .forEach((w: string) => words.add(w));
-  content.artist
-    .toLowerCase()
-    .split(/\s+/)
-    .forEach((w: string) => words.add(w));
-  if (content.lyrics) {
-    content.lyrics
-      .toLowerCase()
-      .split(/\s+/)
-      .forEach((w: string) => words.add(w));
-  }
-  return Array.from(words);
 }
 
 interface RevealState {

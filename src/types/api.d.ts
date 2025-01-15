@@ -19,6 +19,12 @@ export interface GuessResponse {
   wasCorrect?: boolean;
 }
 
+export interface Progress {
+  titleArtist: number;
+  lyrics: number;
+  overall: number;
+}
+
 export interface GameWithProgress extends GameResponse {
   progress: {
     totalGuesses: number;
@@ -29,7 +35,7 @@ export interface GameWithProgress extends GameResponse {
     maskedLyrics: MaskedContent | null;
     maskedTitle: MaskedContent;
     maskedArtist: MaskedContent;
-    progress: number;
+    progress: Progress;
     spotify: SpotifyContent | null;
     genius: GeniusContent | null;
   };
@@ -68,7 +74,7 @@ export interface GuessResult {
     lyrics: MaskedContent | null;
     title: MaskedContent;
     artist: MaskedContent;
-    progress: number;
+    progress: Progress;
     spotify: SpotifyContent | null;
     genius: GeniusContent | null;
   };
