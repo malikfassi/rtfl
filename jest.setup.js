@@ -1,104 +1,35 @@
-// Mock Request and Response globals for testing
-global.Request = class Request {
-  constructor(input, init) {
-    this.input = input;
-    this.init = init;
-  }
-};
+import { PrismaClient } from '@prisma/client';
+import { execSync } from 'child_process';
+import { join } from 'path';
+import { URL } from 'url';
 
-global.Response = class Response {
-  constructor(body, init) {
-    this.body = body;
-    this.init = init;
-    this.headers = new Headers(init?.headers);
-    this.status = init?.status || 200;
-  }
+const prisma = new PrismaClient();
 
-  static json(data, init) {
-    return new Response(JSON.stringify(data), {
-      ...init,
-      headers: {
-        ...init?.headers,
-        'content-type': 'application/json',
-      },
-    });
-  }
+const prismaBinary = join('node_modules', '.bin', 'prisma');
 
-  json() {
-    return Promise.resolve(JSON.parse(this.body));
-  }
-};
+beforeAll(async () => {
+  // Generate unique database URL for the test
+  const url = new URL(process.env.DATABASE_URL || 'file:./test.db');
+  url.pathname = `test_${Date.now()}.db`;
+  process.env.DATABASE_URL = url.toString();
 
-// Mock Headers for testing
-class Headers {
-  constructor(init = {}) {
-    this.headers = new Map(Object.entries(init));
-  }
+  // Run migrations
+  execSync(`${prismaBinary} migrate deploy`, {
+    env: {
+      ...process.env,
+      DATABASE_URL: process.env.DATABASE_URL,
+    },
+  });
+});
 
-  get(key) {
-    return this.headers.get(key) || null;
-  }
+afterAll(async () => {
+  await prisma.$disconnect();
+});
 
-  getSetCookie() {
-    return [];
+beforeEach(async () => {
+  // Clean up the database before each test
+  const tables = ['Game', 'Song'];
+  for (const table of tables) {
+    await prisma.$executeRawUnsafe(`DELETE FROM "${table}";`);
   }
-
-  append(key, value) {
-    this.headers.set(key, value);
-  }
-}
-
-// Mock URL for testing
-class URL {
-  constructor(url) {
-    this.url = url;
-    const [pathname, search] = url.split('?');
-    this.pathname = pathname;
-    this.searchParams = new URLSearchParams(search || '');
-  }
-}
-
-// Mock URLSearchParams for testing
-class URLSearchParams {
-  constructor(init = '') {
-    this.params = new Map();
-    if (typeof init === 'string') {
-      init.split('&').forEach(pair => {
-        if (!pair) return;
-        const [key, value] = pair.split('=');
-        if (key) this.params.set(key, decodeURIComponent(value || ''));
-      });
-    }
-  }
-
-  get(key) {
-    return this.params.get(key) || null;
-  }
-
-  getAll(key) {
-    return this.params.has(key) ? [this.params.get(key)] : [];
-  }
-
-  has(key) {
-    return this.params.has(key);
-  }
-}
-
-// Mock NextResponse
-const NextResponse = {
-  json(data, init) {
-    const response = new Response(JSON.stringify(data), init);
-    response.headers.append('x-nextjs-data', '1');
-    return response;
-  }
-};
-
-global.Headers = Headers;
-global.URL = URL;
-global.URLSearchParams = URLSearchParams;
-global.Request = Request;
-global.Response = Response;
-jest.mock('next/server', () => ({
-  NextResponse,
-})); 
-global.Response = Response; 
+}); 

@@ -1,103 +1,94 @@
 'use client';
 
-import { ChangeEvent, useEffect, useState, useCallback } from 'react';
-import { GameResponse } from '@/lib/hooks/usePlaylist';
+import { useEffect, useState } from 'react';
 
-interface PlaylistBrowserProps {
-  onSearch: (query: string) => Promise<void>;
-  onSelect: (playlistId: string) => Promise<void>;
-  selectedPlaylistId?: string;
-  gameData: GameResponse | null;
-  playlists: Array<{ id: string; name: string }>;
-  isLoading?: boolean;
+interface Playlist {
+  id: string;
+  name: string;
+  description: string | null;
+  images: { url: string }[];
 }
 
-export function PlaylistBrowser({
-  onSearch,
-  onSelect,
-  selectedPlaylistId,
-  gameData,
-  playlists,
-  isLoading = false,
-}: PlaylistBrowserProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+interface PlaylistBrowserProps {
+  onPlaylistSelect: (playlistId: string) => void;
+}
 
-  // Handle search with debouncing
+export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    const trimmedQuery = searchQuery.trim();
-    
-    // Don't search if query is too short
-    if (trimmedQuery.length < 3) {
-      if (trimmedQuery.length === 0) {
-        onSearch(''); // Clear results immediately for empty query
+    async function fetchPlaylists() {
+      try {
+        const response = await fetch('/api/admin/spotify/playlists');
+        if (!response.ok) {
+          throw new Error('Failed to fetch playlists');
+        }
+        const data = await response.json();
+        setPlaylists(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setIsLoading(false);
       }
-      return;
     }
 
-    // Set typing indicator
-    setIsTyping(true);
-
-    // Debounce the search
-    const timeoutId = setTimeout(async () => {
-      await onSearch(trimmedQuery);
-      setIsTyping(false);
-    }, 500);
-
-    return () => {
-      clearTimeout(timeoutId);
-      setIsTyping(false);
-    };
-  }, [searchQuery, onSearch]);
-
-  const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    fetchPlaylists();
   }, []);
 
-  return (
-    <div className="space-y-4">
-      <div className="relative">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          placeholder="Search playlists..."
-          className="w-full p-2 border rounded-md"
-          autoFocus
-        />
-        {(isLoading || isTyping) && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2">
-            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-2">
-        {playlists.map((playlist) => (
-          <button
-            key={playlist.id}
-            onClick={() => onSelect(playlist.id)}
-            className={`p-2 text-left rounded-md hover:bg-gray-100 ${
-              selectedPlaylistId === playlist.id ? 'bg-blue-100' : ''
-            }`}
-          >
-            {playlist.name} ({playlist.id})
-          </button>
-        ))}
-      </div>
-
-      {gameData && gameData.playlist && gameData.selectedTrack && (
-        <div className="space-y-2">
-          <h3 className="font-bold">Selected Game</h3>
-          <div>Date: {new Date(gameData.date).toLocaleDateString()}</div>
-          <div>Playlist: {gameData.playlist.name}</div>
-          <div>Random Seed: {gameData.randomSeed}</div>
-          <div>Selected Track: {gameData.selectedTrack.name} by {gameData.selectedTrack.artists.join(', ')}</div>
-          {gameData.selectedTrack.previewUrl && (
-            <audio controls src={gameData.selectedTrack.previewUrl} className="w-full" />
-          )}
+  if (isLoading) {
+    return (
+      <div className="p-4">
+        <div className="animate-pulse space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-24 bg-gray-200 rounded"></div>
+          ))}
         </div>
-      )}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-red-500">
+        <p>Error: {error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 text-blue-500 hover:underline"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 p-4">
+      <h2 className="text-xl font-semibold mb-4">Your Playlists</h2>
+      {playlists.map((playlist) => (
+        <button
+          key={playlist.id}
+          onClick={() => onPlaylistSelect(playlist.id)}
+          className="w-full p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow flex items-center space-x-4 text-left"
+        >
+          {playlist.images[0] && (
+            <img
+              src={playlist.images[0].url}
+              alt={playlist.name}
+              className="w-16 h-16 object-cover rounded"
+            />
+          )}
+          <div>
+            <h3 className="font-medium text-gray-900">{playlist.name}</h3>
+            {playlist.description && (
+              <p className="text-sm text-gray-500 line-clamp-2">
+                {playlist.description}
+              </p>
+            )}
+          </div>
+        </button>
+      ))}
     </div>
   );
 } 

@@ -13,48 +13,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Core Models
+model Song {
+  id           String   @id @default(cuid())
+  spotifyId    String   @unique
+  title        String
+  artist       String
+  previewUrl   String?
+  lyrics       String
+  maskedLyrics Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  games        Game[]
+
+  @@index([spotifyId])
+}
+
 model Game {
-  id            String   @id @default(uuid())
-  date          DateTime @unique
-  randomSeed    String
-  playlistId    String
-  overrideSongId String?
-  selectedTrackIndex Int   @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  guesses       Guess[]
-}
+  id        String   @id @default(cuid())
+  date      String   @unique
+  songId    String
+  song      Song     @relation(fields: [songId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-model Guess {
-  id        String   @id @default(uuid())
-  userId    String
-  gameId    String
-  word      String
-  timestamp DateTime @default(now())
-  wasCorrect Boolean @default(false)
-  game      Game     @relation(fields: [gameId], references: [id])
-
-  @@index([userId])
-  @@index([gameId])
-}
-
-// Cache Tables
-model CachedSpotifyTrack {
-  spotifyId  String   @id
-  data       String   // JSON string of full track data
-  updatedAt  DateTime @updatedAt
-}
-
-model CachedSpotifyPlaylist {
-  spotifyId  String   @id
-  data       String   // JSON string of playlist metadata + tracks
-  updatedAt  DateTime @updatedAt
-}
-
-model CachedGeniusLyrics {
-  geniusId   String   @id
-  spotifyId  String   @unique
-  lyrics     String   // Original lyrics text
-  updatedAt  DateTime @updatedAt
+  @@index([date])
+  @@index([songId])
 }

@@ -1,99 +1,89 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import { useState } from 'react';
+import { PlaylistBrowser } from './PlaylistBrowser';
+import { PlaylistSongBrowser } from './PlaylistSongBrowser';
 import { GameEditor } from './GameEditor';
+import { CalendarView } from './CalendarView';
 
 interface Game {
-  id: number;
-  date: Date;
-  playlistId: string;
-  randomSeed: number;
-  overrideSongId: string | null;
+  id: string;
+  date: string;
+  songId: string;
+  song: {
+    title: string;
+    artist: string;
+  };
 }
 
 export function AdminDashboard() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+  const [selectedTrackId, setSelectedTrackId] = useState<string | undefined>(undefined);
+  const [mode, setMode] = useState<'calendar' | 'playlist'>('calendar');
+  // TODO: Implement fetching and updating games
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [games, setGames] = useState<Game[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchGames() {
-      try {
-        const response = await fetch('/api/games');
-        if (!response.ok) throw new Error('Failed to fetch games');
-        const { games } = await response.json();
-        setGames(games.map((game: Game) => ({ ...game, date: new Date(game.date) })));
-      } catch (error) {
-        console.error('Failed to fetch games:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchGames();
-  }, []);
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setMode('calendar');
+  };
 
-  const monthDays = eachDayOfInterval({
-    start: startOfMonth(selectedDate),
-    end: endOfMonth(selectedDate)
-  });
+  const handlePlaylistSelect = (playlistId: string) => {
+    setSelectedPlaylistId(playlistId);
+    setMode('playlist');
+  };
 
-  const selectedGame = games.find(game => isSameDay(game.date, selectedDate));
+  const handleSongSelect = (trackId: string) => {
+    setSelectedTrackId(trackId);
+  };
+
+  const handleGameSave = async (gameData: Partial<Game>) => {
+    // TODO: Implement game save logic
+    console.log('Saving game:', gameData);
+  };
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
-          <h2 className="text-xl font-semibold mb-4">
-            {format(selectedDate, 'MMMM yyyy')}
-          </h2>
-          <div className="grid grid-cols-7 gap-1">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center text-sm font-medium py-1">
-                {day}
-              </div>
-            ))}
-            {monthDays.map(date => {
-              const hasGame = games.some(game => isSameDay(game.date, date));
-              const isSelected = isSameDay(date, selectedDate);
-              return (
-                <button
-                  key={date.toISOString()}
-                  onClick={() => setSelectedDate(date)}
-                  className={`
-                    p-2 text-center rounded-md transition-colors
-                    ${isSelected ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}
-                    ${hasGame ? 'font-bold' : 'font-normal'}
-                  `}
-                >
-                  {format(date, 'd')}
-                  {hasGame && (
-                    <div className="w-1 h-1 bg-green-500 rounded-full mx-auto mt-1" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <div className="w-80 bg-white shadow-md overflow-y-auto">
+        {mode === 'calendar' ? (
+          <CalendarView
+            games={games}
+            onDateSelect={handleDateSelect}
+            selectedDate={selectedDate}
+          />
+        ) : (
+          <PlaylistBrowser onPlaylistSelect={handlePlaylistSelect} />
+        )}
+        <div className="p-4 border-t">
+          <button
+            onClick={() => setMode(mode === 'calendar' ? 'playlist' : 'calendar')}
+            className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            Switch to {mode === 'calendar' ? 'Playlists' : 'Calendar'}
+          </button>
         </div>
+      </div>
 
-        <div className="md:col-span-2">
-          <h2 className="text-xl font-semibold mb-4">
-            Game for {format(selectedDate, 'MMMM d, yyyy')}
-          </h2>
-          {isLoading ? (
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-gray-200 rounded w-1/2" />
-              <div className="h-32 bg-gray-200 rounded" />
-            </div>
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto">
+        {mode === 'calendar' ? (
+          selectedDate ? (
+            <GameEditor onSave={handleGameSave} />
           ) : (
-            <GameEditor
-              date={selectedDate}
-              gameData={selectedGame || null}
-            />
-          )}
-        </div>
+            <div className="p-4 text-gray-500 text-center">
+              Select a date to create or edit a game
+            </div>
+          )
+        ) : (
+          <PlaylistSongBrowser
+            playlistId={selectedPlaylistId}
+            onSongSelect={handleSongSelect}
+            selectedTrackId={selectedTrackId}
+          />
+        )}
       </div>
     </div>
   );

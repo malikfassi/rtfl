@@ -1,109 +1,19 @@
-import type { Game, Guess } from '@prisma/client';
-import { prisma } from './prisma';
-import type { NextRequest } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 
-// Game Operations
-export async function createGame(data: Omit<Game, 'id' | 'createdAt' | 'updatedAt'>) {
-  return prisma.game.create({ data });
+declare global {
+  var prisma: PrismaClient | undefined;
 }
 
-export async function getGameByDate(date: Date) {
-  return prisma.game.findFirst({
-    where: { date },
-    include: { guesses: true },
+const prismaClientSingleton = () => {
+  return new PrismaClient({
+    log: ['query', 'error', 'warn'],
   });
+};
+
+export const prisma = globalThis.prisma ?? prismaClientSingleton();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalThis.prisma = prisma;
 }
 
-export async function getLatestGame() {
-  return prisma.game.findFirst({
-    orderBy: { date: 'desc' },
-    include: { guesses: true },
-  });
-}
-
-// Guess Operations
-export async function createGuess(data: Omit<Guess, 'id' | 'timestamp'>) {
-  return prisma.guess.create({ data });
-}
-
-export async function getGuessesByGame(gameId: string) {
-  return prisma.guess.findMany({
-    where: { gameId },
-    orderBy: { timestamp: 'asc' },
-  });
-}
-
-export async function getUserGuesses(userId: string, gameId: string) {
-  return prisma.guess.findMany({
-    where: { userId, gameId },
-    orderBy: { timestamp: 'asc' },
-  });
-}
-
-// Cache Operations
-export async function cacheSpotifyTrack(spotifyId: string, data: string) {
-  return prisma.cachedSpotifyTrack.upsert({
-    where: { spotifyId },
-    create: { spotifyId, data },
-    update: { data, updatedAt: new Date() },
-  });
-}
-
-export async function getCachedSpotifyTrack(spotifyId: string) {
-  return prisma.cachedSpotifyTrack.findUnique({
-    where: { spotifyId },
-  });
-}
-
-export async function cacheSpotifyPlaylist(spotifyId: string, data: string) {
-  return prisma.cachedSpotifyPlaylist.upsert({
-    where: { spotifyId },
-    create: { spotifyId, data },
-    update: { data, updatedAt: new Date() },
-  });
-}
-
-export async function getCachedSpotifyPlaylist(spotifyId: string) {
-  return prisma.cachedSpotifyPlaylist.findUnique({
-    where: { spotifyId },
-  });
-}
-
-export async function cacheLyrics(geniusId: string, spotifyId: string, lyrics: string) {
-  return prisma.cachedGeniusLyrics.upsert({
-    where: { geniusId },
-    create: { geniusId, spotifyId, lyrics },
-    update: { lyrics, updatedAt: new Date() },
-  });
-}
-
-export async function getCachedLyricsBySpotifyId(spotifyId: string) {
-  return prisma.cachedGeniusLyrics.findUnique({
-    where: { spotifyId },
-  });
-}
-
-// Add new functions alongside existing ones
-export async function getGame(dateStr: string): Promise<Game | null> {
-  const date = new Date(dateStr);
-  return getGameByDate(date); // Reuse existing function
-}
-
-export async function getGuesses(gameId: string, userId: string): Promise<Array<Guess & { wasCorrect: boolean }>> {
-  return getUserGuesses(userId, gameId); // Reuse existing function
-}
-
-export function getUserId(_request: NextRequest | Request): string {
-  // TODO: Implement proper user ID extraction from request
-  // For now, return a dummy ID for testing
-  return 'test-user-id';
-}
-
-export async function storeGuess(gameId: string, userId: string, word: string): Promise<Guess> {
-  return createGuess({
-    gameId,
-    userId,
-    word,
-    wasCorrect: false, // Will be updated after checking
-  });
-}
+export default prisma; 

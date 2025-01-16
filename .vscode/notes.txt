@@ -1,0 +1,40 @@
+state folder has :
+- product requirements
+- technical requirements
+
+tasks folder has :
+- active task file
+- all tasks folders
+
+each task folder has :
+- notes.md
+- steps.md
+
+
+
+
+
+-> what user want ?
+   -> create new "user demand" task (cp folder template)
+
+-> user demand task 
+    analisis steps: 
+        - identify user demand
+        - potentially update demand-analysis.md
+        - check current project state product
+        - potentially update demand-analysis.md
+        - check technical requirements
+        - potentially update demand-analysis.md
+        - check tree root file tree with gitignore
+        - potentially update demand-analysis.md
+        - check active steps
+        - potentially update demand-analysis.md
+        - check active task
+        - potentially update demand-analysis.md
+        - list tasks
+        - potentially update demand-analysis.md
+        - if demand-analysis agree on new task creation : 
+        
+        - cp new task folder template
+        - fill all new task folder template 
+        - update active task file
