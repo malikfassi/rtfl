@@ -12,7 +12,7 @@ describe('GameService', () => {
   let gameService: ReturnType<typeof createGameService>;
 
   beforeEach(async () => {
-    // Clean up the database before each test
+    // Clean up the test database before each test
     await prisma.game.deleteMany();
     await prisma.song.deleteMany();
 
