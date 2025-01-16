@@ -52,7 +52,6 @@ describe('GameService', () => {
 
       expect(result.date).toBe(date);
       expect(result.songId).toBe(song2.id);
-      expect(typeof result.songId).toBe('string');
     });
   });
 

@@ -1,47 +1,36 @@
 'use client';
 
 import { useState } from 'react';
-import { PlaylistBrowser } from './PlaylistBrowser';
-import { PlaylistSongBrowser } from './PlaylistSongBrowser';
+import { PlaylistBrowser } from './game/PlaylistBrowser';
+import { PlaylistSongBrowser } from './game/PlaylistSongBrowser';
 import { GameEditor } from './GameEditor';
 import { CalendarView } from './CalendarView';
-
-interface Game {
-  id: string;
-  date: string;
-  songId: string;
-  song: {
-    title: string;
-    artist: string;
-  };
-}
+import { Playlist, SpotifyTrack } from '@/types/admin';
+import { useGames } from '@/hooks/use-games';
+import { startOfMonth, format } from 'date-fns';
 
 export function AdminDashboard() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
-  const [selectedTrackId, setSelectedTrackId] = useState<string | undefined>(undefined);
   const [mode, setMode] = useState<'calendar' | 'playlist'>('calendar');
-  // TODO: Implement fetching and updating games
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [games, setGames] = useState<Game[]>([]);
+  
+  // Get the first day of the month for the selected date or current month
+  const monthDate = selectedDate ? startOfMonth(selectedDate) : startOfMonth(new Date());
+  const { data: games = [] } = useGames(monthDate);
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     setMode('calendar');
   };
 
-  const handlePlaylistSelect = (playlistId: string) => {
-    setSelectedPlaylistId(playlistId);
+  const handlePlaylistSelect = (playlist: Playlist) => {
+    setSelectedPlaylistId(playlist.id);
     setMode('playlist');
   };
 
-  const handleSongSelect = (trackId: string) => {
-    setSelectedTrackId(trackId);
-  };
-
-  const handleGameSave = async (gameData: Partial<Game>) => {
-    // TODO: Implement game save logic
-    console.log('Saving game:', gameData);
+  const handleSongSelect = (track: SpotifyTrack) => {
+    // TODO: Implement song selection logic
+    console.log('Selected track:', track);
   };
 
   return (
@@ -55,7 +44,11 @@ export function AdminDashboard() {
             selectedDate={selectedDate}
           />
         ) : (
-          <PlaylistBrowser onPlaylistSelect={handlePlaylistSelect} />
+          <PlaylistBrowser
+            selectedPlaylistId={selectedPlaylistId}
+            onSelectPlaylist={handlePlaylistSelect}
+            enabled={mode === 'playlist'}
+          />
         )}
         <div className="p-4 border-t">
           <button
@@ -71,7 +64,9 @@ export function AdminDashboard() {
       <div className="flex-1 overflow-y-auto">
         {mode === 'calendar' ? (
           selectedDate ? (
-            <GameEditor onSave={handleGameSave} />
+            <GameEditor 
+              date={format(selectedDate, 'yyyy-MM-dd')}
+            />
           ) : (
             <div className="p-4 text-gray-500 text-center">
               Select a date to create or edit a game
@@ -80,8 +75,7 @@ export function AdminDashboard() {
         ) : (
           <PlaylistSongBrowser
             playlistId={selectedPlaylistId}
-            onSongSelect={handleSongSelect}
-            selectedTrackId={selectedTrackId}
+            onSelectSong={handleSongSelect}
           />
         )}
       </div>

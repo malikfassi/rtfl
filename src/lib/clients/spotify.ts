@@ -1,4 +1,4 @@
-import { SpotifyApi, PlaylistedTrack, Track, SimplifiedPlaylist, Image } from '@spotify/web-api-ts-sdk';
+import { SpotifyApi, PlaylistedTrack, Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 
 interface SpotifyTrack {
   id: string;
@@ -7,15 +7,11 @@ interface SpotifyTrack {
   preview_url: string | null;
 }
 
-interface SpotifyPlaylist {
-  tracks: SpotifyTrack[];
-}
-
 interface SpotifyPlaylistInfo {
   id: string;
   name: string;
   description: string | null;
-  images: { url: string }[];
+  trackCount: number;
 }
 
 export class SpotifyClient {
@@ -25,38 +21,82 @@ export class SpotifyClient {
     this.client = SpotifyApi.withClientCredentials(clientId, clientSecret);
   }
 
-  async getUserPlaylists(): Promise<SpotifyPlaylistInfo[]> {
-    const data = await this.client.playlists.getUsersPlaylists(
-      process.env.SPOTIFY_USER_ID || ''
-    );
-
-    return data.items.map((playlist: SimplifiedPlaylist) => ({
-      id: playlist.id,
-      name: playlist.name,
-      description: playlist.description,
-      images: playlist.images.map((image: Image) => ({ url: image.url }))
-    }));
+  async searchPlaylists(query: string): Promise<SpotifyPlaylistInfo[]> {
+    try {
+      const data = await this.client.search(query, ['playlist'], undefined, 20);
+      console.log('Spotify search response:', JSON.stringify(data.playlists, null, 2));
+      
+      return data.playlists.items
+        .filter((item): item is SimplifiedPlaylist => {
+          if (!item) {
+            console.warn('Received null item in search results');
+            return false;
+          }
+          return true;
+        })
+        .map((playlist) => ({
+          id: playlist.id,
+          name: playlist.name,
+          description: playlist.description,
+          trackCount: playlist.tracks?.total ?? 0
+        }));
+    } catch (error) {
+      console.error('Spotify search error:', error);
+      throw new Error('Failed to search playlists');
+    }
   }
 
-  async getPlaylistTracks(playlistId: string): Promise<SpotifyPlaylist> {
-    const data = await this.client.playlists.getPlaylistItems(
-      playlistId,
-      undefined,
-      'items(track(id,name,artists(name),preview_url))'
-    );
+  async getTrack(trackId: string): Promise<SpotifyTrack> {
+    try {
+      const track = await this.client.tracks.get(trackId);
+      return {
+        id: track.id,
+        name: track.name,
+        artists: track.artists.map(artist => ({ name: artist.name })),
+        preview_url: track.preview_url
+      };
+    } catch (error) {
+      console.error('Failed to get track:', error);
+      throw new Error('Failed to get track from Spotify');
+    }
+  }
 
-    return {
-      tracks: data.items
-        .filter((item): item is PlaylistedTrack<Track> => 
-          item.track?.type === 'track' && 'artists' in item.track
-        )
-        .map(item => ({
-          id: item.track.id,
-          name: item.track.name,
-          artists: item.track.artists.map(artist => ({ name: artist.name })),
-          preview_url: item.track.preview_url,
-        })),
-    };
+  async getPlaylistTracks(playlistId: string): Promise<SpotifyTrack[]> {
+    try {
+      const data = await this.client.playlists.getPlaylistItems(playlistId);
+      console.log('Playlist tracks response:', JSON.stringify(data, null, 2));
+      
+      const seenIds = new Set<string>();
+      
+      const tracks = data.items
+        .filter((item): item is PlaylistedTrack & { track: Track } => {
+          if (!item.track || item.track.type !== 'track') {
+            console.warn('Skipping item without valid track:', item);
+            return false;
+          }
+          if (seenIds.has(item.track.id)) {
+            console.warn('Skipping duplicate track:', item.track.id);
+            return false;
+          }
+          seenIds.add(item.track.id);
+          return true;
+        })
+        .map((item) => {
+          const track = item.track;
+          return {
+            id: track.id,
+            name: track.name,
+            artists: track.artists.map((artist) => ({ name: artist.name })),
+            preview_url: track.preview_url
+          };
+        });
+
+      console.log('Processed tracks:', tracks.length);
+      return tracks;
+    } catch (error) {
+      console.error('Failed to get playlist tracks:', error);
+      throw error;
+    }
   }
 }
 

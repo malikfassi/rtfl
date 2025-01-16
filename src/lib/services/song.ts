@@ -24,29 +24,23 @@ export class SongService {
       }
 
       // Get track details from Spotify
-      const playlist = await spotifyClient.getPlaylistTracks(spotifyId);
-      const track = playlist.tracks[0];
-      if (!track) {
-        throw new SongError('Track not found on Spotify', 'SPOTIFY_NOT_FOUND');
-      }
-
-      const title = track.name;
+      const track = await spotifyClient.getTrack(spotifyId);
       const artist = track.artists[0]?.name;
       if (!artist) {
         throw new SongError('Artist not found for track', 'SPOTIFY_NOT_FOUND');
       }
 
       // Get lyrics from Genius
-      const lyrics = await geniusClient.searchSong(title, artist);
+      const lyrics = await geniusClient.searchSong(track.name, artist);
       if (!lyrics) {
         throw new SongError(
-          `Lyrics not found for ${title} by ${artist}`,
+          `Lyrics not found for ${track.name} by ${artist}`,
           'GENIUS_NOT_FOUND'
         );
       }
 
       // Generate masked lyrics and convert to JSON object
-      const masked = lyricsService.maskSong(title, artist, lyrics);
+      const masked = lyricsService.maskSong(track.name, artist, lyrics);
       const maskedLyrics: Prisma.JsonObject = {
         title: masked.title,
         artist: masked.artist,
@@ -57,7 +51,7 @@ export class SongService {
       return await prisma.song.create({
         data: {
           spotifyId,
-          title,
+          title: track.name,
           artist,
           previewUrl: track.preview_url || null,
           lyrics,

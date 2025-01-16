@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+  font-family: var(--font-jetbrains-mono);
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+@layer components {
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-jetbrains-mono);
+    transition: all 0.1s;
+    cursor: pointer;
+  }
+
+  .calendar-day:hover:not(.calendar-day-selected) {
+    color: #9b87f5;
+  }
+
+  .calendar-day-selected {
+    color: #9b87f5;
+  }
+
+  .calendar-day-selected::before {
+    content: '[';
+    position: absolute;
+    left: -4px;
+  }
+
+  .calendar-day-selected::after {
+    content: ']';
+    position: absolute;
+    right: -4px;
+  }
+
+  .calendar-day-today {
+    color: #FF719A;
+  }
+
+  .calendar-day-today::before {
+    content: '{';
+    position: absolute;
+    left: -4px;
+    color: #FF719A;
+  }
+
+  .calendar-day-today::after {
+    content: '}';
+    position: absolute;
+    right: -4px;
+    color: #FF719A;
+  }
+
+  .calendar-day-has-game::before {
+    content: '>';
+    position: absolute;
+    top: -1rem;
+    color: #abecd6;
+    font-size: 0.75rem;
+  }
+} 

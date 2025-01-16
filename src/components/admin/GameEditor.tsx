@@ -1,160 +1,98 @@
-'use client';
-
-import { useState } from 'react';
-import { format } from 'date-fns';
-
-interface Song {
-  id: string;
-  title: string;
-  artist: string;
-  previewUrl: string | null;
-}
-
-interface Game {
-  id: string;
-  date: string;
-  songId: string;
-  song: Song;
-}
+import React, { useState } from 'react';
+import { useGame } from '@/hooks/use-game';
+import { useGameMutations } from '@/hooks/use-game-mutations';
+import { GameHeader } from './game/GameHeader';
+import { PlaylistBrowser } from './game/PlaylistBrowser';
+import { PlaylistSongBrowser } from './game/PlaylistSongBrowser';
+import { GamePreview } from './game/GamePreview';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { SpotifyTrack, Playlist } from '@/types/admin';
 
 interface GameEditorProps {
-  game?: Game;
-  onSave: (gameData: Partial<Game>) => Promise<void>;
-  onDelete?: () => Promise<void>;
+  date: string;
 }
 
-export function GameEditor({ game, onSave, onDelete }: GameEditorProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedSongId, setSelectedSongId] = useState(game?.songId || '');
+export function GameEditor({ date }: GameEditorProps) {
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+  const { data: game, isLoading: isLoadingGame, error: gameError } = useGame(date);
+  const { createOrUpdateGame, deleteGame, isLoading: isMutating } = useGameMutations(date);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+  const handleSelectPlaylist = (playlist: Playlist) => {
+    setSelectedPlaylistId(playlist.id);
+  };
 
+  const handleSelectSong = async (track: SpotifyTrack) => {
     try {
-      await onSave({
-        ...game,
-        songId: selectedSongId,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save game');
-    } finally {
-      setIsLoading(false);
+      await createOrUpdateGame(track.id);
+    } catch (error) {
+      console.error('Failed to create/update game:', error);
     }
   };
 
-  const handleDelete = async () => {
-    if (!onDelete || !window.confirm('Are you sure you want to delete this game?')) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
+  const handleDeleteGame = async () => {
     try {
-      await onDelete();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete game');
-    } finally {
-      setIsLoading(false);
+      await deleteGame();
+    } catch (error) {
+      console.error('Failed to delete game:', error);
     }
   };
+
+  if (isLoadingGame) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (gameError) {
+    return (
+      <EmptyState
+        message="Failed to load game"
+        icon="!"
+        action={{
+          label: 'Try again',
+          onClick: () => window.location.reload()
+        }}
+      />
+    );
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold text-gray-800 mb-6">
-        {game ? 'Edit Game' : 'Create Game'}
-      </h2>
+    <div className="flex h-full">
+      {/* Left Panel: Game Header + Playlist Browser */}
+      <div className="flex w-80 flex-col border-r border-primary/10">
+        <GameHeader
+          date={date}
+          onDelete={handleDeleteGame}
+          isDeleting={isMutating}
+        />
+        <PlaylistBrowser
+          selectedPlaylistId={selectedPlaylistId}
+          onSelectPlaylist={handleSelectPlaylist}
+        />
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Date Display */}
-        {game && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date
-            </label>
-            <div className="text-gray-900">
-              {format(new Date(game.date), 'MMMM d, yyyy')}
-            </div>
-          </div>
+      {/* Middle Panel: Song Browser */}
+      <div className="flex w-96 flex-col border-r border-primary/10">
+        <PlaylistSongBrowser
+          playlistId={selectedPlaylistId}
+          onSelectSong={handleSelectSong}
+        />
+      </div>
+
+      {/* Right Panel: Game Preview */}
+      <div className="flex-1">
+        {game ? (
+          <GamePreview game={game} />
+        ) : (
+          <EmptyState
+            message="Select a song to create a game"
+            icon="+"
+          />
         )}
-
-        {/* Song Selection */}
-        <div>
-          <label
-            htmlFor="songId"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Song
-          </label>
-          <select
-            id="songId"
-            value={selectedSongId}
-            onChange={(e) => setSelectedSongId(e.target.value)}
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-            required
-          >
-            <option value="">Select a song</option>
-            {/* Song options will be populated from playlist */}
-          </select>
-        </div>
-
-        {/* Preview Current Song */}
-        {game?.song && (
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-medium text-gray-900">{game.song.title}</h3>
-            <p className="text-gray-500">{game.song.artist}</p>
-            {game.song.previewUrl && (
-              <audio
-                controls
-                className="mt-2 w-full"
-                src={game.song.previewUrl}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Error Display */}
-        {error && (
-          <div className="text-red-600 text-sm">{error}</div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex justify-between">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`
-              px-4 py-2 rounded-lg text-white
-              ${isLoading
-                ? 'bg-blue-400 cursor-not-allowed'
-                : 'bg-blue-500 hover:bg-blue-600'
-              }
-            `}
-          >
-            {isLoading ? 'Saving...' : 'Save Changes'}
-          </button>
-
-          {onDelete && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isLoading}
-              className={`
-                px-4 py-2 rounded-lg text-white
-                ${isLoading
-                  ? 'bg-red-400 cursor-not-allowed'
-                  : 'bg-red-500 hover:bg-red-600'
-                }
-              `}
-            >
-              {isLoading ? 'Deleting...' : 'Delete Game'}
-            </button>
-          )}
-        </div>
-      </form>
+      </div>
     </div>
   );
 } 
