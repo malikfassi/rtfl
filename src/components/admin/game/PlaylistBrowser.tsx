@@ -12,7 +12,7 @@ interface PlaylistBrowserProps {
   disabled?: boolean;
 }
 
-export function PlaylistBrowser({ songAssignments, onSelect, onCancel, disabled = false }: PlaylistBrowserProps) {
+export function PlaylistBrowser({ onSelect, onCancel: _onCancel, disabled = false, songAssignments }: PlaylistBrowserProps) {
   const [query, setQuery] = useState('');
   const [playlists, setPlaylists] = useState<Array<{ id: string; name: string; image?: string }>>([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState<{ id: string; name: string } | null>(null);
@@ -92,7 +92,6 @@ export function PlaylistBrowser({ songAssignments, onSelect, onCancel, disabled 
               onClick={() => {
                 setSelectedPlaylist(null);
                 setTracks([]);
-                onCancel();
               }}
               className="text-sm text-muted hover:text-foreground"
             >

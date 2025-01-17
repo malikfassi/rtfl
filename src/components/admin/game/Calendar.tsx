@@ -17,7 +17,6 @@ interface CalendarProps {
   currentMonth: Date;
   onMonthChange: (date: Date) => void;
   pendingChanges?: Record<string, GameStatusInfo>;
-  onDayUnselect?: (date: Date) => void;
 }
 
 interface CalendarDayProps {
@@ -201,8 +200,7 @@ export function Calendar({
   games, 
   currentMonth, 
   onMonthChange,
-  pendingChanges = {},
-  onDayUnselect
+  pendingChanges = {}
 }: CalendarProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState<Date | null>(null);
@@ -211,10 +209,18 @@ export function Calendar({
     if (!isDragging) {
       const isSelected = selectedDates.some(d => isSameDay(d, date));
       
-      if (isSelected && onDayUnselect) {
-        onDayUnselect(date);
-      } else {
+      if (selectedDates.length <= 1) {
+        // When 0 or 1 day is selected, clicking a day replaces the selection
         onSelect([date]);
+      } else {
+        // In multi-select mode
+        if (isSelected) {
+          // Remove the date if it's already selected
+          onSelect(selectedDates.filter(d => !isSameDay(d, date)));
+        } else {
+          // Add the date to existing selection
+          onSelect([...selectedDates, date]);
+        }
       }
     }
   };
@@ -222,6 +228,7 @@ export function Calendar({
   const handleDayMouseDown = (date: Date) => {
     setIsDragging(true);
     setDragStartDate(date);
+    // Start a new selection with this date
     onSelect([date]);
   };
 

@@ -15,6 +15,12 @@ export interface AdminGame {
     title: string;
     artist: string;
     spotifyId: string;
+    lyrics: string;
+    maskedLyrics: {
+      title: string[];
+      artist: string[];
+      lyrics: string[];
+    };
   };
   status?: GameStatusInfo;
 }

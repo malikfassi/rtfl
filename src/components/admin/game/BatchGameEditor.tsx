@@ -116,6 +116,7 @@ export function BatchGameEditor({ selectedDates, onPendingChanges, onComplete, g
         const track = tracks.find(t => t.spotifyId === spotifyId);
         if (!track) continue;
 
+        // Find existing game before the try block
         const existingGame = games.find(g => g.date === dateStr);
 
         // Set loading state for this date
@@ -189,7 +190,8 @@ export function BatchGameEditor({ selectedDates, onPendingChanges, onComplete, g
         }
       }
 
-      // States will persist until user takes action (cancel or select new playlist)
+      // Keep the pending changes visible until user takes action
+      // Don't clear them here, let the parent component handle it
 
     } catch (error) {
       console.error('Failed to update games:', error);
@@ -204,11 +206,11 @@ export function BatchGameEditor({ selectedDates, onPendingChanges, onComplete, g
       <PlaylistBrowser
         onSelect={async (newTracks) => {
           await handleSelectPlaylist(newTracks);
-          onPendingChanges({});
+          // Don't clear pending changes here, let them persist
         }}
         onCancel={() => {
           setSongAssignments({});
-          onPendingChanges({});
+          // Don't clear pending changes here, let them persist
         }}
         disabled={isUpdating}
         songAssignments={songAssignments}
