@@ -40,6 +40,8 @@ function getStatusColor(status: GameStatus): string {
       return 'border-primary animate-pulse';
     case 'success':
       return 'border-green-500';
+    case 'error':
+      return 'border-red-500';
     default:
       return '';
   }
@@ -89,6 +91,13 @@ function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDow
             <div className="text-xs text-muted">Successfully updated!</div>
           </div>
         );
+      case 'error':
+        return (
+          <div>
+            <div className="text-xs text-muted text-red-500">Failed to update</div>
+            {dayStatus.error && <div className="text-xs text-red-500">{dayStatus.error}</div>}
+          </div>
+        );
       default:
         return null;
     }
@@ -102,22 +111,42 @@ function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDow
       onMouseEnter={onMouseEnter}
       onMouseDown={onMouseDown}
       className={cn(
-        "h-24 p-2 relative text-left transition-colors",
+        "h-32 p-3 relative text-left transition-colors overflow-hidden",
         "border-2",
         statusColor || "border-foreground/10",
         isSelected && "bg-primary/10",
         isToday && "font-bold",
-        !isSelected && "hover:bg-primary/5"
+        !isSelected && "hover:bg-primary/5",
+        dayStatus?.status === 'to-create' && "bg-yellow-500/5",
+        dayStatus?.status === 'error' && "bg-red-500/5"
       )}
     >
-      <span className="text-xs text-muted">{format(date, 'd')}</span>
-      {hasGame && game && (
-        <div className="mt-2 space-y-1">
-          <div className="text-sm truncate">{game.song.title}</div>
-          <div className="text-xs text-muted truncate">{game.song.artist}</div>
+      <span className="text-sm font-medium text-muted">{format(date, 'd')}</span>
+      {(hasGame || dayStatus?.newSong) && (
+        <div className="mt-1.5 space-y-1.5">
+          {dayStatus?.status === 'to-edit' && dayStatus.currentSong && (
+            <div className="space-y-0.5 opacity-50">
+              <div className="text-[13px] leading-tight truncate line-through">{dayStatus.currentSong.title}</div>
+              <div className="text-[11px] leading-tight truncate text-muted/80 line-through">{dayStatus.currentSong.artist}</div>
+            </div>
+          )}
+          <div className={cn(
+            "text-[13px] leading-tight font-medium truncate",
+            dayStatus?.status === 'to-create' && "text-yellow-600",
+            dayStatus?.status === 'error' && "text-red-600"
+          )}>
+            {dayStatus?.newSong?.title || game?.song.title}
+          </div>
+          <div className={cn(
+            "text-[11px] leading-tight truncate",
+            dayStatus?.status === 'to-create' ? "text-yellow-600/70" : "text-muted/80",
+            dayStatus?.status === 'error' && "text-red-600/70"
+          )}>
+            {dayStatus?.newSong?.artist || game?.song.artist}
+          </div>
           {isLoading && (
             <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-              <div className="animate-spin">⟳</div>
+              <div className="animate-spin text-xl">⟳</div>
             </div>
           )}
         </div>

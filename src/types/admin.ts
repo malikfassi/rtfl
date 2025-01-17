@@ -1,15 +1,10 @@
-export type GameStatus = 'to-create' | 'to-edit' | 'loading' | 'success';
+export type GameStatus = 'to-create' | 'to-edit' | 'loading' | 'success' | 'error';
 
 export interface GameStatusInfo {
   status: GameStatus;
-  currentSong?: {
-    title: string;
-    artist: string;
-  };
-  newSong?: {
-    title: string;
-    artist: string;
-  };
+  currentSong?: SpotifyTrack;
+  newSong?: SpotifyTrack;
+  error?: string;
 }
 
 export interface AdminGame {
@@ -32,10 +27,10 @@ export interface Playlist {
 }
 
 export interface SpotifyTrack {
-  id: string;
-  name: string;
-  artists: { name: string }[];
-  preview_url: string | null;
+  spotifyId: string;
+  title: string;
+  artist: string;
+  imageUrl?: string;
 }
 
 export interface GameMutations {

@@ -1,31 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { AdminGame } from '@/types/admin';
 import { format } from 'date-fns';
+import { queryKeys } from '@/lib/query-client';
 
 export function useGames(currentMonth: Date) {
-  const [games, setGames] = useState<AdminGame[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    async function fetchGames() {
-      try {
-        setIsLoading(true);
-        const month = format(currentMonth, 'yyyy-MM');
-        const response = await fetch(`/api/admin/games?month=${month}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch games');
-        }
-        const data = await response.json();
-        setGames(data);
-      } catch (error) {
-        console.error('Failed to fetch games:', error);
-      } finally {
-        setIsLoading(false);
+  const month = format(currentMonth, 'yyyy-MM');
+  const { data: games = [], isLoading } = useQuery({
+    queryKey: queryKeys.games.byMonth(month),
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/games?month=${month}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch games');
       }
+      return response.json();
     }
-
-    fetchGames();
-  }, [currentMonth]);
+  });
 
   return { games, isLoading };
 } 

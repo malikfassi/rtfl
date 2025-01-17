@@ -27,9 +27,18 @@ export function AdminDashboard({ onGameUpdate }: AdminDashboardProps) {
 
   const handleCompleteBatchEdit = useCallback(async () => {
     await onGameUpdate();
-    setSelectedDates([]);
-    setPendingChanges({});
-  }, [onGameUpdate]);
+    const currentPendingChanges = { ...pendingChanges };
+    const hasSuccessOrError = Object.values(currentPendingChanges).every(
+      change => change.status === 'success' || change.status === 'error'
+    );
+    
+    if (hasSuccessOrError) {
+      setTimeout(() => {
+        setSelectedDates([]);
+        setPendingChanges({});
+      }, 2000);
+    }
+  }, [onGameUpdate, pendingChanges]);
 
   const handlePendingChanges = useCallback((changes: Record<string, GameStatusInfo>) => {
     setPendingChanges(changes);
@@ -55,9 +64,9 @@ export function AdminDashboard({ onGameUpdate }: AdminDashboardProps) {
           selectedDates.length > 1 ? (
             <BatchGameEditor
               selectedDates={selectedDates}
-              games={games}
-              onGameUpdate={handleCompleteBatchEdit}
+              onComplete={handleCompleteBatchEdit}
               onPendingChanges={handlePendingChanges}
+              games={games}
             />
           ) : (
             <GameEditor
