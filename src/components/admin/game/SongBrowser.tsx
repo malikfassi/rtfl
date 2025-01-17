@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/Input';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
@@ -10,13 +10,14 @@ interface SongBrowserProps {
   disabled?: boolean;
 }
 
-export function SongBrowser({ onSelect, onCancel: _onCancel, disabled = false }: SongBrowserProps) {
+export function SongBrowser({ onSelect, onCancel, disabled = false }: SongBrowserProps) {
   const [query, setQuery] = useState('');
   const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
   const [selectedTrackId, setSelectedTrackId] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const debouncedQuery = useDebounce(query, 300);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function searchTracks() {
@@ -28,7 +29,7 @@ export function SongBrowser({ onSelect, onCancel: _onCancel, disabled = false }:
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch(`/api/admin/spotify/tracks/search?q=${encodeURIComponent(debouncedQuery)}`);
+        const response = await fetch(`/api/admin/spotify/tracks?q=${encodeURIComponent(debouncedQuery)}`);
         if (!response.ok) {
           throw new Error('Failed to search tracks');
         }
@@ -46,8 +47,16 @@ export function SongBrowser({ onSelect, onCancel: _onCancel, disabled = false }:
   }, [debouncedQuery]);
 
   const handleSelectTrack = async (track: SpotifyTrack) => {
-    setSelectedTrackId(track.spotifyId);
-    await onSelect(track);
+    try {
+      setSelectedTrackId(track.spotifyId);
+      await onSelect(track);
+      // After successful selection, return to preview mode
+      onCancel();
+    } catch (error) {
+      console.error('Failed to select track:', error);
+      setError('Failed to select track');
+      setSelectedTrackId(undefined);
+    }
   };
 
   return (
@@ -55,11 +64,12 @@ export function SongBrowser({ onSelect, onCancel: _onCancel, disabled = false }:
       {/* Search input */}
       <div className="space-y-2">
         <Input
+          ref={inputRef}
           type="search"
           placeholder="Search songs..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          disabled={disabled || isLoading}
+          disabled={disabled}
         />
         {error && <div className="text-sm text-destructive">{error}</div>}
       </div>
@@ -74,7 +84,7 @@ export function SongBrowser({ onSelect, onCancel: _onCancel, disabled = false }:
               <button
                 key={track.spotifyId}
                 onClick={() => handleSelectTrack(track)}
-                disabled={disabled}
+                disabled={disabled || isLoading}
                 className={cn(
                   "w-full flex items-center gap-4 p-4 hover:bg-primary/5",
                   "border border-foreground/10 rounded-lg",

@@ -1,236 +1,234 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
+import { SpotifyTrack } from '@/types/spotify';
+import { GameStatus, GameStatusInfo } from '@/types/admin';
 import { Button } from '@/components/ui/Button';
 import { PlaylistBrowser } from './PlaylistBrowser';
 import { useGameMutations } from '@/hooks/use-game-mutations';
-import { SpotifyTrack } from '@/types/spotify';
-import { GameStatusInfo, AdminGame } from '@/types/admin';
 
 interface BatchGameEditorProps {
   selectedDates: Date[];
+  games: Array<{
+    date: string;
+    song: SpotifyTrack;
+  }>;
   onPendingChanges: (changes: Record<string, GameStatusInfo>) => void;
-  onComplete: () => Promise<void>;
-  games: AdminGame[];
+  onComplete: () => void;
 }
 
-export function BatchGameEditor({ selectedDates, onPendingChanges, onComplete, games }: BatchGameEditorProps) {
-  const [songAssignments, setSongAssignments] = useState<Record<string, Date[]>>({});
-  const [isUpdating, setIsUpdating] = useState(false);
+interface TrackAssignment {
+  track: SpotifyTrack;
+  dates: Date[];
+}
+
+export function BatchGameEditor({ 
+  selectedDates, 
+  games,
+  onPendingChanges,
+  onComplete 
+}: BatchGameEditorProps) {
   const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
+  const [trackAssignments, setTrackAssignments] = useState<Record<string, TrackAssignment>>({});
+  const [isUpdating, setIsUpdating] = useState(false);
   const { createOrUpdateGame } = useGameMutations();
 
-  // Update pending changes whenever songAssignments changes
-  useEffect(() => {
-    // Create pending changes with song information
-    const changes = selectedDates.reduce((acc, date) => {
-      // Find the track assigned to this date
-      const spotifyId = Object.entries(songAssignments).find(([_, dates]) => 
-        dates.some(d => d.getTime() === date.getTime())
-      )?.[0];
-
-      if (spotifyId) {
-        const track = tracks.find(t => t.spotifyId === spotifyId);
-        if (track) {
-          const dateStr = format(date, 'yyyy-MM-dd');
-          const existingGame = games?.find(g => g.date === dateStr);
-          
-          acc[dateStr] = {
-            status: existingGame ? 'to-edit' : 'to-create',
-            ...(existingGame && {
-              currentSong: {
-                spotifyId: existingGame.song.spotifyId,
-                title: existingGame.song.title,
-                artist: existingGame.song.artist
-              }
-            }),
-            newSong: {
-              spotifyId: track.spotifyId,
-              title: track.title,
-              artist: track.artist
-            }
-          };
-        }
-      }
-      return acc;
-    }, {} as Record<string, GameStatusInfo>);
-
-    onPendingChanges(changes);
+  const assignRandomTracks = useCallback((availableTracks: SpotifyTrack[]) => {
+    // Create a map of track assignments
+    const newAssignments: Record<string, TrackAssignment> = {};
     
-    return () => onPendingChanges({});
-  }, [songAssignments, tracks, selectedDates, onPendingChanges, games]);
+    console.log('BatchGameEditor: Assigning tracks to dates:', 
+      selectedDates.map(d => format(d, 'yyyy-MM-dd')));
+    
+    // Assign a random track to each date
+    selectedDates.forEach(date => {
+      const randomTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
+      const trackId = randomTrack.spotifyId;
+      
+      console.log('BatchGameEditor: Assigning track', randomTrack.title, 'to date', format(date, 'yyyy-MM-dd'));
+      
+      if (newAssignments[trackId]) {
+        newAssignments[trackId].dates.push(date);
+      } else {
+        newAssignments[trackId] = {
+          track: randomTrack,
+          dates: [date]
+        };
+      }
+    });
 
-  const handleSelectPlaylist = async (newTracks: SpotifyTrack[]) => {
+    return newAssignments;
+  }, [selectedDates]);
+
+  const handleSelectPlaylist = useCallback(async (newTracks: SpotifyTrack[]) => {
+    console.log('BatchGameEditor: Selected dates for playlist:', 
+      selectedDates.map(d => format(d, 'yyyy-MM-dd')));
+    
     setTracks(newTracks);
     
-    // For each date, pick a random song
-    const newAssignments: Record<string, Date[]> = {};
-    
-    selectedDates.forEach(date => {
-      const randomTrack = newTracks[Math.floor(Math.random() * newTracks.length)];
-      console.log('Assigning track:', randomTrack.spotifyId, 'to date:', date);
+    // Create initial assignments with random tracks
+    const newAssignments = assignRandomTracks(newTracks);
+    setTrackAssignments(newAssignments);
+
+    // Set initial pending states
+    const pendingChanges = selectedDates.reduce((acc, date) => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const existingGame = games.find(game => format(new Date(game.date), 'yyyy-MM-dd') === dateStr);
       
-      if (!newAssignments[randomTrack.spotifyId]) {
-        newAssignments[randomTrack.spotifyId] = [];
+      // Find which track was assigned to this date
+      const assignedTrack = Object.values(newAssignments).find(
+        assignment => assignment.dates.some(d => format(d, 'yyyy-MM-dd') === dateStr)
+      )?.track;
+      
+      if (!assignedTrack) {
+        console.warn('BatchGameEditor: No track assigned for date:', dateStr);
+        return acc;
       }
-      newAssignments[randomTrack.spotifyId].push(date);
-    });
-
-    setSongAssignments(newAssignments);
-  };
-
-  const handleReshuffle = () => {
-    // Get all currently assigned tracks
-    const assignedTracks = Object.keys(songAssignments);
-    if (assignedTracks.length === 0) return;
-
-    // For each date, pick a random song from the currently assigned ones
-    const newAssignments: Record<string, Date[]> = {};
+      
+      console.log('BatchGameEditor: Setting pending change for date:', dateStr, 
+        'track:', assignedTrack.title);
+      
+      acc[dateStr] = {
+        status: existingGame ? 'to-edit' : 'to-create' as GameStatus,
+        currentSong: existingGame?.song,
+        newSong: assignedTrack
+      };
+      return acc;
+    }, {} as Record<string, GameStatusInfo>);
     
-    selectedDates.forEach(date => {
-      const randomTrackId = assignedTracks[Math.floor(Math.random() * assignedTracks.length)];
-      if (!newAssignments[randomTrackId]) {
-        newAssignments[randomTrackId] = [];
+    onPendingChanges(pendingChanges);
+  }, [selectedDates, games, onPendingChanges, assignRandomTracks]);
+
+  const handleReshuffle = useCallback(() => {
+    if (!tracks.length) return;
+
+    console.log('BatchGameEditor: Reshuffling tracks for dates:', 
+      selectedDates.map(d => format(d, 'yyyy-MM-dd')));
+
+    // Create new random assignments
+    const newAssignments = assignRandomTracks(tracks);
+    setTrackAssignments(newAssignments);
+
+    // Update pending changes
+    const pendingChanges = selectedDates.reduce((acc, date) => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const existingGame = games.find(game => format(new Date(game.date), 'yyyy-MM-dd') === dateStr);
+      
+      // Find which track was assigned to this date
+      const assignedTrack = Object.values(newAssignments).find(
+        assignment => assignment.dates.some(d => format(d, 'yyyy-MM-dd') === dateStr)
+      )?.track;
+      
+      if (!assignedTrack) {
+        console.warn('BatchGameEditor: No track assigned for date after reshuffle:', dateStr);
+        return acc;
       }
-      newAssignments[randomTrackId].push(date);
-    });
+      
+      console.log('BatchGameEditor: Setting pending change after reshuffle for date:', dateStr, 
+        'track:', assignedTrack.title);
+      
+      acc[dateStr] = {
+        status: existingGame ? 'to-edit' : 'to-create' as GameStatus,
+        currentSong: existingGame?.song,
+        newSong: assignedTrack
+      };
+      return acc;
+    }, {} as Record<string, GameStatusInfo>);
+    
+    onPendingChanges(pendingChanges);
+  }, [tracks, selectedDates, games, onPendingChanges, assignRandomTracks]);
 
-    setSongAssignments(newAssignments);
-  };
-
-  const handleCreate = async () => {
-    if (Object.keys(songAssignments).length === 0) return;
-
+  const handleCreate = useCallback(async () => {
+    setIsUpdating(true);
     try {
-      setIsUpdating(true);
-      let currentChanges: Record<string, GameStatusInfo> = {};
-      
-      // Process dates sequentially to show individual updates
-      for (const date of selectedDates) {
-        const dateStr = format(date, 'yyyy-MM-dd');
-        const spotifyId = Object.entries(songAssignments).find(([_, dates]) => 
-          dates.some(d => d.getTime() === date.getTime())
-        )?.[0];
+      // Process each date independently
+      for (const assignment of Object.values(trackAssignments)) {
+        const { track, dates } = assignment;
+        
+        for (const date of dates) {
+          const dateStr = format(date, 'yyyy-MM-dd');
+          
+          try {
+            // Set loading state for this date
+            onPendingChanges((prev: Record<string, GameStatusInfo>) => {
+              const newState = { ...prev };
+              newState[dateStr] = {
+                ...newState[dateStr],
+                status: 'loading' as GameStatus
+              };
+              return newState;
+            });
 
-        if (!spotifyId) continue;
+            // Process update
+            await createOrUpdateGame({
+              date: dateStr,
+              spotifyId: track.spotifyId
+            });
 
-        const track = tracks.find(t => t.spotifyId === spotifyId);
-        if (!track) continue;
-
-        // Find existing game before the try block
-        const existingGame = games.find(g => g.date === dateStr);
-
-        // Set loading state for this date
-        currentChanges = {
-          ...currentChanges,
-          [dateStr]: {
-            status: 'loading',
-            ...(existingGame && {
-              currentSong: {
-                spotifyId: existingGame.song.spotifyId,
-                title: existingGame.song.title,
-                artist: existingGame.song.artist
-              }
-            }),
-            newSong: {
-              spotifyId: track.spotifyId,
-              title: track.title,
-              artist: track.artist
-            }
+            // Set success state for this date
+            onPendingChanges((prev: Record<string, GameStatusInfo>) => {
+              const newState = { ...prev };
+              newState[dateStr] = {
+                ...newState[dateStr],
+                status: 'success' as GameStatus
+              };
+              return newState;
+            });
+          } catch (error) {
+            // Set error state for this date only
+            onPendingChanges((prev: Record<string, GameStatusInfo>) => {
+              const newState = { ...prev };
+              newState[dateStr] = {
+                ...newState[dateStr],
+                status: 'error' as GameStatus,
+                error: error instanceof Error ? error.message : 'Unknown error'
+              };
+              return newState;
+            });
           }
-        };
-        onPendingChanges(currentChanges);
-
-        try {
-          await createOrUpdateGame({ date: dateStr, spotifyId });
-          
-          // Update success state
-          currentChanges = {
-            ...currentChanges,
-            [dateStr]: {
-              status: 'success',
-              ...(existingGame && {
-                currentSong: {
-                  spotifyId: existingGame.song.spotifyId,
-                  title: existingGame.song.title,
-                  artist: existingGame.song.artist
-                }
-              }),
-              newSong: {
-                spotifyId: track.spotifyId,
-                title: track.title,
-                artist: track.artist
-              }
-            }
-          };
-          onPendingChanges(currentChanges);
-        } catch (error) {
-          console.error('Failed to update game:', error);
-          
-          // Update error state
-          currentChanges = {
-            ...currentChanges,
-            [dateStr]: {
-              status: 'error',
-              ...(existingGame && {
-                currentSong: {
-                  spotifyId: existingGame.song.spotifyId,
-                  title: existingGame.song.title,
-                  artist: existingGame.song.artist
-                }
-              }),
-              newSong: {
-                spotifyId: track.spotifyId,
-                title: track.title,
-                artist: track.artist
-              },
-              error: error instanceof Error ? error.message : 'Failed to update game'
-            }
-          };
-          onPendingChanges(currentChanges);
         }
       }
-
-      // Keep the pending changes visible until user takes action
-      // Don't clear them here, let the parent component handle it
-
-    } catch (error) {
-      console.error('Failed to update games:', error);
     } finally {
       setIsUpdating(false);
-      await onComplete();
+      onComplete();
     }
-  };
+  }, [games, trackAssignments, onPendingChanges, onComplete, createOrUpdateGame]);
+
+  // Convert trackAssignments to format expected by PlaylistBrowser
+  const songAssignments = Object.values(trackAssignments).reduce((acc, { track, dates }) => {
+    acc[track.spotifyId] = dates;
+    return acc;
+  }, {} as Record<string, Date[]>);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <PlaylistBrowser
-        onSelect={async (newTracks) => {
-          await handleSelectPlaylist(newTracks);
-          // Don't clear pending changes here, let them persist
-        }}
+        onSelect={handleSelectPlaylist}
         onCancel={() => {
-          setSongAssignments({});
-          // Don't clear pending changes here, let them persist
+          setTrackAssignments({});
+          onPendingChanges({});
         }}
         disabled={isUpdating}
         songAssignments={songAssignments}
       />
-      
-      <div className="flex justify-end gap-2">
-        <Button 
-          variant="secondary" 
-          onClick={handleReshuffle}
-          disabled={Object.keys(songAssignments).length === 0 || isUpdating}
-        >
-          Reshuffle
-        </Button>
-        <Button 
-          onClick={handleCreate}
-          disabled={Object.keys(songAssignments).length === 0 || isUpdating}
-        >
-          Apply Changes
-        </Button>
-      </div>
+
+      {tracks.length > 0 && (
+        <div className="space-y-4">
+          <Button
+            variant="secondary"
+            onClick={handleReshuffle}
+            disabled={isUpdating}
+          >
+            Reshuffle
+          </Button>
+
+          <Button
+            onClick={handleCreate}
+            disabled={isUpdating || Object.keys(trackAssignments).length === 0}
+          >
+            {isUpdating ? 'Updating...' : 'Update Games'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 } 

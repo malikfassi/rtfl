@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/Input';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,7 @@ export function PlaylistBrowser({ onSelect, onCancel: _onCancel, disabled = fals
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const debouncedQuery = useDebounce(query, 300);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchPlaylists() {
@@ -74,11 +75,12 @@ export function PlaylistBrowser({ onSelect, onCancel: _onCancel, disabled = fals
       {/* Search input */}
       <div className="space-y-2">
         <Input
+          ref={inputRef}
           type="search"
           placeholder="Search playlists..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          disabled={disabled || isLoading}
+          disabled={disabled}
         />
         {error && <div className="text-sm text-destructive">{error}</div>}
       </div>
@@ -92,6 +94,8 @@ export function PlaylistBrowser({ onSelect, onCancel: _onCancel, disabled = fals
               onClick={() => {
                 setSelectedPlaylist(null);
                 setTracks([]);
+                // Restore focus to input when returning to playlist list
+                inputRef.current?.focus();
               }}
               className="text-sm text-muted hover:text-foreground"
             >

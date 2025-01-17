@@ -17,7 +17,7 @@ export function AdminDashboard({ onGameUpdate }: AdminDashboardProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [pendingChanges, setPendingChanges] = useState<Record<string, GameStatusInfo>>({});
   const [editorMode, setEditorMode] = useState<EditorMode>('preview');
-  const { games } = useGames(currentMonth);
+  const { games, setGames } = useGames(currentMonth);
 
   const handleDateSelect = useCallback((dates: Date[]) => {
     // Always update selection first
@@ -40,7 +40,7 @@ export function AdminDashboard({ onGameUpdate }: AdminDashboardProps) {
     }
   }, []);
 
-  const handleGameUpdate = useCallback(async () => {
+  const handleGameUpdate = useCallback(async (newGame?: AdminGame) => {
     if (selectedDates.length === 0) return;
 
     const dateKey = format(selectedDates[0], 'yyyy-MM-dd');
@@ -50,7 +50,16 @@ export function AdminDashboard({ onGameUpdate }: AdminDashboardProps) {
         [dateKey]: { ...prev[dateKey], status: 'loading' }
       }));
 
-      await onGameUpdate();
+      if (newGame) {
+        // Update games list immediately with the new game
+        setGames((prev: AdminGame[]) => {
+          const filtered = prev.filter((g: AdminGame) => !isSameDay(new Date(g.date), selectedDates[0]));
+          return [...filtered, newGame];
+        });
+      } else {
+        // If no new game data provided, fetch updates from server
+        await onGameUpdate();
+      }
 
       setPendingChanges(prev => ({
         ...prev,
@@ -68,7 +77,7 @@ export function AdminDashboard({ onGameUpdate }: AdminDashboardProps) {
         }
       }));
     }
-  }, [onGameUpdate, selectedDates]);
+  }, [onGameUpdate, selectedDates, setGames]);
 
   const handleCompleteBatchEdit = useCallback(async () => {
     try {

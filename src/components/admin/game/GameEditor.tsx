@@ -9,7 +9,7 @@ export type EditorMode = 'preview' | 'search';
 interface GameEditorProps {
   selectedDate: Date;
   game?: AdminGame;
-  onGameUpdate: () => Promise<void>;
+  onGameUpdate: (newGame?: AdminGame) => Promise<void>;
   mode: EditorMode;
   onModeChange: (mode: EditorMode) => void;
 }
@@ -35,7 +35,9 @@ export function GameEditor({ selectedDate, game, onGameUpdate, mode, onModeChang
         throw new Error('Failed to create game');
       }
 
-      await onGameUpdate();
+      const updatedGame = await response.json();
+      
+      await onGameUpdate(updatedGame);
       onModeChange('preview');
     } catch (error) {
       console.error('Error creating game:', error);
