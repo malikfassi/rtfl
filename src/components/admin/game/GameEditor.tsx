@@ -1,38 +1,37 @@
 import React, { useState } from 'react';
-import { format } from 'date-fns';
 import { AdminGame } from '@/types/admin';
+import { SongBrowser } from './SongBrowser';
 import { GamePreview } from './GamePreview';
-import { PlaylistBrowser } from './PlaylistBrowser';
-import { Button } from '@/components/ui/Button';
+import { format } from 'date-fns';
+import { useGameMutations } from '@/hooks/use-game-mutations';
+import { SpotifyTrack } from '@/lib/clients/spotify';
 
 interface GameEditorProps {
-  selectedDate?: Date;
   game?: AdminGame;
-  onGameUpdate: () => void;
+  onGameUpdate: () => Promise<void>;
+  selectedDate?: Date;
 }
 
-export function GameEditor({ selectedDate, game, onGameUpdate }: GameEditorProps) {
+export function GameEditor({ game, onGameUpdate, selectedDate }: GameEditorProps) {
   const [mode, setMode] = useState<'preview' | 'search'>('preview');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { createOrUpdateGame } = useGameMutations();
 
-  const handleSelectSong = async (spotifyId: string) => {
+  const handleSelectSong = async (track: SpotifyTrack) => {
     if (!selectedDate) return;
-
+    
     try {
-      const response = await fetch('/api/admin/games', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: format(selectedDate, 'yyyy-MM-dd'),
-          spotifyId
-        })
+      setIsUpdating(true);
+      await createOrUpdateGame({
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        spotifyId: track.spotifyId
       });
-
-      if (!response.ok) throw new Error('Failed to create/update game');
-      
-      onGameUpdate();
+      await onGameUpdate();
       setMode('preview');
     } catch (error) {
-      console.error('Failed to create/update game:', error);
+      console.error('Error updating game:', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -44,31 +43,20 @@ export function GameEditor({ selectedDate, game, onGameUpdate }: GameEditorProps
     );
   }
 
-  if (mode === 'search') {
-    return (
-      <PlaylistBrowser
-        onSelect={handleSelectSong}
-        onCancel={() => setMode('preview')}
-      />
-    );
-  }
-
   return (
     <div className="h-full">
-      {game ? (
-        <GamePreview 
+      {mode === 'preview' ? (
+        <GamePreview
           game={game}
+          date={selectedDate}
           onSearchClick={() => setMode('search')}
+          isUpdating={isUpdating}
         />
       ) : (
-        <div className="h-full flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <div className="text-xl font-mono">No game for {format(selectedDate, 'MM.dd.yyyy')}</div>
-            <Button onClick={() => setMode('search')}>
-              Create Game
-            </Button>
-          </div>
-        </div>
+        <SongBrowser
+          onSelect={handleSelectSong}
+          disabled={isUpdating}
+        />
       )}
     </div>
   );

@@ -1,86 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { AdminGame } from '@/types/admin';
+import React, { useState, useCallback } from 'react';
 import { Calendar } from './Calendar';
-import { PlaylistBrowser } from './PlaylistBrowser';
-import { GamePreview } from './GamePreview';
+import { GameEditor } from './GameEditor';
+import { BatchGameEditor } from './BatchGameEditor';
+import { isSameDay } from 'date-fns';
+import { useGames } from '@/hooks/useGames';
+import type { AdminGame, GameStatusInfo } from '@/types/admin';
 
-export function AdminDashboard() {
+interface AdminDashboardProps {
+  onGameUpdate: () => Promise<void>;
+}
+
+export function AdminDashboard({ onGameUpdate }: AdminDashboardProps) {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
-  const [games, setGames] = useState<AdminGame[]>([]);
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
-  const [mode, setMode] = useState<'playlist' | 'game'>('game');
-  const [selectedGame, setSelectedGame] = useState<AdminGame | undefined>(undefined);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [pendingChanges, setPendingChanges] = useState<Record<string, GameStatusInfo>>({});
+  const { games } = useGames(currentMonth);
 
-  useEffect(() => {
-    fetchGames();
-  }, [currentMonth]);
-
-  const fetchGames = async () => {
-    try {
-      const month = format(currentMonth, 'yyyy-MM');
-      const response = await fetch(`/api/admin/games?month=${month}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch games');
-      }
-      const data = await response.json();
-      setGames(data);
-    } catch (error) {
-      console.error('Failed to fetch games:', error);
-    }
-  };
-
-  const handleSelectDate = (dates: Date[]) => {
+  const handleDateSelect = useCallback((dates: Date[]) => {
     setSelectedDates(dates);
-    if (dates.length === 1) {
-      const game = games.find(g => format(new Date(g.date), 'yyyy-MM-dd') === format(dates[0], 'yyyy-MM-dd'));
-      setSelectedGame(game || undefined);
-    }
-  };
+  }, []);
 
-  const handleMonthChange = (month: Date) => {
-    setCurrentMonth(month);
-  };
+  const handleGameUpdate = useCallback(async () => {
+    await onGameUpdate();
+    setPendingChanges({});
+  }, [onGameUpdate]);
 
-  const handleSelectPlaylist = async (playlistId: string) => {
-    try {
-      const response = await fetch(`/api/admin/spotify/playlists/${playlistId}/tracks`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch playlist tracks');
-      }
-      await response.json();
-      setMode('game');
-    } catch (error) {
-      console.error('Failed to fetch playlist tracks:', error);
-    }
-  };
+  const handleCompleteBatchEdit = useCallback(async () => {
+    await onGameUpdate();
+    setSelectedDates([]);
+    setPendingChanges({});
+  }, [onGameUpdate]);
+
+  const handlePendingChanges = useCallback((changes: Record<string, GameStatusInfo>) => {
+    setPendingChanges(changes);
+  }, []);
 
   return (
-    <div className="flex h-screen">
-      <div className="w-[60%] border-r border-foreground/10">
+    <div className="h-full grid grid-cols-[1fr,400px] gap-4">
+      <div className="flex flex-col">
+        <h1 className="text-2xl font-mono mb-4">Game Editor</h1>
+
         <Calendar
           selectedDates={selectedDates}
-          onSelect={handleSelectDate}
+          onSelect={handleDateSelect}
           games={games}
           currentMonth={currentMonth}
-          onMonthChange={handleMonthChange}
+          onMonthChange={setCurrentMonth}
+          pendingChanges={pendingChanges}
         />
       </div>
-      
-      <div className="w-[40%]">
-        {mode === 'playlist' ? (
-          <PlaylistBrowser
-            onSelect={handleSelectPlaylist}
-            onCancel={() => setMode('game')}
-          />
-        ) : (
-          <GamePreview
-            game={selectedGame}
-            selectedDates={selectedDates}
-            onSearchClick={() => setMode('playlist')}
-            isMultiSelectMode={selectedDates.length > 1}
-            games={games}
-          />
+
+      <div className="border-l border-foreground/10">
+        {selectedDates.length > 0 && (
+          selectedDates.length > 1 ? (
+            <BatchGameEditor
+              selectedDates={selectedDates}
+              games={games}
+              onGameUpdate={handleCompleteBatchEdit}
+              onPendingChanges={handlePendingChanges}
+            />
+          ) : (
+            <GameEditor
+              selectedDate={selectedDates[0]}
+              game={games.find((g: AdminGame) => isSameDay(new Date(g.date), selectedDates[0]))}
+              onGameUpdate={handleGameUpdate}
+            />
+          )
         )}
       </div>
     </div>

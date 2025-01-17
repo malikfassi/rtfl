@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createGameService } from '@/lib/services/game';
 import { createSongService } from '@/lib/services/song';
+import { spotifyClient } from '@/lib/clients/spotify';
 
 export async function GET(req: NextRequest) {
   try {
@@ -61,20 +62,31 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { date, spotifyId, title, artist } = body;
+    console.log('Received request body:', body);
+    const { date, spotifyId } = body;
 
-    if (!date || !spotifyId || !title || !artist) {
+    if (!date || !spotifyId) {
+      console.log('Missing required params:', { date, spotifyId });
       return Response.json(
-        { error: 'MISSING_PARAMS', message: 'date, spotifyId, title, and artist are required' },
+        { error: 'MISSING_PARAMS', message: 'date and spotifyId are required' },
         { status: 400 }
       );
     }
 
-    const songService = createSongService();
-    const gameService = createGameService(songService);
-    
     try {
-      const game = await gameService.createOrUpdate(spotifyId, title, artist, date);
+      // Get track details from Spotify
+      const track = await spotifyClient.getTrack(spotifyId);
+      if (!track) {
+        return Response.json(
+          { error: 'NOT_FOUND', message: 'Track not found on Spotify' },
+          { status: 404 }
+        );
+      }
+
+      const songService = createSongService();
+      const gameService = createGameService(songService);
+      
+      const game = await gameService.createOrUpdate(spotifyId, track.title, track.artist, date);
       return Response.json(game);
     } catch (error) {
       if (error instanceof Error) {

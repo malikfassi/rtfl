@@ -1,10 +1,12 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 
 export interface SpotifyTrack {
-  id: string;
+  spotifyId: string;
   title: string;
   artist: string;
   imageUrl?: string;
+  lyrics?: string;
+  maskedLyrics?: string;
 }
 
 export interface SpotifyPlaylist {
@@ -52,7 +54,7 @@ export class SpotifyClient {
         track !== null && 'id' in track
       )
       .map(track => ({
-        id: track.id,
+        spotifyId: track.id,
         title: track.name,
         artist: track.artists.map(artist => artist.name).join(', '),
         imageUrl: track.album.images?.[0]?.url
@@ -67,11 +69,27 @@ export class SpotifyClient {
     
     const track = response.body;
     return {
-      id: track.id,
+      spotifyId: track.id,
       title: track.name,
       artist: track.artists.map(artist => artist.name).join(', '),
       imageUrl: track.album.images?.[0]?.url
     };
+  }
+
+  async searchTracks(query: string): Promise<SpotifyTrack[]> {
+    await this.refreshAccessToken();
+    const response = await this.client.searchTracks(query, { limit: 50 });
+    
+    return response.body.tracks?.items
+      .filter((track): track is NonNullable<typeof track> => 
+        track !== null && 'id' in track
+      )
+      .map(track => ({
+        spotifyId: track.id,
+        title: track.name,
+        artist: track.artists.map(artist => artist.name).join(', '),
+        imageUrl: track.album.images?.[0]?.url
+      })) || [];
   }
 
   private async refreshAccessToken() {

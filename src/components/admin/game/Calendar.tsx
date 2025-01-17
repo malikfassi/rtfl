@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
-import { AdminGame } from '@/types/admin';
+import { AdminGame, GameStatus, GameStatusInfo } from '@/types/admin';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/Tooltip";
 
 interface CalendarProps {
   selectedDates: Date[];
@@ -10,36 +16,97 @@ interface CalendarProps {
   games: AdminGame[];
   currentMonth: Date;
   onMonthChange: (date: Date) => void;
+  pendingChanges?: Record<string, GameStatusInfo>;
+  onDayUnselect?: (date: Date) => void;
 }
 
 interface CalendarDayProps {
   date: Date;
   isSelected: boolean;
   game: AdminGame | null;
-  isUpdating?: boolean;
-  updateStatus?: 'success' | 'error';
   onClick: () => void;
   onMouseEnter: () => void;
   onMouseDown: () => void;
+  status?: GameStatusInfo;
 }
 
-function CalendarDay({ date, isSelected, game, isUpdating, updateStatus, onClick, onMouseEnter, onMouseDown }: CalendarDayProps) {
+function getStatusColor(status: GameStatus): string {
+  switch (status) {
+    case 'to-create':
+      return 'border-yellow-500';
+    case 'to-edit':
+      return 'border-blue-500';
+    case 'loading':
+      return 'border-primary animate-pulse';
+    case 'success':
+      return 'border-green-500';
+    default:
+      return '';
+  }
+}
+
+function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDown, status }: CalendarDayProps) {
   const isToday = isSameDay(date, new Date());
   const hasGame = Boolean(game);
+  const dayStatus = status || game?.status;
 
-  return (
+  const statusColor = dayStatus ? getStatusColor(dayStatus.status) : '';
+  const isLoading = dayStatus?.status === 'loading';
+
+  const renderTooltipContent = () => {
+    if (!dayStatus) return null;
+    
+    switch (dayStatus.status) {
+      case 'to-edit':
+        return (
+          <div className="space-y-2">
+            <div>
+              <div className="text-xs text-muted">Current:</div>
+              <div>{dayStatus.currentSong?.title} - {dayStatus.currentSong?.artist}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted">New:</div>
+              <div>{dayStatus.newSong?.title} - {dayStatus.newSong?.artist}</div>
+            </div>
+          </div>
+        );
+      case 'to-create':
+        return (
+          <div>
+            <div className="text-xs text-muted">To be created:</div>
+            <div>{dayStatus.newSong?.title} - {dayStatus.newSong?.artist}</div>
+          </div>
+        );
+      case 'loading':
+        return (
+          <div>
+            <div className="text-xs text-muted">Updating game...</div>
+          </div>
+        );
+      case 'success':
+        return (
+          <div>
+            <div className="text-xs text-muted">Successfully updated!</div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const tooltipContent = renderTooltipContent();
+
+  const dayContent = (
     <button
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseDown={onMouseDown}
       className={cn(
         "h-24 p-2 relative text-left transition-colors",
-        "border border-foreground/10",
+        "border-2",
+        statusColor || "border-foreground/10",
         isSelected && "bg-primary/10",
         isToday && "font-bold",
-        isUpdating && "border-primary",
-        updateStatus === 'success' && "border-green-500",
-        updateStatus === 'error' && "border-red-500",
         !isSelected && "hover:bg-primary/5"
       )}
     >
@@ -48,7 +115,7 @@ function CalendarDay({ date, isSelected, game, isUpdating, updateStatus, onClick
         <div className="mt-2 space-y-1">
           <div className="text-sm truncate">{game.song.title}</div>
           <div className="text-xs text-muted truncate">{game.song.artist}</div>
-          {isUpdating && (
+          {isLoading && (
             <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
               <div className="animate-spin">⟳</div>
             </div>
@@ -57,6 +124,19 @@ function CalendarDay({ date, isSelected, game, isUpdating, updateStatus, onClick
       )}
     </button>
   );
+
+  return tooltipContent ? (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {dayContent}
+        </TooltipTrigger>
+        <TooltipContent>
+          {tooltipContent}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  ) : dayContent;
 }
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -86,13 +166,27 @@ function getDaysInMonth(date: Date): Date[] {
   return days;
 }
 
-export function Calendar({ selectedDates, onSelect, games, currentMonth, onMonthChange }: CalendarProps) {
+export function Calendar({ 
+  selectedDates, 
+  onSelect, 
+  games, 
+  currentMonth, 
+  onMonthChange,
+  pendingChanges = {},
+  onDayUnselect
+}: CalendarProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState<Date | null>(null);
 
   const handleDayClick = (date: Date) => {
     if (!isDragging) {
-      onSelect([date]);
+      const isSelected = selectedDates.some(d => isSameDay(d, date));
+      
+      if (isSelected && onDayUnselect) {
+        onDayUnselect(date);
+      } else {
+        onSelect([date]);
+      }
     }
   };
 
@@ -168,7 +262,9 @@ export function Calendar({ selectedDates, onSelect, games, currentMonth, onMonth
 
         {getDaysInMonth(currentMonth).map((day, i) => {
           const isSelected = selectedDates.some(d => isSameDay(d, day));
+          const dateStr = format(day, 'yyyy-MM-dd');
           const game = games.find(game => isSameDay(new Date(game.date), day)) || null;
+          const status = pendingChanges[dateStr];
 
           return (
             <CalendarDay
@@ -176,6 +272,7 @@ export function Calendar({ selectedDates, onSelect, games, currentMonth, onMonth
               date={day}
               isSelected={isSelected}
               game={game}
+              status={status}
               onClick={() => handleDayClick(day)}
               onMouseEnter={() => handleDayMouseEnter(day)}
               onMouseDown={() => handleDayMouseDown(day)}

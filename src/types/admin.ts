@@ -1,20 +1,27 @@
+export type GameStatus = 'to-create' | 'to-edit' | 'loading' | 'success';
+
+export interface GameStatusInfo {
+  status: GameStatus;
+  currentSong?: {
+    title: string;
+    artist: string;
+  };
+  newSong?: {
+    title: string;
+    artist: string;
+  };
+}
+
 export interface AdminGame {
   id: string;
   date: string;
-  songId: string;
   song: {
     id: string;
-    spotifyId: string;
     title: string;
     artist: string;
-    previewUrl?: string;
-    lyrics?: string;
-    maskedLyrics?: {
-      title: string[];
-      artist: string[];
-      lyrics: string[];
-    };
+    spotifyId: string;
   };
+  status?: GameStatusInfo;
 }
 
 export interface Playlist {

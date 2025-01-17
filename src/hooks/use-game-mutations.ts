@@ -2,14 +2,26 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query-client';
 import { AdminGame } from '@/types/admin';
 
+interface CreateGameInput {
+  date: string;
+  spotifyId: string;
+}
+
 const adminApi = {
-  createOrUpdateGame: async (date: string, spotifyId: string): Promise<AdminGame> => {
+  createOrUpdateGame: async ({ date, spotifyId }: CreateGameInput): Promise<AdminGame> => {
+    const body = { date, spotifyId };
+    console.log('Sending request with body:', body);
     const res = await fetch('/api/admin/games', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date, spotifyId })
+      body: JSON.stringify(body)
     });
-    if (!res.ok) throw new Error('Failed to create/update game');
+    if (!res.ok) {
+      console.error('API error:', { status: res.status, statusText: res.statusText });
+      const errorData = await res.json().catch(() => null);
+      console.error('Error response:', errorData);
+      throw new Error('Failed to create/update game');
+    }
     return res.json();
   },
 
@@ -21,29 +33,28 @@ const adminApi = {
   }
 };
 
-export function useGameMutations(date: string | null) {
+export function useGameMutations() {
   const queryClient = useQueryClient();
 
   const createOrUpdateMutation = useMutation({
-    mutationFn: (spotifyId: string) => 
-      adminApi.createOrUpdateGame(date!, spotifyId),
+    mutationFn: (input: CreateGameInput) => adminApi.createOrUpdateGame(input),
     onSuccess: (game) => {
-      queryClient.setQueryData(queryKeys.games.byDate(date!), game);
+      queryClient.setQueryData(queryKeys.games.byDate(game.date), game);
       queryClient.invalidateQueries({ queryKey: queryKeys.games.all });
     }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => adminApi.deleteGame(date!),
-    onSuccess: () => {
-      queryClient.removeQueries({ queryKey: queryKeys.games.byDate(date!) });
+    mutationFn: (date: string) => adminApi.deleteGame(date),
+    onSuccess: (_, date) => {
+      queryClient.removeQueries({ queryKey: queryKeys.games.byDate(date) });
       queryClient.invalidateQueries({ queryKey: queryKeys.games.all });
     }
   });
 
   return {
-    createOrUpdateGame: createOrUpdateMutation.mutate,
-    deleteGame: deleteMutation.mutate,
+    createOrUpdateGame: (input: CreateGameInput) => createOrUpdateMutation.mutateAsync(input),
+    deleteGame: (date: string) => deleteMutation.mutateAsync(date),
     isLoading: createOrUpdateMutation.isPending || deleteMutation.isPending
   };
 } 

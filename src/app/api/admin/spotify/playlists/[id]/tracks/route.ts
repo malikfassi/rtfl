@@ -5,8 +5,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = await Promise.resolve(params.id);
-    const tracks = await spotifyClient.getPlaylistTracks(id);
+    const tracks = await spotifyClient.getPlaylistTracks(params.id);
+    console.log('Spotify tracks:', tracks);
     return Response.json(tracks);
   } catch (error) {
     console.error('Failed to fetch playlist tracks:', error);

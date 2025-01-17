@@ -1,5 +1,5 @@
 export interface SpotifyTrack {
-  id: string;
+  spotifyId: string;
   title: string;
   artist: string;
   imageUrl?: string;

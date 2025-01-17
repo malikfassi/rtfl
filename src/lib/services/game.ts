@@ -80,14 +80,14 @@ export class GameService {
 
   async getByMonth(month: string): Promise<Game[]> {
     if (!month.match(/^\d{4}-\d{2}$/)) {
-      throw new GameError('Invalid month format', 'INVALID_FORMAT');
+      throw new GameError('Invalid month format. Expected YYYY-MM', 'INVALID_FORMAT');
     }
 
     const [year, monthStr] = month.split('-');
     const monthNum = parseInt(monthStr, 10);
     
     if (monthNum < 1 || monthNum > 12) {
-      throw new GameError('Invalid month format', 'INVALID_FORMAT');
+      throw new GameError('Invalid month format. Expected YYYY-MM', 'INVALID_FORMAT');
     }
 
     const firstDay = `${year}-${monthStr.padStart(2, '0')}-01`;
@@ -100,11 +100,11 @@ export class GameService {
           lte: lastDay
         }
       },
-      orderBy: {
-        date: 'asc'
-      },
       include: {
         song: true
+      },
+      orderBy: {
+        date: 'asc'
       }
     });
 

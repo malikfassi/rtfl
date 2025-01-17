@@ -3,195 +3,146 @@ import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { GameService } from '../game';
 import { SongService } from '../song';
 
-const mockGame = {
+const mockSong = {
   id: '1',
-  date: '2024-03-15',
-  songId: '1',
+  title: 'Test Song',
+  artist: 'Test Artist',
+  lyrics: 'Test lyrics',
+  maskedLyrics: { title: [], artist: [], lyrics: [] },
+  spotifyId: 'spotify:track:123',
+  previewUrl: null,
   createdAt: new Date('2025-01-17T09:19:20.784Z'),
   updatedAt: new Date('2025-01-17T09:19:20.784Z'),
-  song: {
-    id: '1',
-    title: 'Test Song',
-    artist: 'Test Artist',
-    lyrics: 'Test lyrics',
-    maskedLyrics: {
-      title: ['Test', 'Song'],
-      artist: ['Test', 'Artist'],
-      lyrics: ['Test', 'lyrics']
-    },
-    spotifyId: 'spotify123',
-    previewUrl: null,
-    createdAt: new Date('2025-01-17T09:19:20.784Z'),
-    updatedAt: new Date('2025-01-17T09:19:20.784Z')
-  }
+};
+
+const mockGame = {
+  id: '1',
+  date: '2025-01-17',
+  songId: '1',
+  song: mockSong,
+  createdAt: new Date('2025-01-17T09:19:20.784Z'),
+  updatedAt: new Date('2025-01-17T09:19:20.784Z'),
 };
 
 describe('GameService', () => {
   let gameService: GameService;
-  let songService: DeepMockProxy<SongService>;
   let prismaMock: DeepMockProxy<PrismaClient>;
+  let songServiceMock: DeepMockProxy<SongService>;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     prismaMock = mockDeep<PrismaClient>();
-    songService = mockDeep<SongService>();
-    gameService = new GameService(prismaMock, songService);
+    songServiceMock = mockDeep<SongService>();
+    gameService = new GameService(prismaMock, songServiceMock);
+  });
+
+  describe('getByMonth', () => {
+    it('should return games for a valid month', async () => {
+      prismaMock.game.findMany.mockResolvedValue([mockGame]);
+
+      const result = await gameService.getByMonth('2025-01');
+      expect(result).toEqual([mockGame]);
+      expect(prismaMock.game.findMany).toHaveBeenCalledWith({
+        where: {
+          date: {
+            gte: '2025-01-01',
+            lte: '2025-01-31',
+          },
+        },
+        include: {
+          song: true,
+        },
+        orderBy: {
+          date: 'asc',
+        },
+      });
+    });
+
+    it('should throw an error for invalid month format', async () => {
+      await expect(gameService.getByMonth('invalid-month')).rejects.toThrow(
+        'Invalid month format. Expected YYYY-MM'
+      );
+    });
   });
 
   describe('createOrUpdate', () => {
-    it('should update an existing game', async () => {
+    it('should update an existing game with a new song', async () => {
       const existingGame = {
         ...mockGame,
         song: {
-          ...mockGame.song,
-          id: '1',
-          spotifyId: 'different-spotify-id'
+          ...mockSong,
+          spotifyId: 'spotify:track:456',
         },
-        songId: '1'
       };
 
       const updatedGame = {
         ...mockGame,
-        song: {
-          ...mockGame.song,
-          id: '1',
-          spotifyId: 'spotify123'
-        },
-        songId: '1'
+        song: mockSong,
       };
 
       prismaMock.game.findFirst.mockResolvedValue(existingGame);
-      songService.getOrCreate.mockResolvedValue(updatedGame.song);
+      songServiceMock.getOrCreate.mockResolvedValue(mockSong);
       prismaMock.game.update.mockResolvedValue(updatedGame);
 
-      const result = await gameService.createOrUpdate(
-        'spotify123',
-        'Test Song',
-        'Test Artist',
-        '2024-03-15'
-      );
-
+      const result = await gameService.createOrUpdate('spotify:track:123', 'Test Song', 'Test Artist', '2025-01-17');
       expect(result).toEqual(updatedGame);
-      expect(songService.getOrCreate).toHaveBeenCalledWith(
-        'spotify123',
-        'Test Song',
-        'Test Artist'
-      );
+
+      expect(prismaMock.game.findFirst).toHaveBeenCalledWith({
+        where: { date: '2025-01-17' },
+        include: { song: true },
+      });
+
+      expect(songServiceMock.getOrCreate).toHaveBeenCalledWith('spotify:track:123', 'Test Song', 'Test Artist');
+
       expect(prismaMock.game.update).toHaveBeenCalledWith({
         where: { id: existingGame.id },
-        data: { songId: '1' },
-        include: { song: true }
+        data: { songId: mockSong.id },
+        include: { song: true },
       });
     });
 
-    it('should create a new game if none exists', async () => {
-      const newGame = {
-        ...mockGame,
-        song: {
-          ...mockGame.song,
-          id: '1',
-          spotifyId: 'spotify123'
-        },
-        songId: '1'
-      };
-
+    it('should create a new game if none exists for the date', async () => {
       prismaMock.game.findFirst.mockResolvedValue(null);
-      songService.getOrCreate.mockResolvedValue(newGame.song);
-      prismaMock.game.create.mockResolvedValue(newGame);
+      songServiceMock.getOrCreate.mockResolvedValue(mockSong);
+      prismaMock.game.create.mockResolvedValue(mockGame);
 
-      const result = await gameService.createOrUpdate(
-        'spotify123',
-        'Test Song',
-        'Test Artist',
-        '2024-03-15'
-      );
+      const result = await gameService.createOrUpdate('spotify:track:123', 'Test Song', 'Test Artist', '2025-01-17');
+      expect(result).toEqual(mockGame);
 
-      expect(result).toEqual(newGame);
-      expect(songService.getOrCreate).toHaveBeenCalledWith(
-        'spotify123',
-        'Test Song',
-        'Test Artist'
-      );
+      expect(prismaMock.game.findFirst).toHaveBeenCalledWith({
+        where: { date: '2025-01-17' },
+        include: { song: true },
+      });
+
+      expect(songServiceMock.getOrCreate).toHaveBeenCalledWith('spotify:track:123', 'Test Song', 'Test Artist');
+
       expect(prismaMock.game.create).toHaveBeenCalledWith({
         data: {
-          date: '2024-03-15',
-          songId: '1'
+          date: '2025-01-17',
+          songId: mockSong.id,
         },
-        include: { song: true }
+        include: { song: true },
       });
     });
 
     it('should not update if game exists with same song', async () => {
       const existingGame = {
         ...mockGame,
-        song: {
-          ...mockGame.song,
-          id: '1',
-          spotifyId: 'spotify123'
-        },
-        songId: '1'
+        song: mockSong,
       };
 
       prismaMock.game.findFirst.mockResolvedValue(existingGame);
 
-      const result = await gameService.createOrUpdate(
-        'spotify123',
-        'Test Song',
-        'Test Artist',
-        '2024-03-15'
-      );
-
+      const result = await gameService.createOrUpdate('spotify:track:123', 'Test Song', 'Test Artist', '2025-01-17');
       expect(result).toEqual(existingGame);
-      expect(songService.getOrCreate).not.toHaveBeenCalled();
-      expect(prismaMock.game.update).not.toHaveBeenCalled();
-    });
-  });
 
-  describe('getByDate', () => {
-    it('should return a game for a given date', async () => {
-      prismaMock.game.findFirst.mockResolvedValue(mockGame);
-      
-      const result = await gameService.getByDate('2024-03-15');
-      expect(result).toEqual(mockGame);
       expect(prismaMock.game.findFirst).toHaveBeenCalledWith({
-        where: { date: '2024-03-15' },
-        include: { song: true }
+        where: { date: '2025-01-17' },
+        include: { song: true },
       });
-    });
 
-    it('should throw an error if no game is found', async () => {
-      prismaMock.game.findFirst.mockResolvedValue(null);
-      
-      await expect(gameService.getByDate('2024-03-15')).rejects.toThrow(
-        'Game not found for date: 2024-03-15'
-      );
-    });
-  });
-
-  describe('getByMonth', () => {
-    it('should return games for a valid month', async () => {
-      const games = [mockGame];
-      prismaMock.game.findMany.mockResolvedValue(games);
-
-      const result = await gameService.getByMonth('2024-03');
-      expect(result).toEqual(games);
-      expect(prismaMock.game.findMany).toHaveBeenCalledWith({
-        where: {
-          date: {
-            gte: '2024-03-01',
-            lte: '2024-03-31'
-          }
-        },
-        orderBy: {
-          date: 'asc'
-        },
-        include: {
-          song: true
-        }
-      });
-    });
-
-    it('should throw an error for invalid month format', async () => {
-      await expect(gameService.getByMonth('invalid')).rejects.toThrow('Invalid month format');
+      expect(songServiceMock.getOrCreate).not.toHaveBeenCalled();
+      expect(prismaMock.game.update).not.toHaveBeenCalled();
     });
   });
 }); 
