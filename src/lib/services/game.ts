@@ -6,10 +6,8 @@ export class GameError extends Error {
   code: string;
 
   constructor(message: string, code: string) {
-    super(`${code}: ${message}`);
-    this.name = 'GameError';
+    super(message);
     this.code = code;
-    Object.setPrototypeOf(this, GameError.prototype);
   }
 }
 
@@ -19,28 +17,52 @@ export class GameService {
     private songService: SongService
   ) {}
 
-  async createOrUpdate(date: string, spotifyId: string) {
-    const song = await this.songService.getOrCreate(spotifyId);
-
-    const existingGame = await this.prisma.game.findFirst({
-      where: { date }
-    });
-
-    if (existingGame) {
-      return this.prisma.game.update({
-        where: { id: existingGame.id },
-        data: { songId: song.id },
+  async createOrUpdate(
+    spotifyId: string,
+    title: string,
+    artist: string,
+    date: string
+  ): Promise<Game> {
+    try {
+      // First try to find an existing game for this date
+      const existingGame = await this.prisma.game.findFirst({
+        where: { date },
         include: { song: true }
       });
-    }
 
-    return this.prisma.game.create({
-      data: {
-        date,
-        songId: song.id
-      },
-      include: { song: true }
-    });
+      if (existingGame && existingGame.song.spotifyId === spotifyId) {
+        // If the game exists and has the same song, no need to update
+        return existingGame;
+      }
+
+      // Get or create the song
+      const song = await this.songService.getOrCreate(
+        spotifyId,
+        title,
+        artist
+      );
+
+      if (existingGame) {
+        // Update the existing game with the new song
+        return await this.prisma.game.update({
+          where: { id: existingGame.id },
+          data: { songId: song.id },
+          include: { song: true }
+        });
+      }
+
+      // Create a new game
+      return await this.prisma.game.create({
+        data: {
+          date,
+          songId: song.id
+        },
+        include: { song: true }
+      });
+    } catch (error) {
+      console.error('Failed to create/update game:', error);
+      throw error;
+    }
   }
 
   async getByDate(date: string): Promise<Game> {
@@ -62,19 +84,31 @@ export class GameService {
     }
 
     const [year, monthStr] = month.split('-');
-    const startDate = new Date(parseInt(year), parseInt(monthStr) - 1, 1);
-    const endDate = new Date(parseInt(year), parseInt(monthStr), 0);
+    const monthNum = parseInt(monthStr, 10);
+    
+    if (monthNum < 1 || monthNum > 12) {
+      throw new GameError('Invalid month format', 'INVALID_FORMAT');
+    }
 
-    return this.prisma.game.findMany({
+    const firstDay = `${year}-${monthStr.padStart(2, '0')}-01`;
+    const lastDay = `${year}-${monthStr.padStart(2, '0')}-${new Date(parseInt(year, 10), monthNum, 0).getDate().toString().padStart(2, '0')}`;
+
+    const games = await this.prisma.game.findMany({
       where: {
         date: {
-          gte: startDate.toISOString().split('T')[0],
-          lte: endDate.toISOString().split('T')[0]
+          gte: firstDay,
+          lte: lastDay
         }
       },
-      include: { song: true },
-      orderBy: { date: 'asc' }
+      orderBy: {
+        date: 'asc'
+      },
+      include: {
+        song: true
+      }
     });
+
+    return games;
   }
 
   async delete(date: string) {

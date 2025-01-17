@@ -10,14 +10,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: '#9b87f5',
-        'deep-purple': '#7E69AB',
-        'royal-purple': '#6E59A5',
-        'light-purple': '#D6BCFA',
-        pink: '#FF719A',
-        coral: '#FFA99F',
-        yellow: '#FFE29F',
-        mint: '#abecd6',
+        background: '#FFFFFF',
+        foreground: '#000000',
+        primary: '#FF719A',
+        muted: '#666666',
+        'input-bg': '#F5F5F5',
+        'border-color': '#EEEEEE',
       },
       fontFamily: {
         mono: ['var(--font-jetbrains-mono)', 'monospace'],

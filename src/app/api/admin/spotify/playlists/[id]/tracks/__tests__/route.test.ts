@@ -1,52 +1,49 @@
-import { spotifyClient } from '@/lib/clients/spotify';
 import { NextRequest } from 'next/server';
 import { GET } from '../route';
+import { spotifyClient } from '@/lib/clients/spotify';
+
+jest.mock('@/lib/clients/spotify', () => ({
+  spotifyClient: {
+    getPlaylistTracks: jest.fn()
+  }
+}));
 
 describe('GET /api/admin/spotify/playlists/[id]/tracks', () => {
-  const mockTracks = [
-    {
-      id: '1',
-      name: 'Track 1',
-      artists: [{ name: 'Artist 1' }],
-      preview_url: 'http://example.com/preview1.mp3'
-    },
-    {
-      id: '2',
-      name: 'Track 2',
-      artists: [{ name: 'Artist 2' }],
-      preview_url: 'http://example.com/preview2.mp3'
-    }
-  ];
+  it('should return tracks from a playlist', async () => {
+    const mockTracks = [
+      {
+        id: 'track1',
+        title: 'Test Track 1',
+        artist: 'Test Artist 1'
+      },
+      {
+        id: 'track2',
+        title: 'Test Track 2',
+        artist: 'Test Artist 2'
+      }
+    ];
 
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
+    (spotifyClient.getPlaylistTracks as jest.Mock).mockResolvedValue(mockTracks);
 
-  it('returns tracks successfully', async () => {
-    // Mock the Spotify client
-    jest.spyOn(spotifyClient, 'getPlaylistTracks').mockResolvedValue(mockTracks);
-
-    const response = await GET(
-      new NextRequest('http://localhost/api/admin/spotify/playlists/123/tracks'),
-      { params: { id: '123' } }
-    );
+    const request = new NextRequest(new URL('http://localhost:3000'));
+    const context = { params: { id: 'playlist123' } };
+    const response = await GET(request, context);
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data).toEqual(mockTracks);
+    expect(spotifyClient.getPlaylistTracks).toHaveBeenCalledWith('playlist123');
   });
 
-  it('handles errors gracefully', async () => {
-    // Mock the Spotify client to throw an error
-    jest.spyOn(spotifyClient, 'getPlaylistTracks').mockRejectedValue(new Error('Spotify API error'));
+  it('should handle errors', async () => {
+    (spotifyClient.getPlaylistTracks as jest.Mock).mockRejectedValue(new Error('Failed to fetch tracks'));
 
-    const response = await GET(
-      new NextRequest('http://localhost/api/admin/spotify/playlists/123/tracks'),
-      { params: { id: '123' } }
-    );
+    const request = new NextRequest(new URL('http://localhost:3000'));
+    const context = { params: { id: 'playlist123' } };
+    const response = await GET(request, context);
     const data = await response.json();
 
     expect(response.status).toBe(500);
-    expect(data).toEqual({ error: 'Failed to get playlist tracks' });
+    expect(data).toEqual({ error: 'Failed to fetch playlist tracks' });
   });
 }); 

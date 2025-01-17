@@ -1,77 +1,84 @@
-import React, { useState } from 'react';
-import { List } from '@/components/ui/List';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { usePlaylists } from '@/hooks/use-playlists';
-import { Playlist } from '@/types/admin';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/Button';
+import { SpotifyPlaylist } from '@/lib/clients/spotify';
+import debounce from 'lodash/debounce';
 
 interface PlaylistBrowserProps {
-  selectedPlaylistId: string | null;
-  onSelectPlaylist: (playlist: Playlist) => void;
-  enabled?: boolean;
+  onSelect: (playlistId: string, playlistName: string) => void;
+  onCancel: () => void;
 }
 
-export function PlaylistBrowser({
-  selectedPlaylistId,
-  onSelectPlaylist,
-  enabled = true
-}: PlaylistBrowserProps) {
+export function PlaylistBrowser({ onSelect, onCancel }: PlaylistBrowserProps) {
+  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>();
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: playlists, isLoading, error } = usePlaylists(searchQuery, enabled);
 
-  if (!enabled) {
-    return null;
-  }
+  const fetchPlaylists = async (query: string = '') => {
+    if (!query.trim()) {
+      setPlaylists([]);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/admin/spotify/playlists?q=${encodeURIComponent(query)}`);
+      if (!response.ok) throw new Error('Failed to fetch playlists');
+      const data = await response.json();
+      setPlaylists(data);
+    } catch (error) {
+      console.error('Error fetching playlists:', error);
+      setError('Failed to load playlists');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const debouncedFetch = useCallback(
+    debounce((query: string) => fetchPlaylists(query), 300),
+    []
+  );
+
+  useEffect(() => {
+    debouncedFetch(searchQuery);
+    return () => debouncedFetch.cancel();
+  }, [searchQuery, debouncedFetch]);
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Search Header */}
-      <div className="border-b border-primary/10 p-4">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search playlists..."
-          className="w-full bg-transparent font-mono px-2 py-1 text-sm border border-primary/10 focus:border-primary/30 outline-none"
-        />
+    <div className="flex flex-col h-full p-8">
+      <div className="mb-8">
+        <h2 className="game-header">SELECT PLAYLIST</h2>
+        {onCancel && (
+          <Button variant="secondary" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        {isLoading ? (
-          <div className="flex h-32 items-center justify-center">
-            <LoadingSpinner />
-          </div>
-        ) : error ? (
-          <EmptyState
-            message="Failed to load playlists"
-            icon="!"
-            action={{
-              label: 'Try again',
-              onClick: () => window.location.reload()
-            }}
-          />
-        ) : !playlists?.length ? (
-          <EmptyState
-            message={searchQuery ? 'No playlists found' : 'Type to search playlists'}
-            icon={searchQuery ? '-' : '?'}
-          />
-        ) : (
-          <List
-            items={playlists}
-            selectedId={selectedPlaylistId || undefined}
-            onSelect={onSelectPlaylist}
-            keyExtractor={(playlist) => playlist.id}
-            renderItem={(playlist) => (
-              <div className="flex flex-col gap-1">
-                <span>{playlist.name}</span>
-                <span className="text-sm opacity-50">
-                  {playlist.trackCount} tracks
-                </span>
-              </div>
-            )}
-          />
-        )}
+      <input
+        type="text"
+        placeholder="Type to search playlists..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full mb-4 py-2 bg-transparent border-none outline-none placeholder:text-muted text-lg font-mono"
+      />
+
+      {isLoading && <div>Loading...</div>}
+      {error && <div className="text-red-500">{error}</div>}
+
+      <div className="flex-1 overflow-auto">
+        <div className="grid grid-cols-2 gap-4">
+          {playlists.map((playlist) => (
+            <button
+              key={playlist.id}
+              onClick={() => onSelect(playlist.id, playlist.name)}
+              className="w-full p-4 text-left hover:bg-primary/5 transition-colors rounded-lg"
+            >
+              <div className="font-medium">{playlist.name}</div>
+              <div className="text-sm text-muted">{playlist.trackCount} tracks</div>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

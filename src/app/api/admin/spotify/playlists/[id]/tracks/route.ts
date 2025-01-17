@@ -1,18 +1,18 @@
 import { spotifyClient } from '@/lib/clients/spotify';
 
 export async function GET(
-  _req: Request,
-  context: { params: { id: string } }
-): Promise<Response> {
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const params = await context.params;
-    const { id } = params;
-    const playlist = await spotifyClient.getPlaylistTracks(id);
-    return Response.json(playlist);
+    const id = await Promise.resolve(params.id);
+    const tracks = await spotifyClient.getPlaylistTracks(id);
+    return Response.json(tracks);
   } catch (error) {
-    console.error('Failed to get playlist tracks:', error);
-    return new Response(JSON.stringify({ error: 'Failed to get playlist tracks' }), {
-      status: 500,
-    });
+    console.error('Failed to fetch playlist tracks:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to fetch playlist tracks' }), 
+      { status: 500 }
+    );
   }
 } 

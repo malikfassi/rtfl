@@ -1,81 +1,89 @@
 'use client';
 
-import { useState } from 'react';
-import { PlaylistBrowser } from './game/PlaylistBrowser';
-import { PlaylistSongBrowser } from './game/PlaylistSongBrowser';
-import { GameEditor } from './GameEditor';
-import { CalendarView } from './CalendarView';
-import { Playlist, SpotifyTrack } from '@/types/admin';
-import { useGames } from '@/hooks/use-games';
-import { startOfMonth, format } from 'date-fns';
+import React, { useState, useEffect } from 'react';
+import { format, isSameDay } from 'date-fns';
+import { AdminGame } from '@/types/admin';
+import { Calendar } from './game/Calendar';
+import { GameEditor } from './game/GameEditor';
+import { BatchGameEditor } from './game/BatchGameEditor';
 
 export function AdminDashboard() {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
-  const [mode, setMode] = useState<'calendar' | 'playlist'>('calendar');
-  
-  // Get the first day of the month for the selected date or current month
-  const monthDate = selectedDate ? startOfMonth(selectedDate) : startOfMonth(new Date());
-  const { data: games = [] } = useGames(monthDate);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [games, setGames] = useState<AdminGame[]>([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [previewGames, setPreviewGames] = useState<AdminGame[]>([]);
 
-  const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
-    setMode('calendar');
+  useEffect(() => {
+    fetchGames();
+  }, [currentMonth]);
+
+  const fetchGames = async () => {
+    try {
+      const monthParam = format(currentMonth, 'yyyy-MM');
+      const response = await fetch(`/api/admin/games?month=${monthParam}`);
+      if (!response.ok) throw new Error('Failed to fetch games');
+      const data = await response.json();
+      setGames(data);
+      setPreviewGames([]); // Clear preview games when fetching new games
+    } catch (error) {
+      console.error('Failed to fetch games:', error);
+    }
   };
 
-  const handlePlaylistSelect = (playlist: Playlist) => {
-    setSelectedPlaylistId(playlist.id);
-    setMode('playlist');
+  const handleMonthChange = (date: Date) => {
+    setCurrentMonth(date);
   };
 
-  const handleSongSelect = (track: SpotifyTrack) => {
-    // TODO: Implement song selection logic
-    console.log('Selected track:', track);
+  const handleSelectDate = (dates: Date[]) => {
+    setSelectedDates(dates);
+    if (dates.length <= 1) {
+      setPreviewGames([]); // Clear preview games when deselecting dates
+    }
   };
+
+  const handlePreview = (preview: AdminGame[]) => {
+    // Replace any existing games for the selected dates with preview games
+    setPreviewGames(preview);
+  };
+
+  // Combine real games with preview games
+  const displayedGames = [
+    ...games.filter(game => 
+      !previewGames.some(preview => preview.date === game.date)
+    ),
+    ...previewGames
+  ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-80 bg-white shadow-md overflow-y-auto">
-        {mode === 'calendar' ? (
-          <CalendarView
-            games={games}
-            onDateSelect={handleDateSelect}
-            selectedDate={selectedDate}
-          />
-        ) : (
-          <PlaylistBrowser
-            selectedPlaylistId={selectedPlaylistId}
-            onSelectPlaylist={handlePlaylistSelect}
-            enabled={mode === 'playlist'}
-          />
-        )}
-        <div className="p-4 border-t">
-          <button
-            onClick={() => setMode(mode === 'calendar' ? 'playlist' : 'calendar')}
-            className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-          >
-            Switch to {mode === 'calendar' ? 'Playlists' : 'Calendar'}
-          </button>
-        </div>
+    <div className="flex h-full">
+      <div className="w-[60%] border-r border-foreground/10">
+        <Calendar
+          selectedDates={selectedDates}
+          onSelect={handleSelectDate}
+          games={displayedGames}
+          currentMonth={currentMonth}
+          onMonthChange={handleMonthChange}
+        />
       </div>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto">
-        {mode === 'calendar' ? (
-          selectedDate ? (
-            <GameEditor 
-              date={format(selectedDate, 'yyyy-MM-dd')}
-            />
-          ) : (
-            <div className="p-4 text-gray-500 text-center">
-              Select a date to create or edit a game
-            </div>
-          )
-        ) : (
-          <PlaylistSongBrowser
-            playlistId={selectedPlaylistId}
-            onSelectSong={handleSongSelect}
+      <div className="w-[40%]">
+        {selectedDates.length === 1 ? (
+          <GameEditor
+            selectedDate={selectedDates[0]}
+            game={games.find(g => isSameDay(new Date(g.date), selectedDates[0]))}
+            onGameUpdate={fetchGames}
+          />
+        ) : selectedDates.length > 1 && (
+          <BatchGameEditor
+            dates={selectedDates}
+            onCancel={() => {
+              setSelectedDates([]);
+              setPreviewGames([]);
+            }}
+            onComplete={() => {
+              fetchGames();
+              setSelectedDates([]);
+            }}
+            onPreview={handlePreview}
           />
         )}
       </div>

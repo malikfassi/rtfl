@@ -1,95 +1,63 @@
 import React, { useState } from 'react';
-import { useGame } from '@/hooks/use-game';
-import { useGameMutations } from '@/hooks/use-game-mutations';
-import { GameHeader } from './game/GameHeader';
-import { PlaylistBrowser } from './game/PlaylistBrowser';
-import { PlaylistSongBrowser } from './game/PlaylistSongBrowser';
+import { format } from 'date-fns';
+import { AdminGame } from '@/types/admin';
 import { GamePreview } from './game/GamePreview';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { SpotifyTrack, Playlist } from '@/types/admin';
+import { PlaylistBrowser } from './game/PlaylistBrowser';
 
 interface GameEditorProps {
-  date: string;
+  selectedDate: Date;
+  game?: AdminGame;
+  onGameUpdate: () => void;
 }
 
-export function GameEditor({ date }: GameEditorProps) {
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
-  const { data: game, isLoading: isLoadingGame, error: gameError } = useGame(date);
-  const { createOrUpdateGame, deleteGame, isLoading: isMutating } = useGameMutations(date);
+export function GameEditor({ selectedDate, game, onGameUpdate }: GameEditorProps) {
+  const [mode, setMode] = useState<'preview' | 'playlist'>('preview');
 
-  const handleSelectPlaylist = (playlist: Playlist) => {
-    setSelectedPlaylistId(playlist.id);
-  };
-
-  const handleSelectSong = async (track: SpotifyTrack) => {
+  const handleSelectPlaylist = async (playlistId: string) => {
     try {
-      await createOrUpdateGame(track.id);
+      const response = await fetch('/api/admin/games', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: format(selectedDate, 'yyyy-MM-dd'),
+          playlistId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create/update game');
+      }
+
+      onGameUpdate();
+      setMode('preview');
     } catch (error) {
       console.error('Failed to create/update game:', error);
     }
   };
 
-  const handleDeleteGame = async () => {
-    try {
-      await deleteGame();
-    } catch (error) {
-      console.error('Failed to delete game:', error);
-    }
-  };
-
-  if (isLoadingGame) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (gameError) {
-    return (
-      <EmptyState
-        message="Failed to load game"
-        icon="!"
-        action={{
-          label: 'Try again',
-          onClick: () => window.location.reload()
-        }}
-      />
-    );
-  }
-
   return (
-    <div className="flex h-full">
-      {/* Left Panel: Game Header + Playlist Browser */}
-      <div className="flex w-80 flex-col border-r border-primary/10">
-        <GameHeader
-          date={date}
-          onDelete={handleDeleteGame}
-          isDeleting={isMutating}
-        />
-        <PlaylistBrowser
-          selectedPlaylistId={selectedPlaylistId}
-          onSelectPlaylist={handleSelectPlaylist}
-        />
+    <div className="h-full flex flex-col">
+      <div className="border-b border-foreground/10 p-4">
+        <div className="text-lg font-mono">
+          {format(selectedDate, 'MMMM d, yyyy')}
+        </div>
       </div>
 
-      {/* Middle Panel: Song Browser */}
-      <div className="flex w-96 flex-col border-r border-primary/10">
-        <PlaylistSongBrowser
-          playlistId={selectedPlaylistId}
-          onSelectSong={handleSelectSong}
-        />
-      </div>
-
-      {/* Right Panel: Game Preview */}
-      <div className="flex-1">
-        {game ? (
-          <GamePreview game={game} />
+      <div className="flex-1 overflow-auto">
+        {mode === 'preview' ? (
+          <div className="p-4">
+            <GamePreview
+              game={game}
+              selectedDates={[selectedDate]}
+              onSearchClick={() => setMode('playlist')}
+              isMultiSelectMode={false}
+              games={game ? [game] : []}
+            />
+          </div>
         ) : (
-          <EmptyState
-            message="Select a song to create a game"
-            icon="+"
+          <PlaylistBrowser
+            onSelect={handleSelectPlaylist}
+            onCancel={() => setMode('preview')}
           />
         )}
       </div>

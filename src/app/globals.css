@@ -13,69 +13,155 @@ body {
   font-family: var(--font-jetbrains-mono);
   -webkit-font-smoothing: none;
   font-smooth: never;
+  text-rendering: optimizeLegibility;
 }
 
 @layer components {
+  .game-input {
+    @apply w-full bg-transparent font-mono text-base border-none outline-none;
+  }
+
+  .game-word {
+    @apply inline-flex items-center font-mono text-base;
+  }
+
+  .game-word-masked {
+    @apply border-b border-foreground/50 mx-[2px] h-[1em];
+  }
+
+  .game-word-revealed {
+    @apply mx-[2px];
+  }
+
+  .game-header {
+    @apply text-2xl font-bold uppercase tracking-tight mb-4;
+  }
+
+  .game-stats {
+    @apply text-sm text-muted mb-8;
+  }
+
+  .select-button {
+    @apply text-primary text-sm hover:opacity-90;
+  }
+
+  .view-button {
+    @apply text-muted text-sm hover:text-primary;
+  }
+
+  /* Calendar Styles */
+  .calendar-container {
+    @apply flex flex-col;
+  }
+
+  .calendar-header {
+    @apply flex items-center justify-between mb-6 text-sm;
+  }
+
+  .calendar-nav {
+    @apply text-muted hover:text-foreground cursor-pointer;
+  }
+
+  .calendar-month {
+    @apply font-mono;
+  }
+
+  .calendar-weekdays {
+    @apply grid grid-cols-7 gap-0 mb-1;
+  }
+
+  .calendar-weekday {
+    @apply text-xs text-muted text-left h-6;
+  }
+
   .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 1rem;
+    @apply grid grid-cols-7 gap-0;
   }
 
   .calendar-day {
-    aspect-ratio: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-jetbrains-mono);
-    transition: all 0.1s;
-    cursor: pointer;
+    @apply flex flex-col items-start justify-start h-8 text-sm cursor-pointer hover:text-primary transition-colors;
   }
 
-  .calendar-day:hover:not(.calendar-day-selected) {
-    color: #9b87f5;
+  .calendar-day-content {
+    @apply flex flex-col items-start;
+  }
+
+  .calendar-day-number {
+    @apply text-sm;
+  }
+
+  .calendar-day-title {
+    @apply text-[10px] text-muted mt-0.5 truncate max-w-[90%];
   }
 
   .calendar-day-selected {
-    color: #9b87f5;
+    @apply text-primary;
   }
 
-  .calendar-day-selected::before {
-    content: '[';
-    position: absolute;
-    left: -4px;
-  }
-
-  .calendar-day-selected::after {
-    content: ']';
-    position: absolute;
-    right: -4px;
+  .calendar-day-selected .calendar-day-title {
+    @apply text-primary/70;
   }
 
   .calendar-day-today {
-    color: #FF719A;
+    @apply text-primary;
   }
 
-  .calendar-day-today::before {
-    content: '{';
-    position: absolute;
-    left: -4px;
-    color: #FF719A;
+  .calendar-empty-day {
+    @apply text-transparent h-8;
   }
 
-  .calendar-day-today::after {
-    content: '}';
-    position: absolute;
-    right: -4px;
-    color: #FF719A;
+  .calendar-selected-date {
+    @apply flex items-center gap-1 text-sm mt-4;
   }
 
-  .calendar-day-has-game::before {
-    content: '>';
-    position: absolute;
-    top: -1rem;
-    color: #abecd6;
-    font-size: 0.75rem;
+  .calendar-selected-date-arrow {
+    @apply text-primary;
+  }
+
+  /* Multi-select specific styles */
+  .calendar-day-in-range {
+    @apply bg-primary/5;
+  }
+
+  .calendar-multi-select-indicator {
+    @apply text-xs text-muted mt-2 text-center;
+  }
+
+  /* Batch mode styles */
+  .calendar-batch-mode .calendar-day {
+    @apply hover:bg-primary/5;
+  }
+
+  .calendar-batch-mode .calendar-day-selected {
+    @apply bg-primary/10;
+  }
+
+  /* Game Interface */
+  .player-id {
+    @apply text-sm text-[#b8a6ff] mb-4;
+  }
+
+  .current-game {
+    @apply text-primary mb-4;
+  }
+
+  .game-progress {
+    @apply text-sm mb-4;
+  }
+
+  .game-status {
+    @apply text-sm text-muted;
+  }
+
+  .game-input-container {
+    @apply mb-4;
+  }
+
+  .game-input {
+    @apply w-full bg-transparent font-mono text-sm border-none outline-none;
+  }
+
+  .game-button {
+    @apply text-sm hover:text-primary;
   }
 } 

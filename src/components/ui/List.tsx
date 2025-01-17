@@ -18,7 +18,7 @@ export function List<T>({
   className = ''
 }: ListProps<T>) {
   return (
-    <ul className={`font-mono divide-y divide-primary/10 ${className}`}>
+    <ul className={`font-mono divide-y divide-foreground/10 ${className}`}>
       {items.map((item, index) => {
         const id = keyExtractor(item);
         const isSelected = selectedId === id;
@@ -29,11 +29,11 @@ export function List<T>({
             onClick={() => onSelect?.(item)}
             className={`
               group flex cursor-pointer items-center gap-2 px-4 py-2
-              hover:bg-primary/5
-              ${isSelected ? 'bg-primary/10' : ''}
+              hover:bg-input-bg
+              ${isSelected ? 'bg-input-bg' : ''}
             `}
           >
-            <span className="opacity-50 group-hover:opacity-100">
+            <span className="text-muted group-hover:text-foreground">
               {isSelected ? '>' : ' '}
             </span>
             {renderItem(item, index)}

@@ -13,6 +13,16 @@ interface GeniusSearchResponse {
   };
 }
 
+class GeniusError extends Error {
+  constructor(
+    message: string,
+    public code: 'GENIUS_NOT_FOUND' | 'GENIUS_PARSE_ERROR' | 'GENIUS_API_ERROR'
+  ) {
+    super(message);
+    this.name = 'GeniusError';
+  }
+}
+
 export class GeniusClient {
   private accessToken: string;
 
@@ -35,111 +45,139 @@ export class GeniusClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Genius API error: ${response.statusText}`);
+      throw new GeniusError(
+        `Genius API error: ${response.statusText}`,
+        'GENIUS_API_ERROR'
+      );
     }
 
     return response.json();
   }
 
-  async searchSong(title: string, artist: string): Promise<string | null> {
+  private extractLyricsFromHTML(html: string): string | null {
+    // Try different selectors and patterns to find lyrics
+    const patterns = [
+      // Method 1: New DOM structure with preloaded state
+      {
+        regex: /window\.__PRELOADED_STATE__ = JSON\.parse\('(.+?)'\)/,
+        extract: (match: string) => {
+          try {
+            const state = JSON.parse(match.replace(/\\(.)/g, '$1'));
+            if (state?.songPage?.lyricsData?.body?.html) {
+              return state.songPage.lyricsData.body.html;
+            }
+          } catch (e) {
+            console.warn('Failed to parse state JSON:', e);
+          }
+          return null;
+        }
+      },
+      // Method 2: Direct lyrics div
+      {
+        regex: /<div[^>]+class="[^"]*lyrics[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+        extract: (match: string) => match
+      },
+      // Method 3: Lyrics container
+      {
+        regex: /<div[^>]+class="[^"]*Lyrics__Container[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+        extract: (match: string) => match
+      }
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern.regex);
+      if (match && match[1]) {
+        const extracted = pattern.extract(match[1]);
+        if (extracted) {
+          const lyrics = extracted
+            .replace(/<[^>]+>/g, '') // Remove HTML tags
+            .replace(/\[.+?\]/g, '')  // Remove section headers
+            .replace(/\d+ Contributors?/g, '') // Remove contributor count
+            .replace(/Translations/g, '') // Remove translations text
+            .replace(/Lyrics/g, '') // Remove "Lyrics" text
+            .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
+            .replace(/^\s+|\s+$/gm, '') // Trim each line
+            .trim();
+
+          if (lyrics.length > 0) {
+            return lyrics;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  async searchSong(title?: string, artist?: string): Promise<string> {
+    // Validate inputs
+    if (!title || !artist) {
+      throw new GeniusError(
+        `Invalid search parameters: title="${title}", artist="${artist}"`,
+        'GENIUS_API_ERROR'
+      );
+    }
+
     try {
-      // Log the original search terms
-      console.log(`Searching lyrics for "${title}" by "${artist}"`);
-      
-      // Try different search combinations
+      // Try different search variations
       const searchQueries = [
-        `${title} ${artist}`,                    // Full search
-        `${title}`,                              // Just title
-        `${title.split('(')[0]} ${artist}`,      // Title without parentheses
-        `${title.split('-')[0]} ${artist}`       // Title before any dash
+        `${title} ${artist}`,
+        title,
+        `${title} ${artist}`,
+        `${title} ${artist}`
       ];
 
       for (const query of searchQueries) {
-        console.log(`Trying search query: "${query}"`);
-        const data = await this.request<GeniusSearchResponse>('/search', { q: query });
+        console.log('Trying search query:', query);
+        const response = await this.request<GeniusSearchResponse>('/search', {
+          q: query
+        });
 
-        // Find the best match
-        const hit = data.response.hits.find(hit => {
-          const resultTitle = hit.result.title.toLowerCase();
-          const resultArtist = hit.result.primary_artist.name.toLowerCase();
+        const hits = response.response.hits;
+        if (hits.length === 0) continue;
+
+        // Find best match
+        const hit = hits.find(h => {
+          const resultTitle = h.result.title.toLowerCase();
+          const resultArtist = h.result.primary_artist.name.toLowerCase();
           const searchTitle = title.toLowerCase();
           const searchArtist = artist.toLowerCase();
 
-          // Check for artist match first
-          const artistMatch = resultArtist.includes(searchArtist) || 
-                            searchArtist.includes(resultArtist);
-
-          if (!artistMatch) return false;
-
-          // Then check title variations
-          const titleVariations = [
-            searchTitle,
-            searchTitle.split('(')[0].trim(),
-            searchTitle.split('-')[0].trim(),
-            searchTitle.replace(/[^\w\s]/g, '')
-          ];
-
-          return titleVariations.some(variation => 
-            resultTitle.includes(variation) || 
-            variation.includes(resultTitle)
+          return (
+            resultTitle.includes(searchTitle) ||
+            searchTitle.includes(resultTitle) ||
+            resultArtist.includes(searchArtist) ||
+            searchArtist.includes(resultArtist)
           );
         });
 
         if (hit) {
-          console.log(`Found match: "${hit.result.title}" by "${hit.result.primary_artist.name}"`);
+          console.log('Found match:', `"${hit.result.title}" by "${hit.result.primary_artist.name}"`);
           
           // Fetch the song page
           const response = await fetch(hit.result.url);
           const html = await response.text();
 
-          // Extract lyrics using Genius's new DOM structure
-          const lyricsMatch = html.match(/window\.__PRELOADED_STATE__ = JSON\.parse\('(.+?)'\)/);
-          if (lyricsMatch) {
-            try {
-              const state = JSON.parse(lyricsMatch[1].replace(/\\(.)/g, '$1'));
-              const lyrics = state.songPage.lyricsData.body.html
-                .replace(/<[^>]+>/g, '') // Remove HTML tags
-                .replace(/\[.+?\]/g, '')  // Remove section headers
-                .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
-                .trim();
-
-              if (lyrics.length > 0) {
-                return lyrics;
-              }
-            } catch (e) {
-              console.warn('Failed to parse lyrics from state:', e);
-            }
-          }
-
-          // Fallback to DOM scraping if JSON parse fails
-          const lyricsSelectors = [
-            'div[class*="Lyrics__Container"]',
-            'div[class*="lyrics"]',
-            'div[class*="SongPage__Section"]'
-          ];
-
-          for (const selector of lyricsSelectors) {
-            const domMatch = html.match(new RegExp(`<${selector}[^>]*>([^]*?)<\/${selector.split('[')[0]}>`));
-            if (domMatch) {
-              const lyrics = domMatch[1]
-                .replace(/<[^>]+>/g, '')
-                .replace(/\[.+?\]/g, '')
-                .replace(/\n{3,}/g, '\n\n')
-                .trim();
-
-              if (lyrics.length > 0) {
-                return lyrics;
-              }
-            }
+          const lyrics = this.extractLyricsFromHTML(html);
+          if (lyrics) {
+            return lyrics;
           }
         }
       }
 
-      console.warn(`No lyrics found for "${title}" by "${artist}" after trying all variations`);
-      return null;
+      throw new GeniusError(
+        `No lyrics found for "${title}" by "${artist}"`,
+        'GENIUS_NOT_FOUND'
+      );
     } catch (error) {
-      console.error('Error fetching lyrics:', error);
-      return null;
+      if (error instanceof GeniusError) {
+        throw error;
+      }
+      console.error('Error searching for lyrics:', error);
+      throw new GeniusError(
+        `Failed to search lyrics for "${title}" by "${artist}"`,
+        'GENIUS_API_ERROR'
+      );
     }
   }
 }
