@@ -1,60 +1,66 @@
 import React, { useState } from 'react';
-import { AdminGame } from '@/types/admin';
 import { SongBrowser } from './SongBrowser';
 import { GamePreview } from './GamePreview';
-import { format } from 'date-fns';
-import { useGameMutations } from '@/hooks/use-game-mutations';
-import { SpotifyTrack } from '@/lib/clients/spotify';
+import type { AdminGame } from '@/types/admin';
+import type { SpotifyTrack } from '@/types/spotify';
+
+export type EditorMode = 'preview' | 'search';
 
 interface GameEditorProps {
+  selectedDate: Date;
   game?: AdminGame;
   onGameUpdate: () => Promise<void>;
-  selectedDate?: Date;
+  mode: EditorMode;
+  onModeChange: (mode: EditorMode) => void;
 }
 
-export function GameEditor({ game, onGameUpdate, selectedDate }: GameEditorProps) {
-  const [mode, setMode] = useState<'preview' | 'search'>('preview');
+export function GameEditor({ selectedDate, game, onGameUpdate, mode, onModeChange }: GameEditorProps) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const { createOrUpdateGame } = useGameMutations();
 
   const handleSelectSong = async (track: SpotifyTrack) => {
-    if (!selectedDate) return;
-    
+    setIsUpdating(true);
     try {
-      setIsUpdating(true);
-      await createOrUpdateGame({
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        spotifyId: track.spotifyId
+      const response = await fetch('/api/admin/games', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date: selectedDate.toISOString(),
+          spotifyId: track.spotifyId,
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to create game');
+      }
+
       await onGameUpdate();
-      setMode('preview');
+      onModeChange('preview');
     } catch (error) {
-      console.error('Error updating game:', error);
+      console.error('Error creating game:', error);
     } finally {
       setIsUpdating(false);
     }
   };
 
   if (!selectedDate) {
-    return (
-      <div className="h-full flex items-center justify-center text-muted">
-        Select a date to edit
-      </div>
-    );
+    return <div>Please select a date</div>;
   }
 
   return (
-    <div className="h-full">
+    <div className="p-4">
       {mode === 'preview' ? (
         <GamePreview
           game={game}
           date={selectedDate}
-          onSearchClick={() => setMode('search')}
+          onSearchClick={() => onModeChange('search')}
           isUpdating={isUpdating}
         />
       ) : (
         <SongBrowser
           onSelect={handleSelectSong}
+          onCancel={() => onModeChange('preview')}
           disabled={isUpdating}
         />
       )}

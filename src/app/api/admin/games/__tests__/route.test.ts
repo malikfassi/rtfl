@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { GET, POST } from '../route';
 import { createGameService } from '@/lib/services/game';
 import { createSongService } from '@/lib/services/song';
+import { spotifyClient } from '@/lib/clients/spotify';
 
 jest.mock('@/lib/services/game', () => ({
   createGameService: jest.fn()
@@ -9,6 +10,12 @@ jest.mock('@/lib/services/game', () => ({
 
 jest.mock('@/lib/services/song', () => ({
   createSongService: jest.fn()
+}));
+
+jest.mock('@/lib/clients/spotify', () => ({
+  spotifyClient: {
+    getTrack: jest.fn()
+  }
 }));
 
 describe('GET /api/admin/games', () => {
@@ -116,7 +123,7 @@ describe('POST /api/admin/games', () => {
     songId: '1',
     song: {
       id: '1',
-      spotifyId: 'spotify:track:1',
+      spotifyId: '1234567890abcdef1234',
       title: 'Test Song',
       artist: 'Test Artist',
       lyrics: 'Test lyrics',
@@ -138,8 +145,14 @@ describe('POST /api/admin/games', () => {
   };
 
   beforeEach(() => {
+    jest.resetAllMocks();
     (createGameService as jest.Mock).mockReturnValue(mockGameService);
     (createSongService as jest.Mock).mockReturnValue({});
+    (spotifyClient.getTrack as jest.Mock).mockResolvedValue({
+      spotifyId: '1234567890abcdef1234',
+      title: 'Test Song',
+      artist: 'Test Artist'
+    });
   });
 
   it('creates a new game with valid data', async () => {
@@ -149,7 +162,7 @@ describe('POST /api/admin/games', () => {
       method: 'POST',
       body: JSON.stringify({
         date: '2024-01-01',
-        spotifyId: 'spotify:track:1',
+        spotifyId: '1234567890abcdef1234',
         title: 'Test Song',
         artist: 'Test Artist'
       })
@@ -173,9 +186,7 @@ describe('POST /api/admin/games', () => {
   it('returns 400 for missing required fields', async () => {
     const req = new NextRequest(new URL('http://localhost:3000/api/admin/games'), {
       method: 'POST',
-      body: JSON.stringify({
-        date: '2024-01-01'
-      })
+      body: JSON.stringify({ date: '2024-01-01' })
     });
     
     const response = await POST(req);
@@ -183,7 +194,7 @@ describe('POST /api/admin/games', () => {
     const data = await response.json();
     expect(data).toEqual({
       error: 'MISSING_PARAMS',
-      message: 'date, spotifyId, title, and artist are required'
+      message: 'date and spotifyId are required'
     });
   });
 }); 

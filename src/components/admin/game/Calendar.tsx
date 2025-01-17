@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import React, { useState, useCallback } from 'react';
+import { format, isSameDay, addMonths, subMonths, eachDayOfInterval } from 'date-fns';
 import { AdminGame, GameStatus, GameStatusInfo } from '@/types/admin';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
@@ -205,61 +205,70 @@ export function Calendar({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState<Date | null>(null);
 
-  const handleDayClick = (date: Date) => {
-    if (!isDragging) {
-      const isSelected = selectedDates.some(d => isSameDay(d, date));
-      
-      if (selectedDates.length <= 1) {
-        // When 0 or 1 day is selected, clicking a day replaces the selection
-        onSelect([date]);
-      } else {
-        // In multi-select mode
-        if (isSelected) {
-          // Remove the date if it's already selected
-          onSelect(selectedDates.filter(d => !isSameDay(d, date)));
-        } else {
-          // Add the date to existing selection
-          onSelect([...selectedDates, date]);
-        }
-      }
-    }
-  };
+  const handleDayClick = useCallback((_date: Date) => {
+    // No-op - we'll handle everything in mousedown
+  }, []);
 
-  const handleDayMouseDown = (date: Date) => {
+  const handleDayMouseDown = useCallback((date: Date) => {
+    console.log('Mouse down:', {
+      date: format(date, 'yyyy-MM-dd'),
+      selectedDates: selectedDates.map(d => format(d, 'yyyy-MM-dd')),
+      isSelected: selectedDates.some(d => isSameDay(d, date))
+    });
+
+    const isSelected = selectedDates.some(d => isSameDay(d, date));
+    const isMultiSelect = selectedDates.length > 1;
+
     setIsDragging(true);
     setDragStartDate(date);
-    // Start a new selection with this date
-    onSelect([date]);
-  };
 
-  const handleDayMouseEnter = (date: Date) => {
-    if (isDragging && dragStartDate) {
-      const start = dragStartDate < date ? dragStartDate : date;
-      const end = dragStartDate < date ? date : dragStartDate;
-      const dates = eachDayOfInterval({ start, end });
-      onSelect(dates);
+    if (isMultiSelect) {
+      // In multi-select mode, toggle the date
+      if (isSelected) {
+        console.log('Removing date in multi-select mode');
+        onSelect(selectedDates.filter(d => !isSameDay(d, date)));
+      } else {
+        console.log('Adding date in multi-select mode');
+        onSelect([...selectedDates, date]);
+      }
+    } else {
+      // In single-select mode or empty selection, always select the date
+      console.log('Setting date in single-select mode');
+      onSelect([date]);
     }
-  };
+  }, [selectedDates, onSelect]);
 
-  const handleMouseUp = () => {
+  const handleDayMouseEnter = useCallback((date: Date) => {
+    if (!isDragging || !dragStartDate) {
+      return;
+    }
+
+    console.log('Mouse enter during drag:', {
+      date: format(date, 'yyyy-MM-dd'),
+      dragStartDate: format(dragStartDate, 'yyyy-MM-dd'),
+      selectedDates: selectedDates.map(d => format(d, 'yyyy-MM-dd'))
+    });
+
+    // During drag, create a range selection
+    const start = dragStartDate < date ? dragStartDate : date;
+    const end = dragStartDate < date ? date : dragStartDate;
+    const dateRange = eachDayOfInterval({ start, end });
+
+    console.log('Creating range:', {
+      range: dateRange.map(d => format(d, 'yyyy-MM-dd'))
+    });
+
+    // Always merge with existing selection during drag
+    const existingDates = selectedDates.filter(d => 
+      !dateRange.some(rangeDate => isSameDay(rangeDate, d))
+    );
+    onSelect([...existingDates, ...dateRange]);
+  }, [isDragging, dragStartDate, selectedDates, onSelect]);
+
+  const handleMouseUp = useCallback(() => {
+    console.log('Mouse up, ending drag');
     setIsDragging(false);
     setDragStartDate(null);
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedDates.length > 0) {
-      onSelect([]);
-    } else {
-      const start = startOfMonth(currentMonth);
-      const end = endOfMonth(currentMonth);
-      const allDates = eachDayOfInterval({ start, end });
-      onSelect(allDates);
-    }
-  };
-
-  React.useEffect(() => {
-    document.addEventListener('mouseup', handleMouseUp);
-    return () => document.removeEventListener('mouseup', handleMouseUp);
   }, []);
 
   return (
@@ -281,13 +290,6 @@ export function Calendar({
           </Button>
         </div>
       </div>
-
-      <button 
-        onClick={toggleSelectAll}
-        className="text-sm hover:text-primary transition-colors mb-4"
-      >
-        {selectedDates.length > 0 ? 'Deselect All' : 'Select All'}
-      </button>
 
       <div className="grid grid-cols-7 gap-px">
         {WEEKDAYS.map(day => (

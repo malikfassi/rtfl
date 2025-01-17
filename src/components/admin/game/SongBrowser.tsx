@@ -46,7 +46,7 @@ export function SongBrowser({ onSelect, onCancel: _onCancel, disabled = false }:
   }, [debouncedQuery]);
 
   const handleSelectTrack = async (track: SpotifyTrack) => {
-    setSelectedTrackId(track.id);
+    setSelectedTrackId(track.spotifyId);
     await onSelect(track);
   };
 
@@ -64,35 +64,35 @@ export function SongBrowser({ onSelect, onCancel: _onCancel, disabled = false }:
         {error && <div className="text-sm text-destructive">{error}</div>}
       </div>
 
-      {/* Track list */}
+      {/* Results list */}
       <div className="space-y-2">
-        {tracks.map((track) => (
-          <button
-            key={track.id}
-            onClick={() => handleSelectTrack(track)}
-            disabled={disabled || isLoading}
-            className={cn(
-              "w-full flex items-center gap-4 p-3 text-left",
-              "border border-foreground/10 rounded-lg",
-              "hover:bg-primary/5",
-              "transition-colors",
-              selectedTrackId === track.id && "border-primary",
-              disabled && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            {track.imageUrl && (
-              <img 
-                src={track.imageUrl} 
-                alt={track.title} 
-                className="w-12 h-12 object-cover rounded"
-              />
-            )}
-            <div>
-              <div className="font-medium">{track.title}</div>
-              <div className="text-sm text-muted">{track.artist}</div>
-            </div>
-          </button>
-        ))}
+        {isLoading ? (
+          <div className="text-center py-4">Loading...</div>
+        ) : tracks.length > 0 ? (
+          <div className="space-y-2">
+            {tracks.map((track) => (
+              <button
+                key={track.spotifyId}
+                onClick={() => handleSelectTrack(track)}
+                disabled={disabled}
+                className={cn(
+                  "w-full flex items-center gap-4 p-4 hover:bg-primary/5",
+                  "border border-foreground/10 rounded-lg",
+                  "transition-colors",
+                  selectedTrackId === track.spotifyId && "border-primary",
+                  disabled && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                <div className="flex-1 text-left">
+                  <div className="font-medium">{track.title}</div>
+                  <div className="text-sm text-muted">{track.artist}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : query && !isLoading ? (
+          <div className="text-center py-4 text-muted">No results found</div>
+        ) : null}
       </div>
     </div>
   );

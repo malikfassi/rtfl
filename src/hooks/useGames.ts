@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { AdminGame } from '@/types/admin';
 import { format } from 'date-fns';
 import { queryKeys } from '@/lib/query-client';
 
