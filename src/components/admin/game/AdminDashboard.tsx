@@ -125,11 +125,12 @@ export function AdminDashboard({ onGameUpdate }: AdminDashboardProps) {
     }
   }, [onGameUpdate, selectedDates]);
 
-  const handlePendingChanges = useCallback((changes: Record<string, GameStatusInfo>) => {
-    setPendingChanges(prev => ({
-      ...prev,
-      ...changes
-    }));
+  const handlePendingChanges = useCallback((changes: Record<string, GameStatusInfo> | ((prev: Record<string, GameStatusInfo>) => Record<string, GameStatusInfo>)) => {
+    if (typeof changes === 'function') {
+      setPendingChanges(prev => changes(prev));
+    } else {
+      setPendingChanges(changes);
+    }
   }, []);
 
   return (

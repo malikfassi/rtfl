@@ -12,7 +12,7 @@ interface BatchGameEditorProps {
     date: string;
     song: SpotifyTrack;
   }>;
-  onPendingChanges: (changes: Record<string, GameStatusInfo>) => void;
+  onPendingChanges: (changes: Record<string, GameStatusInfo> | ((prev: Record<string, GameStatusInfo>) => Record<string, GameStatusInfo>)) => void;
   onComplete: () => void;
 }
 
