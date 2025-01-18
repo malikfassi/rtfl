@@ -15,18 +15,6 @@ export class SongError extends Error {
   }
 }
 
-interface ProgressCallback {
-  (status: {
-    type: 'progress' | 'success' | 'error';
-    message: string;
-    date?: string;
-    song?: {
-      title: string;
-      artist: string;
-    };
-  }): void;
-}
-
 interface GeniusData {
   id: number;
   title: string;
@@ -72,58 +60,35 @@ export class SongService {
     };
   }
 
-  async getOrCreate(
-    spotifyId: string,
-    date?: string,
-    onProgress?: ProgressCallback
-  ): Promise<Song> {
+  async create(spotifyId: string): Promise<Song> {
     try {
-      // First try to find existing song
-      const existing = await this.prisma.song.findFirst({
-        where: { spotifyId }
-      });
-
-      if (existing) {
-        onProgress?.({
-          type: 'success',
-          message: `Found existing song with ID ${spotifyId}`,
-          date
-        });
-        return existing;
-      }
-
       // Fetch track data from Spotify
       const rawTrackData = await spotifyClient.getTrack(spotifyId);
       if (!rawTrackData) {
-        const error = new SongError(
+        throw new SongError(
           `Track not found: ${spotifyId}`,
           'SPOTIFY_NOT_FOUND'
         );
-        onProgress?.({
-          type: 'error',
-          message: error.message,
-          date
-        });
-        throw error;
       }
 
       const spotifyTrackData = rawTrackData as SpotifyTrack;
       const title = spotifyTrackData.name;
       const artist = spotifyTrackData.artists[0].name;
 
-      onProgress?.({
-        type: 'progress',
-        message: `Looking for lyrics for "${title}" by "${artist}"...`,
-        date,
-        song: { title, artist }
-      });
-
       // Get lyrics from Genius
       let lyrics: string;
-      let geniusData: GeniusData | null = null;
+      let geniusData: GeniusData;
       try {
         const rawGeniusResult = await geniusClient.searchSong(title, artist);
         const geniusResult = rawGeniusResult as unknown as GeniusResult;
+        
+        if (!geniusResult.lyrics || !geniusResult.data) {
+          throw new SongError(
+            `No lyrics found for "${title}" by "${artist}"`,
+            'GENIUS_NOT_FOUND'
+          );
+        }
+        
         lyrics = geniusResult.lyrics;
         geniusData = geniusResult.data;
       } catch (error) {
@@ -131,67 +96,31 @@ export class SongService {
           const errorMessage = error.name === 'GeniusError' ? 
             `No lyrics found for "${title}" by "${artist}"` :
             `Failed to fetch lyrics for "${title}" by "${artist}" - ${error.message}`;
-
-          onProgress?.({
-            type: 'error',
-            message: errorMessage,
-            date,
-            song: { title, artist }
-          });
-
           throw new SongError(errorMessage, 'GENIUS_NOT_FOUND');
         }
         throw error;
       }
 
-      onProgress?.({
-        type: 'success',
-        message: `Found lyrics for "${title}" by "${artist}"`,
-        date,
-        song: { title, artist }
-      });
-
-      onProgress?.({
-        type: 'progress',
-        message: `Creating song "${title}" by "${artist}"...`,
-        date,
-        song: { title, artist }
-      });
-
       // Create song with lyrics
-      const song = await this.prisma.song.create({
+      return await this.prisma.song.create({
         data: {
           spotifyId,
           spotifyData: JSON.parse(JSON.stringify(spotifyTrackData)) as Prisma.InputJsonValue,
-          geniusData: geniusData ? (JSON.parse(JSON.stringify(geniusData)) as Prisma.InputJsonValue) : Prisma.JsonNull,
+          geniusData: JSON.parse(JSON.stringify(geniusData)) as Prisma.InputJsonValue,
           lyrics,
           maskedLyrics: this.createMaskedLyrics(title, artist, lyrics)
         }
       });
-
-      onProgress?.({
-        type: 'success',
-        message: `Created song "${title}" by "${artist}" with lyrics`,
-        date,
-        song: { title, artist }
-      });
-
-      return song;
     } catch (error) {
-      const errorMessage = error instanceof Error ? 
-        `Failed to create/get song: ${error.message}` :
-        'Failed to create/get song: Unknown error';
-
-      onProgress?.({
-        type: 'error',
-        message: errorMessage,
-        date
-      });
-
       if (error instanceof SongError) {
         throw error;
       }
-      throw new SongError(errorMessage, 'INTERNAL_ERROR');
+      throw new SongError(
+        error instanceof Error ? 
+          `Failed to create song: ${error.message}` :
+          'Failed to create song: Unknown error',
+        'INTERNAL_ERROR'
+      );
     }
   }
 }

@@ -76,9 +76,9 @@ function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDow
         {!hasGame && !dayStatus?.newSong ? (
           // Empty state
           <>
-            <div className="text-[11px] leading-tight text-emerald-500">NO GAME</div>
-            <div className="text-[10px] leading-tight text-red-500">NULL</div>
-            <div className="text-[9px] leading-tight text-blue-500 font-mono">ID: NULL</div>
+            <div key="empty-title" className="text-[11px] leading-tight text-emerald-500">NO GAME</div>
+            <div key="empty-artist" className="text-[10px] leading-tight text-red-500">NULL</div>
+            <div key="empty-id" className="text-[9px] leading-tight text-blue-500 font-mono">ID: NULL</div>
           </>
         ) : (
           <>
@@ -86,24 +86,24 @@ function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDow
             {dayStatus?.status === 'to-edit' && dayStatus.currentSong && (
               <div className="space-y-0.5">
                 {/* Before values (struck through) */}
-                <div className="text-[11px] leading-tight text-green-500/70 line-through decoration-1 truncate max-w-[95%]">
+                <div key="old-title" className="text-[11px] leading-tight text-green-500/70 line-through decoration-1 truncate max-w-[95%]">
                   {getTrackTitle(dayStatus.currentSong)}
                 </div>
-                <div className="text-[10px] leading-tight text-red-500/70 line-through decoration-1 truncate max-w-[95%]">
+                <div key="old-artist" className="text-[10px] leading-tight text-red-500/70 line-through decoration-1 truncate max-w-[95%]">
                   {getTrackArtist(dayStatus.currentSong)}
                 </div>
-                <div className="text-[9px] leading-tight text-blue-500/70 font-mono line-through decoration-1 truncate max-w-[95%]">
+                <div key="old-id" className="text-[9px] leading-tight text-blue-500/70 font-mono line-through decoration-1 truncate max-w-[95%]">
                   {getTrackId(dayStatus.currentSong)}
                 </div>
                 
                 {/* After values */}
-                <div className="text-[11px] leading-tight text-green-500 truncate max-w-[95%]">
+                <div key="new-title" className="text-[11px] leading-tight text-green-500 truncate max-w-[95%]">
                   {getTrackTitle(dayStatus?.newSong)}
                 </div>
-                <div className="text-[10px] leading-tight text-red-500 truncate max-w-[95%]">
+                <div key="new-artist" className="text-[10px] leading-tight text-red-500 truncate max-w-[95%]">
                   {getTrackArtist(dayStatus?.newSong)}
                 </div>
-                <div className="text-[9px] leading-tight text-blue-500 font-mono truncate max-w-[95%]">
+                <div key="new-id" className="text-[9px] leading-tight text-blue-500 font-mono truncate max-w-[95%]">
                   {getTrackId(dayStatus?.newSong)}
                 </div>
               </div>
@@ -112,13 +112,13 @@ function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDow
             {/* Show new/current song if not editing */}
             {dayStatus?.status !== 'to-edit' && (
               <>
-                <div className="text-[11px] leading-tight text-green-500 truncate max-w-[95%]">
+                <div key="title" className="text-[11px] leading-tight text-green-500 truncate max-w-[95%]">
                   {getTrackTitle(dayStatus?.newSong) || getTrackTitle(game?.song.spotifyData)}
                 </div>
-                <div className="text-[10px] leading-tight text-red-500 truncate max-w-[95%]">
+                <div key="artist" className="text-[10px] leading-tight text-red-500 truncate max-w-[95%]">
                   {getTrackArtist(dayStatus?.newSong) || getTrackArtist(game?.song.spotifyData)}
                 </div>
-                <div className="text-[9px] leading-tight text-blue-500 font-mono truncate max-w-[95%]">
+                <div key="id" className="text-[9px] leading-tight text-blue-500 font-mono truncate max-w-[95%]">
                   {getTrackId(dayStatus?.newSong) || game?.song.spotifyId}
                 </div>
               </>

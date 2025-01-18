@@ -36,22 +36,16 @@ export class GameService {
     try {
       this.validateDateFormat(date);
 
-      // First try to find an existing game for this date
+      // Create a new song
+      const song = await this.songService.create(spotifyId);
+
+      // Check if game exists for this date
       const existingGame = await this.prisma.game.findFirst({
-        where: { date },
-        include: { song: true }
+        where: { date }
       });
 
-      // If the game exists with the same song, return it immediately
-      if (existingGame && existingGame.song.spotifyId === spotifyId) {
-        return existingGame;
-      }
-
-      // Get or create the song
-      const song = await this.songService.getOrCreate(spotifyId);
-
       if (existingGame) {
-        // If the game exists and has a different song, update it
+        // Update existing game with new song
         return await this.prisma.game.update({
           where: { id: existingGame.id },
           data: { songId: song.id },

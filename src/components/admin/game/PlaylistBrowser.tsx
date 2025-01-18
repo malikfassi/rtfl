@@ -8,6 +8,45 @@ interface PlaylistBrowserProps {
   onPlaylistSelect: (playlist: { tracks: Track[] }) => void;
 }
 
+function LoadingState() {
+  return <div key="loading">Loading...</div>;
+}
+
+function SelectedPlaylistView({ playlist, tracks, isLoading }: { 
+  playlist: SimplifiedPlaylist; 
+  tracks: Track[]; 
+  isLoading: boolean; 
+}) {
+  return (
+    <div key="selected">
+      <h3 className="text-sm font-medium">{playlist.name}</h3>
+      <PlaylistSongsList
+        tracks={tracks}
+        isLoading={isLoading}
+      />
+    </div>
+  );
+}
+
+function PlaylistList({ playlists, onSelect }: { 
+  playlists: SimplifiedPlaylist[]; 
+  onSelect: (playlist: SimplifiedPlaylist) => void; 
+}) {
+  return (
+    <div key="playlist-list" className="space-y-2">
+      {playlists.map(playlist => (
+        <button
+          key={playlist.id}
+          onClick={() => onSelect(playlist)}
+          className="w-full p-2 text-left hover:bg-accent rounded-md transition-colors"
+        >
+          {playlist.name}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
   const [query, setQuery] = useState('');
   const [playlists, setPlaylists] = useState<SimplifiedPlaylist[]>([]);
@@ -84,29 +123,24 @@ export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
         {error && <div className="text-sm text-destructive">{error}</div>}
       </div>
 
-      {!selectedPlaylist && !isLoading && (
-        <div className="space-y-2">
-          {playlists.map(playlist => (
-            <button
-              key={playlist.id}
-              onClick={() => handleSelectPlaylist(playlist)}
-              className="w-full p-2 text-left hover:bg-accent rounded-md transition-colors"
-            >
-              {playlist.name}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {selectedPlaylist && (
-        <>
-          <h3 className="text-sm font-medium">{selectedPlaylist.name}</h3>
-          <PlaylistSongsList
-            tracks={tracks}
-            isLoading={isLoading}
+      {(() => {
+        if (isLoading) return <LoadingState />;
+        if (selectedPlaylist) {
+          return (
+            <SelectedPlaylistView 
+              playlist={selectedPlaylist} 
+              tracks={tracks} 
+              isLoading={isLoading} 
+            />
+          );
+        }
+        return (
+          <PlaylistList 
+            playlists={playlists} 
+            onSelect={handleSelectPlaylist} 
           />
-        </>
-      )}
+        );
+      })()}
     </div>
   );
 } 

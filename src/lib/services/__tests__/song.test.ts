@@ -1,9 +1,24 @@
-import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { PrismaClient, Prisma } from '@prisma/client';
+import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { SongService } from '../song';
-import { geniusClient } from '@/lib/clients/genius';
 import { spotifyClient } from '@/lib/clients/spotify';
+import { geniusClient } from '@/lib/clients/genius';
 import { mockSpotifyTrackData, mockGeniusData } from '@/lib/test/utils';
+
+const mockSong = {
+  id: '1',
+  spotifyId: 'spotify123',
+  spotifyData: JSON.parse(JSON.stringify(mockSpotifyTrackData)) as Prisma.JsonValue,
+  geniusData: JSON.parse(JSON.stringify(mockGeniusData)) as Prisma.JsonValue,
+  lyrics: 'Test lyrics',
+  maskedLyrics: {
+    title: ['Test', 'Song'],
+    artist: ['Test', 'Artist'],
+    lyrics: ['Test', 'lyrics']
+  } as Prisma.JsonValue,
+  createdAt: new Date('2025-01-17T09:19:20.784Z'),
+  updatedAt: new Date('2025-01-17T09:19:20.784Z')
+};
 
 jest.mock('@/lib/clients/genius', () => ({
   geniusClient: {
@@ -18,84 +33,54 @@ jest.mock('@/lib/clients/spotify', () => ({
 }));
 
 describe('SongService', () => {
-  let prismaMock: DeepMockProxy<PrismaClient>;
   let songService: SongService;
-  
-  const mockSong = {
-    id: '1',
-    spotifyId: 'spotify123',
-    spotifyData: JSON.parse(JSON.stringify(mockSpotifyTrackData)) as Prisma.JsonValue,
-    geniusData: JSON.parse(JSON.stringify(mockGeniusData)) as Prisma.JsonValue,
-    lyrics: 'Test lyrics',
-    maskedLyrics: {
-      title: ['Test', 'Song'],
-      artist: ['Test', 'Artist'],
-      lyrics: ['Test', 'lyrics']
-    } as Prisma.JsonValue,
-    createdAt: new Date('2025-01-17T09:19:20.784Z'),
-    updatedAt: new Date('2025-01-17T09:19:20.784Z')
-  };
+  let prismaMock: DeepMockProxy<PrismaClient>;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     prismaMock = mockDeep<PrismaClient>();
     songService = new SongService(prismaMock);
-
-    // Mock geniusClient.searchSong
-    (geniusClient.searchSong as jest.Mock).mockResolvedValue({
-      lyrics: 'Test lyrics',
-      data: mockGeniusData
-    });
-
-    // Mock spotifyClient.getTrack
-    (spotifyClient.getTrack as jest.Mock).mockResolvedValue(mockSpotifyTrackData);
   });
 
-  describe('getOrCreate', () => {
-    it('should create a new song if one does not exist', async () => {
-      prismaMock.song.findFirst.mockResolvedValue(null);
+  describe('create', () => {
+    it('should create a new song', async () => {
+      const mockSpotifyTrack = mockSpotifyTrackData;
+      const mockGeniusResult = {
+        lyrics: 'Test lyrics',
+        data: mockGeniusData
+      };
+
+      // Mock Spotify API call
+      (spotifyClient.getTrack as jest.Mock).mockResolvedValue(mockSpotifyTrack);
+      // Mock Genius API call
+      (geniusClient.searchSong as jest.Mock).mockResolvedValue(mockGeniusResult);
+
       prismaMock.song.create.mockResolvedValue(mockSong);
-      
-      const result = await songService.getOrCreate('spotify123');
+
+      const result = await songService.create('spotify123');
       expect(result).toEqual(mockSong);
+
       expect(spotifyClient.getTrack).toHaveBeenCalledWith('spotify123');
-      expect(geniusClient.searchSong).toHaveBeenCalledWith('Test Song', 'Test Artist');
-      expect(prismaMock.song.create).toHaveBeenCalledWith({
-        data: {
-          spotifyId: 'spotify123',
-          spotifyData: expect.any(Object),
-          geniusData: expect.any(Object),
-          lyrics: 'Test lyrics',
-          maskedLyrics: expect.objectContaining({
-            title: expect.any(Array),
-            artist: expect.any(Array),
-            lyrics: expect.any(Array)
-          })
-        }
-      });
+      expect(geniusClient.searchSong).toHaveBeenCalledWith(
+        mockSpotifyTrack.name,
+        mockSpotifyTrack.artists[0].name
+      );
     });
 
-    it('should return existing song if one exists', async () => {
-      prismaMock.song.findFirst.mockResolvedValue(mockSong);
-      
-      const result = await songService.getOrCreate('spotify123');
-      expect(result).toEqual(mockSong);
-      expect(prismaMock.song.findFirst).toHaveBeenCalledWith({
-        where: { spotifyId: 'spotify123' }
-      });
-      expect(spotifyClient.getTrack).not.toHaveBeenCalled();
-      expect(geniusClient.searchSong).not.toHaveBeenCalled();
-    });
-
-    it('should throw an error if required parameters are missing', async () => {
+    it('should throw an error if track is not found', async () => {
       (spotifyClient.getTrack as jest.Mock).mockResolvedValue(null);
-      await expect(songService.getOrCreate('')).rejects.toThrow('Track not found');
+
+      await expect(songService.create('')).rejects.toThrow('Track not found');
     });
 
-    it('should throw an error if lyrics cannot be found', async () => {
-      prismaMock.song.findFirst.mockResolvedValue(null);
-      (geniusClient.searchSong as jest.Mock).mockRejectedValue(new Error('No lyrics found'));
-      
-      await expect(songService.getOrCreate('spotify123')).rejects.toThrow('No lyrics found');
+    it('should throw an error if lyrics are not found', async () => {
+      const mockSpotifyTrack = mockSpotifyTrackData;
+      (spotifyClient.getTrack as jest.Mock).mockResolvedValue(mockSpotifyTrack);
+      (geniusClient.searchSong as jest.Mock).mockRejectedValue(new Error('GeniusError'));
+
+      await expect(songService.create('spotify123')).rejects.toThrow(
+        'Failed to fetch lyrics for "Test Song" by "Test Artist" - GeniusError'
+      );
     });
   });
 }); 
