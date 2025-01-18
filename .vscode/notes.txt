@@ -1,8 +1,0 @@
-each date case in the calednar shows : 
-- date number
-- current song (artist, title, spotifyID)
-- diff for pending changes 
-- visual indicator for the state. 
-
-no need for tooltip now.
-

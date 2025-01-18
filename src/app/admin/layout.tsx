@@ -1,10 +1,20 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { AdminDashboard } from '@/components/admin/game/AdminDashboard';
-import { useCallback } from 'react';
 import { format } from 'date-fns';
 
+interface Playlist {
+  tracks: Array<{
+    spotifyId: string;
+    title: string;
+    artist: string;
+  }>;
+}
+
 export default function AdminLayout() {
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | undefined>();
+
   const handleGameUpdate = useCallback(async () => {
     try {
       const monthParam = format(new Date(), 'yyyy-MM');
@@ -16,5 +26,11 @@ export default function AdminLayout() {
     }
   }, []);
 
-  return <AdminDashboard onGameUpdate={handleGameUpdate} />;
+  return (
+    <AdminDashboard 
+      onGameUpdate={handleGameUpdate}
+      selectedPlaylist={selectedPlaylist}
+      onPlaylistChange={setSelectedPlaylist}
+    />
+  );
 } 

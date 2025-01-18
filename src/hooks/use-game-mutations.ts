@@ -7,10 +7,10 @@ interface CreateGameInput {
   spotifyId: string;
 }
 
-const adminApi = {
+export const gameApi = {
   createOrUpdateGame: async ({ date, spotifyId }: CreateGameInput): Promise<AdminGame> => {
     const body = { date, spotifyId };
-    console.log('Sending request with body:', body);
+    console.log('Creating/updating game:', { date, spotifyId });
     const res = await fetch('/api/admin/games', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -22,7 +22,13 @@ const adminApi = {
       console.error('Error response:', errorData);
       throw new Error('Failed to create/update game');
     }
-    return res.json();
+    const data = await res.json();
+    console.log('Game created/updated:', { 
+      date: data.date, 
+      spotifyId: data.song.spotifyId,
+      title: data.song.title 
+    });
+    return data;
   },
 
   deleteGame: async (date: string): Promise<void> => {
@@ -37,18 +43,39 @@ export function useGameMutations() {
   const queryClient = useQueryClient();
 
   const createOrUpdateMutation = useMutation({
-    mutationFn: (input: CreateGameInput) => adminApi.createOrUpdateGame(input),
+    mutationFn: (input: CreateGameInput) => gameApi.createOrUpdateGame(input),
     onSuccess: (game) => {
+      queryClient.invalidateQueries({ 
+        queryKey: [queryKeys.games.all],
+        refetchType: 'all'
+      });
+      
       queryClient.setQueryData(queryKeys.games.byDate(game.date), game);
-      queryClient.invalidateQueries({ queryKey: queryKeys.games.all });
+      
+      const month = game.date.substring(0, 7); // YYYY-MM
+      queryClient.invalidateQueries({ 
+        queryKey: ['games', 'month', month],
+        refetchType: 'all'
+      });
     }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (date: string) => adminApi.deleteGame(date),
+    mutationFn: (date: string) => gameApi.deleteGame(date),
     onSuccess: (_, date) => {
+      const month = date.substring(0, 7); // YYYY-MM
+      
       queryClient.removeQueries({ queryKey: queryKeys.games.byDate(date) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.games.all });
+      
+      queryClient.invalidateQueries({ 
+        queryKey: [queryKeys.games.all],
+        refetchType: 'all'
+      });
+      
+      queryClient.invalidateQueries({ 
+        queryKey: ['games', 'month', month],
+        refetchType: 'all'
+      });
     }
   });
 

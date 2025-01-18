@@ -17,6 +17,12 @@ export class GameService {
     private songService: SongService
   ) {}
 
+  private validateDateFormat(date: string): void {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new GameError('Invalid date format. Expected YYYY-MM-DD', 'INVALID_FORMAT');
+    }
+  }
+
   async createOrUpdate(
     spotifyId: string,
     title: string,
@@ -24,6 +30,8 @@ export class GameService {
     date: string
   ): Promise<Game> {
     try {
+      this.validateDateFormat(date);
+
       // First try to find an existing game for this date
       const existingGame = await this.prisma.game.findFirst({
         where: { date },
@@ -66,6 +74,7 @@ export class GameService {
   }
 
   async getByDate(date: string): Promise<Game> {
+    this.validateDateFormat(date);
     const game = await this.prisma.game.findFirst({
       where: { date },
       include: { song: true }
@@ -79,17 +88,9 @@ export class GameService {
   }
 
   async getByMonth(month: string): Promise<Game[]> {
-    if (!month.match(/^\d{4}-\d{2}$/)) {
-      throw new GameError('Invalid month format. Expected YYYY-MM', 'INVALID_FORMAT');
-    }
-
     const [year, monthStr] = month.split('-');
     const monthNum = parseInt(monthStr, 10);
     
-    if (monthNum < 1 || monthNum > 12) {
-      throw new GameError('Invalid month format. Expected YYYY-MM', 'INVALID_FORMAT');
-    }
-
     const firstDay = `${year}-${monthStr.padStart(2, '0')}-01`;
     const lastDay = `${year}-${monthStr.padStart(2, '0')}-${new Date(parseInt(year, 10), monthNum, 0).getDate().toString().padStart(2, '0')}`;
 
@@ -112,6 +113,7 @@ export class GameService {
   }
 
   async delete(date: string) {
+    this.validateDateFormat(date);
     const game = await this.prisma.game.findFirst({
       where: { date }
     });

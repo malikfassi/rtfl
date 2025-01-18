@@ -2,6 +2,15 @@ import { NextRequest } from 'next/server';
 import { createGameService } from '@/lib/services/game';
 import { createSongService } from '@/lib/services/song';
 import { spotifyClient } from '@/lib/clients/spotify';
+import { z } from 'zod';
+
+const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Expected YYYY-MM-DD');
+const monthSchema = z.string().regex(/^\d{4}-\d{2}$/, 'Invalid month format. Expected YYYY-MM');
+
+const createGameSchema = z.object({
+  date: dateSchema,
+  spotifyId: z.string().min(1, 'spotifyId is required')
+});
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,9 +30,17 @@ export async function GET(req: NextRequest) {
     
     if (date) {
       try {
+        // Validate date format
+        dateSchema.parse(date);
         const game = await gameService.getByDate(date);
         return Response.json(game);
       } catch (error) {
+        if (error instanceof z.ZodError) {
+          return Response.json(
+            { error: 'INVALID_FORMAT', message: error.errors[0].message },
+            { status: 400 }
+          );
+        }
         if (error instanceof Error && error.message.includes('NOT_FOUND')) {
           return Response.json(
             { error: 'NOT_FOUND', message: error.message },
@@ -36,12 +53,23 @@ export async function GET(req: NextRequest) {
 
     if (month) {
       try {
+        // Validate month format and range
+        monthSchema.parse(month);
+        const [_, monthStr] = month.split('-');
+        const monthNum = parseInt(monthStr, 10);
+        if (monthNum < 1 || monthNum > 12) {
+          return Response.json(
+            { error: 'INVALID_FORMAT', message: 'Month must be between 1 and 12' },
+            { status: 400 }
+          );
+        }
+
         const games = await gameService.getByMonth(month);
         return Response.json(games);
       } catch (error) {
-        if (error instanceof Error && error.message.includes('INVALID_FORMAT')) {
+        if (error instanceof z.ZodError) {
           return Response.json(
-            { error: 'INVALID_FORMAT', message: error.message },
+            { error: 'INVALID_FORMAT', message: error.errors[0].message },
             { status: 400 }
           );
         }
@@ -63,17 +91,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     console.log('Received request body:', body);
-    const { date, spotifyId } = body;
-
-    if (!date || !spotifyId) {
-      console.log('Missing required params:', { date, spotifyId });
-      return Response.json(
-        { error: 'MISSING_PARAMS', message: 'date and spotifyId are required' },
-        { status: 400 }
-      );
-    }
 
     try {
+      // Validate request body
+      const { date, spotifyId } = createGameSchema.parse(body);
+
       // Get track details from Spotify
       const track = await spotifyClient.getTrack(spotifyId);
       if (!track) {
@@ -89,17 +111,17 @@ export async function POST(req: NextRequest) {
       const game = await gameService.createOrUpdate(spotifyId, track.title, track.artist, date);
       return Response.json(game);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return Response.json(
+          { error: 'INVALID_FORMAT', message: error.errors[0].message },
+          { status: 400 }
+        );
+      }
       if (error instanceof Error) {
         if (error.message.includes('NOT_FOUND')) {
           return Response.json(
             { error: 'NOT_FOUND', message: error.message },
             { status: 404 }
-          );
-        }
-        if (error.message.includes('INVALID_FORMAT')) {
-          return Response.json(
-            { error: 'INVALID_FORMAT', message: error.message },
-            { status: 400 }
           );
         }
       }

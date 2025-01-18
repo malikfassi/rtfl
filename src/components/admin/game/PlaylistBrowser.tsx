@@ -5,17 +5,20 @@ import { cn } from '@/lib/utils';
 import { SpotifyTrack } from '@/lib/clients/spotify';
 import { PlaylistSongsList } from './PlaylistSongsList';
 
-interface PlaylistBrowserProps {
-  songAssignments: Record<string, Date[]>;
-  onSelect: (tracks: SpotifyTrack[]) => Promise<void>;
-  onCancel: () => void;
-  disabled?: boolean;
+interface SpotifyPlaylist {
+  id: string;
+  name: string;
+  image?: string;
 }
 
-export function PlaylistBrowser({ onSelect, onCancel: _onCancel, disabled = false, songAssignments }: PlaylistBrowserProps) {
+interface PlaylistBrowserProps {
+  onPlaylistSelect: (playlist: { tracks: SpotifyTrack[] }) => void;
+}
+
+export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
   const [query, setQuery] = useState('');
-  const [playlists, setPlaylists] = useState<Array<{ id: string; name: string; image?: string }>>([]);
-  const [selectedPlaylist, setSelectedPlaylist] = useState<{ id: string; name: string } | null>(null);
+  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<SpotifyPlaylist | null>(null);
   const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,22 +52,23 @@ export function PlaylistBrowser({ onSelect, onCancel: _onCancel, disabled = fals
     fetchPlaylists();
   }, [debouncedQuery]);
 
-  const handleSelectPlaylist = async (playlist: { id: string; name: string }) => {
+  const handleSelectPlaylist = async (playlist: SpotifyPlaylist) => {
     try {
       setSelectedPlaylist(playlist);
       setIsLoading(true);
       setError(null);
+      
       const response = await fetch(`/api/admin/spotify/playlists/${playlist.id}/tracks`);
       if (!response.ok) {
-        throw new Error('Failed to fetch playlist tracks');
+        throw new Error('Failed to fetch tracks');
       }
-      const data = await response.json();
-      setTracks(data);
-      // Automatically select all tracks when playlist is loaded
-      await onSelect(data);
+      
+      const tracks = await response.json();
+      setTracks(tracks);
+      onPlaylistSelect({ tracks });
     } catch (error) {
-      console.error('Failed to fetch playlist tracks:', error);
-      setError('Failed to fetch playlist tracks');
+      console.error('Failed to fetch tracks:', error);
+      setError('Failed to fetch tracks');
     } finally {
       setIsLoading(false);
     }
@@ -72,62 +76,43 @@ export function PlaylistBrowser({ onSelect, onCancel: _onCancel, disabled = fals
 
   return (
     <div className="space-y-4">
-      {/* Search input */}
-      <div className="space-y-2">
+      <div>
         <Input
           ref={inputRef}
-          type="search"
+          type="text"
           placeholder="Search playlists..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          disabled={disabled}
+          onFocus={() => {
+            setSelectedPlaylist(null);
+            setTracks([]);
+          }}
         />
         {error && <div className="text-sm text-destructive">{error}</div>}
       </div>
 
-      {/* Playlist grid or track list */}
-      {selectedPlaylist ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">{selectedPlaylist.name}</h3>
-            <button
-              onClick={() => {
-                setSelectedPlaylist(null);
-                setTracks([]);
-                // Restore focus to input when returning to playlist list
-                inputRef.current?.focus();
-              }}
-              className="text-sm text-muted hover:text-foreground"
-            >
-              Back to playlists
-            </button>
-          </div>
-          <PlaylistSongsList
-            tracks={tracks}
-            songAssignments={songAssignments}
-            onSelect={() => {}} // No-op since we're handling all tracks at once
-            disabled={disabled}
-          />
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-2">
-          {playlists.map((playlist) => (
+      {!selectedPlaylist && !isLoading && (
+        <div className="space-y-2">
+          {playlists.map(playlist => (
             <button
               key={playlist.id}
               onClick={() => handleSelectPlaylist(playlist)}
-              disabled={disabled || isLoading}
-              className={cn(
-                "p-4 text-left rounded-lg",
-                "border border-foreground/10",
-                "hover:bg-primary/5",
-                "transition-colors",
-                disabled && "opacity-50 cursor-not-allowed"
-              )}
+              className="w-full p-2 text-left hover:bg-accent rounded-md transition-colors"
             >
-              <div className="font-medium">{playlist.name}</div>
+              {playlist.name}
             </button>
           ))}
         </div>
+      )}
+
+      {selectedPlaylist && (
+        <>
+          <h3 className="text-sm font-medium">{selectedPlaylist.name}</h3>
+          <PlaylistSongsList
+            tracks={tracks}
+            isLoading={isLoading}
+          />
+        </>
       )}
     </div>
   );

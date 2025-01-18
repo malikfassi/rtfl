@@ -1,14 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { format, isSameDay, addMonths, subMonths, eachDayOfInterval } from 'date-fns';
-import { AdminGame, GameStatus, GameStatusInfo } from '@/types/admin';
+import type { AdminGame, GameStatusInfo } from '@/types/admin';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/Tooltip";
 
 interface CalendarProps {
   selectedDates: Date[];
@@ -29,142 +23,113 @@ interface CalendarDayProps {
   status?: GameStatusInfo;
 }
 
-function getStatusColor(status: GameStatus): string {
-  switch (status) {
-    case 'to-create':
-      return 'border-yellow-500';
-    case 'to-edit':
-      return 'border-blue-500';
-    case 'loading':
-      return 'border-primary animate-pulse';
-    case 'success':
-      return 'border-green-500';
-    case 'error':
-      return 'border-red-500';
-    default:
-      return '';
-  }
-}
-
 function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDown, status }: CalendarDayProps) {
   const isToday = isSameDay(date, new Date());
   const hasGame = Boolean(game);
   const dayStatus = status || game?.status;
-
-  const statusColor = dayStatus ? getStatusColor(dayStatus.status) : '';
+  const isCurrentMonth = date.getMonth() === new Date().getMonth();
   const isLoading = dayStatus?.status === 'loading';
 
-  const renderTooltipContent = () => {
-    if (!dayStatus) return null;
-    
-    switch (dayStatus.status) {
-      case 'to-edit':
-        return (
-          <div className="space-y-2">
-            <div>
-              <div className="text-xs text-muted">Current:</div>
-              <div>{dayStatus.currentSong?.title} - {dayStatus.currentSong?.artist}</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted">New:</div>
-              <div>{dayStatus.newSong?.title} - {dayStatus.newSong?.artist}</div>
-            </div>
-          </div>
-        );
-      case 'to-create':
-        return (
-          <div>
-            <div className="text-xs text-muted">To be created:</div>
-            <div>{dayStatus.newSong?.title} - {dayStatus.newSong?.artist}</div>
-          </div>
-        );
-      case 'loading':
-        return (
-          <div>
-            <div className="text-xs text-muted">Updating game...</div>
-          </div>
-        );
-      case 'success':
-        return (
-          <div>
-            <div className="text-xs text-muted">Successfully updated!</div>
-          </div>
-        );
-      case 'error':
-        return (
-          <div>
-            <div className="text-xs text-muted text-red-500">Failed to update</div>
-            {dayStatus.error && <div className="text-xs text-red-500">{dayStatus.error}</div>}
-          </div>
-        );
-      default:
-        return null;
-    }
+  // Get background and border colors based on state
+  const getStateStyles = () => {
+    if (dayStatus?.status === 'to-create') return 'bg-yellow-500/10 border-yellow-500';
+    if (dayStatus?.status === 'to-edit') return 'bg-blue-500/10 border-blue-500';
+    if (dayStatus?.status === 'loading') return 'bg-blue-500/10 border-blue-500 animate-pulse';
+    if (dayStatus?.status === 'success') return 'bg-green-500/10 border-green-500';
+    if (dayStatus?.status === 'error') return 'bg-red-500/10 border-red-500';
+    if (isSelected) return 'bg-blue-500/10 border-blue-500';
+    return 'border-foreground/10';
   };
 
-  const tooltipContent = renderTooltipContent();
-
-  const dayContent = (
+  return (
     <button
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseDown={onMouseDown}
       className={cn(
-        "h-32 p-3 relative text-left transition-colors overflow-hidden",
+        "aspect-square p-1.5 relative text-left transition-colors overflow-hidden",
         "border-2",
-        statusColor || "border-foreground/10",
-        isSelected && "bg-primary/10",
-        isToday && "font-bold",
-        !isSelected && "hover:bg-primary/5",
-        dayStatus?.status === 'to-create' && "bg-yellow-500/5",
-        dayStatus?.status === 'error' && "bg-red-500/5"
+        getStateStyles(),
+        isSelected && !dayStatus?.status && "bg-blue-500/10"
       )}
     >
-      <span className="text-sm font-medium text-muted">{format(date, 'd')}</span>
-      {(hasGame || dayStatus?.newSong) && (
-        <div className="mt-1.5 space-y-1.5">
-          {dayStatus?.status === 'to-edit' && dayStatus.currentSong && (
-            <div className="space-y-0.5 opacity-50">
-              <div className="text-[13px] leading-tight truncate line-through">{dayStatus.currentSong.title}</div>
-              <div className="text-[11px] leading-tight truncate text-muted/80 line-through">{dayStatus.currentSong.artist}</div>
-            </div>
-          )}
-          <div className={cn(
-            "text-[13px] leading-tight font-medium truncate",
-            dayStatus?.status === 'to-create' && "text-yellow-600",
-            dayStatus?.status === 'error' && "text-red-600"
-          )}>
-            {dayStatus?.newSong?.title || game?.song.title}
-          </div>
-          <div className={cn(
-            "text-[11px] leading-tight truncate",
-            dayStatus?.status === 'to-create' ? "text-yellow-600/70" : "text-muted/80",
-            dayStatus?.status === 'error' && "text-red-600/70"
-          )}>
-            {dayStatus?.newSong?.artist || game?.song.artist}
-          </div>
-          {isLoading && (
-            <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-              <div className="animate-spin text-xl">⟳</div>
-            </div>
-          )}
+      <span className={cn(
+        "absolute top-0.5 left-1 text-[10px] font-medium",
+        isToday ? "text-primary" : "text-muted/50",
+        !isCurrentMonth && "text-muted/30"
+      )}>
+        {format(date, 'd')}
+      </span>
+      
+      <div className="mt-3 space-y-0.5">
+        {!hasGame && !dayStatus?.newSong ? (
+          // Empty state
+          <>
+            <div className="text-[11px] leading-tight text-emerald-500">NO GAME</div>
+            <div className="text-[10px] leading-tight text-red-500">NULL</div>
+            <div className="text-[9px] leading-tight text-blue-500 font-mono">ID: NULL</div>
+          </>
+        ) : (
+          <>
+            {/* Show current song if being edited */}
+            {dayStatus?.status === 'to-edit' && dayStatus.currentSong && (
+              <div className="space-y-0.5">
+                {/* Before values (struck through) */}
+                <div className="text-[11px] leading-tight text-green-500/70 line-through decoration-1 truncate max-w-[95%]">
+                  {dayStatus.currentSong.title}
+                </div>
+                <div className="text-[10px] leading-tight text-red-500/70 line-through decoration-1 truncate max-w-[95%]">
+                  {dayStatus.currentSong.artist}
+                </div>
+                <div className="text-[9px] leading-tight text-blue-500/70 font-mono line-through decoration-1 truncate max-w-[95%]">
+                  {dayStatus.currentSong.spotifyId}
+                </div>
+                
+                {/* After values */}
+                <div className="text-[11px] leading-tight text-green-500 truncate max-w-[95%]">
+                  {dayStatus?.newSong?.title}
+                </div>
+                <div className="text-[10px] leading-tight text-red-500 truncate max-w-[95%]">
+                  {dayStatus?.newSong?.artist}
+                </div>
+                <div className="text-[9px] leading-tight text-blue-500 font-mono truncate max-w-[95%]">
+                  {dayStatus?.newSong?.spotifyId}
+                </div>
+              </div>
+            )}
+            
+            {/* Show new/current song if not editing */}
+            {dayStatus?.status !== 'to-edit' && (
+              <>
+                <div className="text-[11px] leading-tight text-green-500 truncate max-w-[95%]">
+                  {dayStatus?.newSong?.title || game?.song.title}
+                </div>
+                <div className="text-[10px] leading-tight text-red-500 truncate max-w-[95%]">
+                  {dayStatus?.newSong?.artist || game?.song.artist}
+                </div>
+                <div className="text-[9px] leading-tight text-blue-500 font-mono truncate max-w-[95%]">
+                  {dayStatus?.newSong?.spotifyId || game?.song.spotifyId}
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Status indicators */}
+      {isLoading && (
+        <div className="absolute top-0.5 right-1 rounded-full bg-orange-500/20 p-0.5">
+          <div className="animate-spin text-[10px] text-orange-500">⟳</div>
         </div>
+      )}
+      {dayStatus?.status === 'success' && (
+        <div className="absolute top-0.5 right-1 text-[10px] text-green-500">✓</div>
+      )}
+      {dayStatus?.status === 'error' && (
+        <div className="absolute top-0.5 right-1 text-[10px] text-red-500">✕</div>
       )}
     </button>
   );
-
-  return tooltipContent ? (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          {dayContent}
-        </TooltipTrigger>
-        <TooltipContent>
-          {tooltipContent}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  ) : dayContent;
 }
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -215,7 +180,7 @@ export function Calendar({
         console.log(
           `Calendar: ${date} - ${prevStatus?.status || 'none'} → ${status.status}` +
           (status.error ? ` (Error: ${status.error})` : '') +
-          (status.newSong ? ` [${status.newSong.title}]` : '')
+          (status.newSong ? ` [${status.newSong.title} - spotifyId: ${status.newSong.spotifyId}]` : '')
         );
       }
     });
@@ -273,37 +238,30 @@ export function Calendar({
       isSelected,
       isMultiSelect,
       selectedDates: selectedDates.map(d => format(d, 'yyyy-MM-dd')),
-      pendingChanges: Object.entries(pendingChanges).map(([date, status]) => ({
-        date,
-        status: status.status,
-        currentSong: status.currentSong?.title,
-        newSong: status.newSong?.title
-      }))
     });
+
+    if (isMultiSelect && isSelected) {
+      console.log('Calendar: Removing date in multi-select mode');
+      // Remove the date from selection
+      const newDates = selectedDates.filter(d => !isSameDay(d, date));
+      onSelect(newDates);
+      return;
+    }
 
     setIsDragging(true);
     setDragStartDate(date);
 
-    if (isMultiSelect) {
-      // In multi-select mode, toggle the date
-      if (isSelected) {
-        console.log('Calendar: Removing date in multi-select mode');
-        onSelect(selectedDates.filter(d => !isSameDay(d, date)));
-      } else {
-        console.log('Calendar: Adding date in multi-select mode');
-        onSelect([...selectedDates, date]);
-      }
-    } else {
-      // In single-select mode or empty selection, always select the date
-      console.log('Calendar: Setting date in single-select mode');
+    if (!isMultiSelect) {
+      // Single selection mode
       onSelect([date]);
+    } else if (!isSelected) {
+      // Add to multi-selection
+      onSelect([...selectedDates, date]);
     }
-  }, [selectedDates, onSelect, pendingChanges, currentMonth]);
+  }, [selectedDates, onSelect, currentMonth]);
 
   const handleDayMouseEnter = useCallback((date: Date) => {
-    if (!isDragging || !dragStartDate) {
-      return;
-    }
+    if (!isDragging || !dragStartDate) return;
 
     const isCurrentMonth = date.getMonth() === currentMonth.getMonth() && 
                           date.getFullYear() === currentMonth.getFullYear();
@@ -313,42 +271,41 @@ export function Calendar({
       isCurrentMonth,
       dragStartDate: format(dragStartDate, 'yyyy-MM-dd'),
       selectedDates: selectedDates.map(d => format(d, 'yyyy-MM-dd')),
-      pendingChanges: Object.entries(pendingChanges).map(([date, status]) => ({
-        date,
-        status: status.status,
-        currentSong: status.currentSong?.title,
-        newSong: status.newSong?.title
-      }))
+      pendingChanges: Object.keys(pendingChanges)
     });
 
-    // During drag, create a range selection
-    const start = dragStartDate < date ? dragStartDate : date;
-    const end = dragStartDate < date ? date : dragStartDate;
-    const dateRange = eachDayOfInterval({ start, end });
+    // Create range between dragStart and current
+    const range = eachDayOfInterval({
+      start: dragStartDate,
+      end: date
+    });
+
+    const isAllCurrentMonth = range.every(d => 
+      d.getMonth() === currentMonth.getMonth() && 
+      d.getFullYear() === currentMonth.getFullYear()
+    );
 
     console.log('Calendar: Creating range', {
-      range: dateRange.map(d => format(d, 'yyyy-MM-dd')),
-      isAllCurrentMonth: dateRange.every(d => 
-        d.getMonth() === currentMonth.getMonth() && 
-        d.getFullYear() === currentMonth.getFullYear()
-      )
+      range: range.map(d => format(d, 'yyyy-MM-dd')),
+      isAllCurrentMonth
     });
 
-    // Always merge with existing selection during drag
-    const existingDates = selectedDates.filter(d => 
-      !dateRange.some(rangeDate => isSameDay(rangeDate, d))
-    );
-    onSelect([...existingDates, ...dateRange]);
-  }, [isDragging, dragStartDate, selectedDates, onSelect, pendingChanges, currentMonth]);
+    if (isAllCurrentMonth) {
+      onSelect(range);
+    }
+  }, [isDragging, dragStartDate, currentMonth, selectedDates, pendingChanges, onSelect]);
 
   const handleMouseUp = useCallback(() => {
+    if (!isDragging) return;
+
     console.log('Calendar: Mouse up, ending drag', {
       dragStartDate: dragStartDate ? format(dragStartDate, 'yyyy-MM-dd') : null,
       selectedDates: selectedDates.map(d => format(d, 'yyyy-MM-dd'))
     });
+
     setIsDragging(false);
     setDragStartDate(null);
-  }, [dragStartDate, selectedDates]);
+  }, [isDragging, dragStartDate, selectedDates]);
 
   const handleSelectAll = useCallback(() => {
     // Get only days in the current month
