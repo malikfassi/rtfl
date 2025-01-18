@@ -36,7 +36,11 @@ export async function setupTestDb() {
     let retries = 3;
     while (retries > 0) {
       try {
-        execSync('npx prisma migrate reset --force --skip-seed', { 
+        // First generate the client
+        execSync('npx prisma generate', { stdio: 'ignore' });
+        
+        // Then push the schema directly to the database
+        execSync('npx prisma db push --skip-generate', { 
           env: {
             ...process.env,
             DATABASE_URL: TEST_DB_URL
