@@ -3,6 +3,7 @@ import { SongBrowser } from './SongBrowser';
 import { GamePreview } from './GamePreview';
 import type { AdminGame } from '@/types/admin';
 import type { SpotifyTrack } from '@/types/spotify';
+import { format } from 'date-fns';
 
 export type EditorMode = 'preview' | 'search';
 
@@ -26,7 +27,7 @@ export function GameEditor({ selectedDate, game, onGameUpdate, mode, onModeChang
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          date: selectedDate.toISOString(),
+          date: format(selectedDate, 'yyyy-MM-dd'),
           spotifyId: track.spotifyId,
         }),
       });

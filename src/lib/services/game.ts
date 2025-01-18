@@ -23,6 +23,12 @@ export class GameService {
     }
   }
 
+  private validateMonthFormat(month: string): void {
+    if (!/^\d{4}-\d{2}$/.test(month)) {
+      throw new GameError('Invalid month format. Expected YYYY-MM', 'INVALID_FORMAT');
+    }
+  }
+
   async createOrUpdate(
     spotifyId: string,
     title: string,
@@ -88,6 +94,7 @@ export class GameService {
   }
 
   async getByMonth(month: string): Promise<Game[]> {
+    this.validateMonthFormat(month);
     const [year, monthStr] = month.split('-');
     const monthNum = parseInt(monthStr, 10);
     

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/Input';
 import { useDebounce } from '@/hooks/useDebounce';
-import { cn } from '@/lib/utils';
 import { SpotifyTrack } from '@/lib/clients/spotify';
 import { PlaylistSongsList } from './PlaylistSongsList';
 

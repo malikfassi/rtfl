@@ -4,12 +4,12 @@ import { createSongService } from '@/lib/services/song';
 import { spotifyClient } from '@/lib/clients/spotify';
 import { z } from 'zod';
 
-const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Expected YYYY-MM-DD');
-const monthSchema = z.string().regex(/^\d{4}-\d{2}$/, 'Invalid month format. Expected YYYY-MM');
+const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'INVALID_FORMAT: Invalid date format');
+const monthSchema = z.string().regex(/^\d{4}-\d{2}$/, 'INVALID_FORMAT: Invalid month format');
 
 const createGameSchema = z.object({
   date: dateSchema,
-  spotifyId: z.string().min(1, 'spotifyId is required')
+  spotifyId: z.string().min(1, 'Required')
 });
 
 export async function GET(req: NextRequest) {
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
       try {
         // Validate month format and range
         monthSchema.parse(month);
-        const [_, monthStr] = month.split('-');
+        const monthStr = month.split('-')[1];
         const monthNum = parseInt(monthStr, 10);
         if (monthNum < 1 || monthNum > 12) {
           return Response.json(
@@ -94,6 +94,12 @@ export async function POST(req: NextRequest) {
 
     try {
       // Validate request body
+      if (!body.date || !body.spotifyId) {
+        return Response.json(
+          { error: 'MISSING_PARAMS', message: 'date and spotifyId are required' },
+          { status: 400 }
+        );
+      }
       const { date, spotifyId } = createGameSchema.parse(body);
 
       // Get track details from Spotify
@@ -112,8 +118,17 @@ export async function POST(req: NextRequest) {
       return Response.json(game);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        const zodError = error.errors[0];
+        const errorMessage = zodError.message;
+        const errorParams = zodError as { params?: { code?: string } };
+        if (errorParams.params?.code === 'MISSING_PARAMS') {
+          return Response.json(
+            { error: 'MISSING_PARAMS', message: errorMessage },
+            { status: 400 }
+          );
+        }
         return Response.json(
-          { error: 'INVALID_FORMAT', message: error.errors[0].message },
+          { error: 'INVALID_FORMAT', message: errorMessage },
           { status: 400 }
         );
       }
