@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
       const songService = createSongService();
       const gameService = createGameService(songService);
       
-      const game = await gameService.createOrUpdate(spotifyId, track.title, track.artist, date);
+      const game = await gameService.createOrUpdate(spotifyId, date);
       return Response.json(game);
     } catch (error) {
       if (error instanceof z.ZodError) {

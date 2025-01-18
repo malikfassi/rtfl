@@ -17,11 +17,7 @@ export async function GET(
 
     // Then get or create song with lyrics
     const songService = createSongService();
-    const song = await songService.getOrCreate(
-      track.spotifyId,
-      track.title,
-      track.artist
-    );
+    const song = await songService.getOrCreate(track.id);
     
     return Response.json({
       lyrics: song.lyrics,

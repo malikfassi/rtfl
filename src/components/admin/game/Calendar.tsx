@@ -1,8 +1,19 @@
 import React, { useState, useCallback } from 'react';
-import { format, isSameDay, addMonths, subMonths, eachDayOfInterval } from 'date-fns';
+import { format, isSameDay, eachDayOfInterval } from 'date-fns';
 import type { AdminGame, GameStatusInfo } from '@/types/admin';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
+
+function getTrackTitle(track: { name: string } | undefined) {
+  return track?.name || '';
+}
+
+function getTrackArtist(track: { artists: { name: string }[] } | undefined) {
+  return track?.artists[0]?.name || '';
+}
+
+function getTrackId(track: { id: string } | undefined) {
+  return track?.id || '';
+}
 
 interface CalendarProps {
   selectedDates: Date[];
@@ -76,24 +87,24 @@ function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDow
               <div className="space-y-0.5">
                 {/* Before values (struck through) */}
                 <div className="text-[11px] leading-tight text-green-500/70 line-through decoration-1 truncate max-w-[95%]">
-                  {dayStatus.currentSong.title}
+                  {getTrackTitle(dayStatus.currentSong)}
                 </div>
                 <div className="text-[10px] leading-tight text-red-500/70 line-through decoration-1 truncate max-w-[95%]">
-                  {dayStatus.currentSong.artist}
+                  {getTrackArtist(dayStatus.currentSong)}
                 </div>
                 <div className="text-[9px] leading-tight text-blue-500/70 font-mono line-through decoration-1 truncate max-w-[95%]">
-                  {dayStatus.currentSong.spotifyId}
+                  {getTrackId(dayStatus.currentSong)}
                 </div>
                 
                 {/* After values */}
                 <div className="text-[11px] leading-tight text-green-500 truncate max-w-[95%]">
-                  {dayStatus?.newSong?.title}
+                  {getTrackTitle(dayStatus?.newSong)}
                 </div>
                 <div className="text-[10px] leading-tight text-red-500 truncate max-w-[95%]">
-                  {dayStatus?.newSong?.artist}
+                  {getTrackArtist(dayStatus?.newSong)}
                 </div>
                 <div className="text-[9px] leading-tight text-blue-500 font-mono truncate max-w-[95%]">
-                  {dayStatus?.newSong?.spotifyId}
+                  {getTrackId(dayStatus?.newSong)}
                 </div>
               </div>
             )}
@@ -102,13 +113,13 @@ function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDow
             {dayStatus?.status !== 'to-edit' && (
               <>
                 <div className="text-[11px] leading-tight text-green-500 truncate max-w-[95%]">
-                  {dayStatus?.newSong?.title || game?.song.title}
+                  {getTrackTitle(dayStatus?.newSong) || getTrackTitle(game?.song.spotifyData)}
                 </div>
                 <div className="text-[10px] leading-tight text-red-500 truncate max-w-[95%]">
-                  {dayStatus?.newSong?.artist || game?.song.artist}
+                  {getTrackArtist(dayStatus?.newSong) || getTrackArtist(game?.song.spotifyData)}
                 </div>
                 <div className="text-[9px] leading-tight text-blue-500 font-mono truncate max-w-[95%]">
-                  {dayStatus?.newSong?.spotifyId || game?.song.spotifyId}
+                  {getTrackId(dayStatus?.newSong) || game?.song.spotifyId}
                 </div>
               </>
             )}
@@ -180,7 +191,7 @@ export function Calendar({
         console.log(
           `Calendar: ${date} - ${prevStatus?.status || 'none'} → ${status.status}` +
           (status.error ? ` (Error: ${status.error})` : '') +
-          (status.newSong ? ` [${status.newSong.title} - spotifyId: ${status.newSong.spotifyId}]` : '')
+          (status.newSong ? ` [${getTrackTitle(status.newSong)} - spotifyId: ${getTrackId(status.newSong)}]` : '')
         );
       }
     });
@@ -248,17 +259,15 @@ export function Calendar({
       return;
     }
 
+    if (!isCurrentMonth) {
+      console.log('Calendar: Changing month');
+      onMonthChange(date);
+    }
+
     setIsDragging(true);
     setDragStartDate(date);
-
-    if (!isMultiSelect) {
-      // Single selection mode
-      onSelect([date]);
-    } else if (!isSelected) {
-      // Add to multi-selection
-      onSelect([...selectedDates, date]);
-    }
-  }, [selectedDates, onSelect, currentMonth]);
+    onSelect([date]);
+  }, [selectedDates, currentMonth, onSelect, onMonthChange]);
 
   const handleDayMouseEnter = useCallback((date: Date) => {
     if (!isDragging || !dragStartDate) return;
@@ -266,151 +275,62 @@ export function Calendar({
     const isCurrentMonth = date.getMonth() === currentMonth.getMonth() && 
                           date.getFullYear() === currentMonth.getFullYear();
 
-    console.log('Calendar: Mouse enter during drag', {
-      date: format(date, 'yyyy-MM-dd'),
-      isCurrentMonth,
-      dragStartDate: format(dragStartDate, 'yyyy-MM-dd'),
-      selectedDates: selectedDates.map(d => format(d, 'yyyy-MM-dd')),
-      pendingChanges: Object.keys(pendingChanges)
-    });
+    if (!isCurrentMonth) return;
 
-    // Create range between dragStart and current
-    const range = eachDayOfInterval({
-      start: dragStartDate,
-      end: date
-    });
+    const start = dragStartDate < date ? dragStartDate : date;
+    const end = dragStartDate < date ? date : dragStartDate;
 
-    const isAllCurrentMonth = range.every(d => 
-      d.getMonth() === currentMonth.getMonth() && 
-      d.getFullYear() === currentMonth.getFullYear()
-    );
+    const dates = eachDayOfInterval({ start, end });
+    onSelect(dates);
+  }, [isDragging, dragStartDate, currentMonth, onSelect]);
 
-    console.log('Calendar: Creating range', {
-      range: range.map(d => format(d, 'yyyy-MM-dd')),
-      isAllCurrentMonth
-    });
+  React.useEffect(() => {
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setDragStartDate(null);
+    };
 
-    if (isAllCurrentMonth) {
-      onSelect(range);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
+  }, []);
+
+  const days = getDaysInMonth(currentMonth);
+  const weeks = [];
+  let week = [];
+
+  for (const day of days) {
+    week.push(day);
+    if (week.length === 7) {
+      weeks.push(week);
+      week = [];
     }
-  }, [isDragging, dragStartDate, currentMonth, selectedDates, pendingChanges, onSelect]);
-
-  const handleMouseUp = useCallback(() => {
-    if (!isDragging) return;
-
-    console.log('Calendar: Mouse up, ending drag', {
-      dragStartDate: dragStartDate ? format(dragStartDate, 'yyyy-MM-dd') : null,
-      selectedDates: selectedDates.map(d => format(d, 'yyyy-MM-dd'))
-    });
-
-    setIsDragging(false);
-    setDragStartDate(null);
-  }, [isDragging, dragStartDate, selectedDates]);
-
-  const handleSelectAll = useCallback(() => {
-    // Get only days in the current month
-    const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-    const allDays = eachDayOfInterval({ start, end });
-
-    // Check which days are currently selected in this month
-    const selectedInCurrentMonth = selectedDates.filter(date => 
-      date.getMonth() === currentMonth.getMonth() && 
-      date.getFullYear() === currentMonth.getFullYear()
-    );
-
-    console.log('Calendar: Select all clicked', {
-      currentMonth: format(currentMonth, 'yyyy-MM'),
-      daysInMonth: allDays.map(d => format(d, 'yyyy-MM-dd')),
-      currentlySelectedInMonth: selectedInCurrentMonth.map(d => format(d, 'yyyy-MM-dd')),
-      allSelectedDates: selectedDates.map(d => format(d, 'yyyy-MM-dd')),
-      pendingChanges: Object.entries(pendingChanges).map(([date, status]) => ({
-        date,
-        status: status.status,
-        currentSong: status.currentSong?.title,
-        newSong: status.newSong?.title
-      }))
-    });
-    
-    // If all days in current month are selected, unselect them
-    const allSelected = allDays.every(day => 
-      selectedDates.some(selected => isSameDay(selected, day))
-    );
-
-    if (allSelected) {
-      console.log('Calendar: Unselecting all days in current month', {
-        daysToUnselect: allDays.map(d => format(d, 'yyyy-MM-dd'))
-      });
-      // Keep selected dates that are not in the current month
-      const datesOutsideMonth = selectedDates.filter(date => 
-        date.getMonth() !== currentMonth.getMonth() || 
-        date.getFullYear() !== currentMonth.getFullYear()
-      );
-      onSelect(datesOutsideMonth);
-    } else {
-      console.log('Calendar: Selecting all days in current month', {
-        daysToSelect: allDays.map(d => format(d, 'yyyy-MM-dd'))
-      });
-      // Merge with existing selections outside current month
-      const datesOutsideMonth = selectedDates.filter(date => 
-        date.getMonth() !== currentMonth.getMonth() || 
-        date.getFullYear() !== currentMonth.getFullYear()
-      );
-      onSelect([...datesOutsideMonth, ...allDays]);
-    }
-  }, [currentMonth, selectedDates, onSelect, pendingChanges]);
+  }
 
   return (
-    <div className="p-8" onMouseUp={handleMouseUp}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-mono">{format(currentMonth, 'MMMM yyyy')}</h2>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => onMonthChange(subMonths(currentMonth, 1))}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => onMonthChange(addMonths(currentMonth, 1))}
-          >
-            Next
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={handleSelectAll}
-          >
-            {getDaysInMonth(currentMonth).every(day => 
-              selectedDates.some(selected => isSameDay(selected, day))
-            ) ? 'Unselect All' : 'Select All'}
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-7 gap-px">
+    <div className="w-full">
+      <div className="grid grid-cols-7 gap-0.5 mb-0.5">
         {WEEKDAYS.map(day => (
-          <div key={day} className="p-2 text-center text-sm text-muted">
+          <div key={day} className="text-center text-xs text-muted-foreground">
             {day}
           </div>
         ))}
-
-        {getDaysInMonth(currentMonth).map((day, i) => {
-          const isSelected = selectedDates.some(d => isSameDay(d, day));
-          const dateStr = format(day, 'yyyy-MM-dd');
-          const game = games.find(game => isSameDay(new Date(game.date), day)) || null;
-          const status = pendingChanges[dateStr];
+      </div>
+      <div className="grid grid-cols-7 gap-0.5">
+        {days.map(date => {
+          const game = games.find(g => isSameDay(new Date(g.date), date));
+          const isSelected = selectedDates.some(d => isSameDay(d, date));
+          const status = pendingChanges[format(date, 'yyyy-MM-dd')];
 
           return (
             <CalendarDay
-              key={i}
-              date={day}
+              key={date.toISOString()}
+              date={date}
               isSelected={isSelected}
-              game={game}
+              game={game || null}
+              onClick={() => handleDayClick(date)}
+              onMouseEnter={() => handleDayMouseEnter(date)}
+              onMouseDown={() => handleDayMouseDown(date)}
               status={status}
-              onClick={() => handleDayClick(day)}
-              onMouseEnter={() => handleDayMouseEnter(day)}
-              onMouseDown={() => handleDayMouseDown(day)}
             />
           );
         })}

@@ -5,15 +5,12 @@ import { BatchGameEditor } from './BatchGameEditor';
 import { isSameDay, format } from 'date-fns';
 import { useGames } from '@/hooks/useGames';
 import type { AdminGame, GameStatusInfo } from '@/types/admin';
+import type { Track } from '@spotify/web-api-ts-sdk';
 
 interface AdminDashboardProps {
   onGameUpdate: () => Promise<void>;
   selectedPlaylist?: { 
-    tracks: Array<{
-      spotifyId: string;
-      title: string;
-      artist: string;
-    }>;
+    tracks: Track[];
   };
   onPlaylistChange?: (playlist: AdminDashboardProps['selectedPlaylist']) => void;
 }
@@ -105,7 +102,7 @@ export function AdminDashboard({ onGameUpdate, selectedPlaylist, onPlaylistChang
         );
         
         const randomSong = tracks[Math.floor(Math.random() * tracks.length)];
-        console.log(`Assigning "${randomSong.title}" to ${dateKey}`);
+        console.log(`Assigning "${randomSong.name}" to ${dateKey}`);
 
         setPendingChanges(prev => {
           const newChanges = { ...prev };
@@ -185,7 +182,7 @@ export function AdminDashboard({ onGameUpdate, selectedPlaylist, onPlaylistChang
       );
       
       const randomSong = playlist.tracks[Math.floor(Math.random() * playlist.tracks.length)];
-      console.log(`Assigning "${randomSong.title}" to ${dateKey}`);
+      console.log(`Assigning "${randomSong.name}" to ${dateKey}`);
 
       setPendingChanges(prev => ({
         ...prev,

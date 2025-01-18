@@ -2,17 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/Input';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
-import { SpotifyTrack } from '@/types/spotify';
+import type { Track } from '@spotify/web-api-ts-sdk';
 
 interface SongBrowserProps {
-  onSelect: (track: SpotifyTrack) => Promise<void>;
+  onSelect: (track: Track) => Promise<void>;
   onCancel: () => void;
   disabled?: boolean;
 }
 
-export function SongBrowser({ onSelect, onCancel, disabled = false }: SongBrowserProps) {
+export function SongBrowser({ onSelect, onCancel: _onCancel, disabled = false }: SongBrowserProps) {
   const [query, setQuery] = useState('');
-  const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
   const [selectedTrackId, setSelectedTrackId] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,12 +46,10 @@ export function SongBrowser({ onSelect, onCancel, disabled = false }: SongBrowse
     searchTracks();
   }, [debouncedQuery]);
 
-  const handleSelectTrack = async (track: SpotifyTrack) => {
+  const handleSelectTrack = async (track: Track) => {
     try {
-      setSelectedTrackId(track.spotifyId);
+      setSelectedTrackId(track.id);
       await onSelect(track);
-      // After successful selection, return to preview mode
-      onCancel();
     } catch (error) {
       console.error('Failed to select track:', error);
       setError('Failed to select track');
@@ -61,48 +59,33 @@ export function SongBrowser({ onSelect, onCancel, disabled = false }: SongBrowse
 
   return (
     <div className="space-y-4">
-      {/* Search input */}
-      <div className="space-y-2">
-        <Input
-          ref={inputRef}
-          type="search"
-          placeholder="Search songs..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          disabled={disabled}
-        />
-        {error && <div className="text-sm text-destructive">{error}</div>}
-      </div>
+      <Input
+        ref={inputRef}
+        type="text"
+        placeholder="Search for a song..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        disabled={disabled}
+        autoFocus
+      />
 
-      {/* Results list */}
+      {error && <div className="text-red-500">{error}</div>}
+
       <div className="space-y-2">
-        {isLoading ? (
-          <div className="text-center py-4">Loading...</div>
-        ) : tracks.length > 0 ? (
-          <div className="space-y-2">
-            {tracks.map((track) => (
-              <button
-                key={track.spotifyId}
-                onClick={() => handleSelectTrack(track)}
-                disabled={disabled || isLoading}
-                className={cn(
-                  "w-full flex items-center gap-4 p-4 hover:bg-primary/5",
-                  "border border-foreground/10 rounded-lg",
-                  "transition-colors",
-                  selectedTrackId === track.spotifyId && "border-primary",
-                  disabled && "opacity-50 cursor-not-allowed"
-                )}
-              >
-                <div className="flex-1 text-left">
-                  <div className="font-medium">{track.title}</div>
-                  <div className="text-sm text-muted">{track.artist}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        ) : query && !isLoading ? (
-          <div className="text-center py-4 text-muted">No results found</div>
-        ) : null}
+        {tracks.map((track) => (
+          <button
+            key={track.id}
+            onClick={() => handleSelectTrack(track)}
+            disabled={disabled || isLoading}
+            className={cn(
+              'w-full p-2 text-left hover:bg-gray-100 rounded',
+              selectedTrackId === track.id && 'bg-gray-100'
+            )}
+          >
+            <div className="font-medium">{track.name}</div>
+            <div className="text-sm text-muted">{track.artists[0].name}</div>
+          </button>
+        ))}
       </div>
     </div>
   );

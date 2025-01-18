@@ -1,4 +1,8 @@
+"use client";
+
 import React, { useState } from 'react';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 
 interface GameInterfaceProps {
   playerId: string;
@@ -30,50 +34,78 @@ export function GameInterface({
   };
 
   return (
-    <div className="p-4">
-      <div className="player-id">
-        Player {playerId}
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="current-game">
-          Current Game
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      {/* Player Info */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="text-sm text-gray-600">
+          Player ID: {playerId}
         </div>
-        <button onClick={onClear} className="text-primary">
-          Clear
-        </button>
+        <Button onClick={onClear} variant="secondary" size="sm">
+          Clear Progress
+        </Button>
       </div>
 
-      <div className="game-progress">
-        {foundWords}/{totalWords} words found
-      </div>
-
-      <div className="game-status mb-4">
-        <div className="flex gap-2">
-          Title <span className="text-primary">✓</span>
+      {/* Game Progress */}
+      <div className="mb-8">
+        <div className="text-lg font-semibold mb-2">Progress</div>
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex-1 bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-primary h-2 rounded-full transition-all"
+              style={{ width: `${(foundWords.length / totalWords) * 100}%` }}
+            />
+          </div>
+          <div className="text-sm text-gray-600 whitespace-nowrap">
+            {foundWords.length}/{totalWords}
+          </div>
         </div>
-        <div className="flex gap-2">
-          Artist <span className="text-primary">✓</span>
+      </div>
+
+      {/* Song Info */}
+      <div className="mb-8">
+        <div className="text-lg font-semibold mb-4">Song</div>
+        <div className="space-y-2">
+          <div className="p-3 bg-gray-50 rounded">
+            <div className="text-sm text-gray-500 mb-1">Title</div>
+            <div className="font-mono">{_title}</div>
+          </div>
+          <div className="p-3 bg-gray-50 rounded">
+            <div className="text-sm text-gray-500 mb-1">Artist</div>
+            <div className="font-mono">{_artist}</div>
+          </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="game-input-container">
-        <input
+      {/* Guess Input */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
           type="text"
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
           placeholder="Enter your guess..."
-          className="game-input"
+          className="w-full"
         />
-        <button type="submit" className="game-button">
-          Guess
-        </button>
+        <Button type="submit" className="w-full">
+          Submit Guess
+        </Button>
       </form>
 
-      <div className="game-status">
-        <div>Total Guesses: 6</div>
-        <div>Missed: 1</div>
-      </div>
+      {/* Found Words */}
+      {foundWords.length > 0 && (
+        <div className="mt-8">
+          <div className="text-lg font-semibold mb-2">Found Words</div>
+          <div className="flex flex-wrap gap-2">
+            {foundWords.map((word, i) => (
+              <div 
+                key={i}
+                className="px-2 py-1 bg-primary/10 text-primary rounded text-sm"
+              >
+                {word}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { AdminGame } from '@/types/admin';
 import { Button } from '@/components/ui/Button';
@@ -9,6 +11,14 @@ interface GamePreviewProps {
   date: Date;
   onSearchClick: () => void;
   isUpdating?: boolean;
+}
+
+function getTrackTitle(track: { name: string } | undefined) {
+  return track?.name || '';
+}
+
+function getTrackArtist(track: { artists: { name: string }[] } | undefined) {
+  return track?.artists[0]?.name || '';
 }
 
 export function GamePreview({ game, date, onSearchClick, isUpdating = false }: GamePreviewProps) {
@@ -70,13 +80,13 @@ export function GamePreview({ game, date, onSearchClick, isUpdating = false }: G
             <div>
               <div className="text-sm text-muted">Title</div>
               <div className="text-lg">
-                {showMasked ? maskedLyrics.title.join(' ') : game.song.title}
+                {showMasked ? maskedLyrics.title.join(' ') : getTrackTitle(game.song.spotifyData)}
               </div>
             </div>
             <div>
               <div className="text-sm text-muted">Artist</div>
               <div className="text-lg">
-                {showMasked ? maskedLyrics.artist.join(' ') : game.song.artist}
+                {showMasked ? maskedLyrics.artist.join(' ') : getTrackArtist(game.song.spotifyData)}
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { GET } from '../route';
 import { spotifyClient } from '@/lib/clients/spotify';
+import type { Track } from '@spotify/web-api-ts-sdk';
 
 jest.mock('@/lib/clients/spotify', () => ({
   spotifyClient: {
@@ -10,16 +11,104 @@ jest.mock('@/lib/clients/spotify', () => ({
 
 describe('GET /api/admin/spotify/playlists/[id]/tracks', () => {
   it('should return tracks from a playlist', async () => {
-    const mockTracks = [
+    const mockTracks: Track[] = [
       {
         id: 'track1',
-        title: 'Test Track 1',
-        artist: 'Test Artist 1'
+        name: 'Test Track 1',
+        artists: [{ id: 'artist1', name: 'Test Artist 1', type: 'artist', uri: '', href: '', external_urls: { spotify: '' } }],
+        album: {
+          id: 'album1',
+          name: 'Test Album 1',
+          images: [{ url: '', height: 300, width: 300 }],
+          type: 'album',
+          uri: '',
+          href: '',
+          external_urls: { spotify: '' },
+          release_date: '',
+          release_date_precision: 'day',
+          total_tracks: 1,
+          artists: [],
+          album_group: 'album',
+          album_type: 'album',
+          available_markets: [],
+          copyrights: [],
+          external_ids: {
+            upc: 'TEST123',
+            isrc: 'TEST123',
+            ean: 'TEST123'
+          },
+          genres: [],
+          label: '',
+          popularity: 0
+        },
+        preview_url: '',
+        uri: '',
+        external_urls: { spotify: '' },
+        type: 'track',
+        href: '',
+        duration_ms: 0,
+        explicit: false,
+        external_ids: {
+          upc: 'TEST123',
+          isrc: 'TEST123',
+          ean: 'TEST123'
+        },
+        is_local: false,
+        popularity: 0,
+        track_number: 1,
+        disc_number: 1,
+        available_markets: [],
+        episode: false,
+        track: true
       },
       {
         id: 'track2',
-        title: 'Test Track 2',
-        artist: 'Test Artist 2'
+        name: 'Test Track 2',
+        artists: [{ id: 'artist2', name: 'Test Artist 2', type: 'artist', uri: '', href: '', external_urls: { spotify: '' } }],
+        album: {
+          id: 'album2',
+          name: 'Test Album 2',
+          images: [{ url: '', height: 300, width: 300 }],
+          type: 'album',
+          uri: '',
+          href: '',
+          external_urls: { spotify: '' },
+          release_date: '',
+          release_date_precision: 'day',
+          total_tracks: 1,
+          artists: [],
+          album_group: 'album',
+          album_type: 'album',
+          available_markets: [],
+          copyrights: [],
+          external_ids: {
+            upc: 'TEST123',
+            isrc: 'TEST123',
+            ean: 'TEST123'
+          },
+          genres: [],
+          label: '',
+          popularity: 0
+        },
+        preview_url: '',
+        uri: '',
+        external_urls: { spotify: '' },
+        type: 'track',
+        href: '',
+        duration_ms: 0,
+        explicit: false,
+        external_ids: {
+          upc: 'TEST123',
+          isrc: 'TEST123',
+          ean: 'TEST123'
+        },
+        is_local: false,
+        popularity: 0,
+        track_number: 1,
+        disc_number: 1,
+        available_markets: [],
+        episode: false,
+        track: true
       }
     ];
 

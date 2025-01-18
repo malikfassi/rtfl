@@ -37,7 +37,7 @@ export async function POST(
   const gameService = createGameService(songService);
 
   try {
-    const game = await gameService.createOrUpdate(spotifyId, title, artist, date);
+    const game = await gameService.createOrUpdate(spotifyId, date);
     return Response.json(game);
   } catch (error) {
     console.error('Failed to create/update game:', error);

@@ -1,9 +1,9 @@
 import React from 'react';
-import { SpotifyTrack } from '@/lib/clients/spotify';
+import type { Track } from '@spotify/web-api-ts-sdk';
 import { cn } from '@/lib/utils';
 
 interface PlaylistSongsListProps {
-  tracks: SpotifyTrack[];
+  tracks: Track[];
   isLoading?: boolean;
 }
 
@@ -25,7 +25,7 @@ export function PlaylistSongsList({ tracks, isLoading = false }: PlaylistSongsLi
         ) : (
           tracks.map((track, index) => (
             <div
-              key={`${track.spotifyId}-${index}`}
+              key={`${track.id}-${index}`}
               className={cn(
                 "w-full flex items-center gap-2 px-2 py-1 text-xs",
                 "border-b border-foreground/5",
@@ -33,9 +33,9 @@ export function PlaylistSongsList({ tracks, isLoading = false }: PlaylistSongsLi
               )}
             >
               <div className="w-8">{index + 1}</div>
-              <div className="flex-1 truncate">{track.title}</div>
-              <div className="w-32 truncate">{track.artist}</div>
-              <div className="w-32 truncate text-muted">{track.spotifyId}</div>
+              <div className="flex-1 truncate">{track.name}</div>
+              <div className="w-32 truncate">{track.artists[0].name}</div>
+              <div className="w-32 truncate text-muted">{track.id}</div>
             </div>
           ))
         )}

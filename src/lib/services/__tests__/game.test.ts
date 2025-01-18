@@ -1,16 +1,25 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { GameService } from '../game';
 import { SongService } from '../song';
+import { mockSpotifyTrackData, mockGeniusData } from '@/lib/test/utils';
 
-const mockSong = {
+const mockSong: {
+  id: string;
+  spotifyId: string;
+  spotifyData: Prisma.JsonValue;
+  geniusData: Prisma.JsonValue;
+  lyrics: string;
+  maskedLyrics: Prisma.JsonValue;
+  createdAt: Date;
+  updatedAt: Date;
+} = {
   id: '1',
-  title: 'Test Song',
-  artist: 'Test Artist',
-  lyrics: 'Test lyrics',
-  maskedLyrics: { title: [], artist: [], lyrics: [] },
   spotifyId: 'spotify:track:123',
-  previewUrl: null,
+  spotifyData: mockSpotifyTrackData as unknown as Prisma.JsonValue,
+  geniusData: mockGeniusData as unknown as Prisma.JsonValue,
+  lyrics: 'Test lyrics',
+  maskedLyrics: { title: [], artist: [], lyrics: [] } as Prisma.JsonValue,
   createdAt: new Date('2025-01-17T09:19:20.784Z'),
   updatedAt: new Date('2025-01-17T09:19:20.784Z'),
 };
@@ -36,35 +45,6 @@ describe('GameService', () => {
     gameService = new GameService(prismaMock, songServiceMock);
   });
 
-  describe('getByMonth', () => {
-    it('should return games for a valid month', async () => {
-      prismaMock.game.findMany.mockResolvedValue([mockGame]);
-
-      const result = await gameService.getByMonth('2025-01');
-      expect(result).toEqual([mockGame]);
-      expect(prismaMock.game.findMany).toHaveBeenCalledWith({
-        where: {
-          date: {
-            gte: '2025-01-01',
-            lte: '2025-01-31',
-          },
-        },
-        include: {
-          song: true,
-        },
-        orderBy: {
-          date: 'asc',
-        },
-      });
-    });
-
-    it('should throw an error for invalid month format', async () => {
-      await expect(gameService.getByMonth('invalid-month')).rejects.toThrow(
-        'Invalid month format. Expected YYYY-MM'
-      );
-    });
-  });
-
   describe('createOrUpdate', () => {
     it('should update an existing game with a new song', async () => {
       const existingGame = {
@@ -84,7 +64,7 @@ describe('GameService', () => {
       songServiceMock.getOrCreate.mockResolvedValue(mockSong);
       prismaMock.game.update.mockResolvedValue(updatedGame);
 
-      const result = await gameService.createOrUpdate('spotify:track:123', 'Test Song', 'Test Artist', '2025-01-17');
+      const result = await gameService.createOrUpdate('spotify:track:123', '2025-01-17');
       expect(result).toEqual(updatedGame);
 
       expect(prismaMock.game.findFirst).toHaveBeenCalledWith({
@@ -92,7 +72,7 @@ describe('GameService', () => {
         include: { song: true },
       });
 
-      expect(songServiceMock.getOrCreate).toHaveBeenCalledWith('spotify:track:123', 'Test Song', 'Test Artist');
+      expect(songServiceMock.getOrCreate).toHaveBeenCalledWith('spotify:track:123');
 
       expect(prismaMock.game.update).toHaveBeenCalledWith({
         where: { id: existingGame.id },
@@ -106,7 +86,7 @@ describe('GameService', () => {
       songServiceMock.getOrCreate.mockResolvedValue(mockSong);
       prismaMock.game.create.mockResolvedValue(mockGame);
 
-      const result = await gameService.createOrUpdate('spotify:track:123', 'Test Song', 'Test Artist', '2025-01-17');
+      const result = await gameService.createOrUpdate('spotify:track:123', '2025-01-17');
       expect(result).toEqual(mockGame);
 
       expect(prismaMock.game.findFirst).toHaveBeenCalledWith({
@@ -114,7 +94,7 @@ describe('GameService', () => {
         include: { song: true },
       });
 
-      expect(songServiceMock.getOrCreate).toHaveBeenCalledWith('spotify:track:123', 'Test Song', 'Test Artist');
+      expect(songServiceMock.getOrCreate).toHaveBeenCalledWith('spotify:track:123');
 
       expect(prismaMock.game.create).toHaveBeenCalledWith({
         data: {
@@ -133,7 +113,7 @@ describe('GameService', () => {
 
       prismaMock.game.findFirst.mockResolvedValue(existingGame);
 
-      const result = await gameService.createOrUpdate('spotify:track:123', 'Test Song', 'Test Artist', '2025-01-17');
+      const result = await gameService.createOrUpdate('spotify:track:123', '2025-01-17');
       expect(result).toEqual(existingGame);
 
       expect(prismaMock.game.findFirst).toHaveBeenCalledWith({

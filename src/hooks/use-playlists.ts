@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query-client';
-import { Playlist, SpotifyTrack } from '@/types/admin';
+import { Playlist } from '@/types/admin';
+import type { Track } from '@spotify/web-api-ts-sdk';
 
 const adminApi = {
   searchPlaylists: async (query: string): Promise<Playlist[]> => {
@@ -9,7 +10,7 @@ const adminApi = {
     return res.json();
   },
 
-  getPlaylistTracks: async (playlistId: string): Promise<SpotifyTrack[]> => {
+  getPlaylistTracks: async (playlistId: string): Promise<Track[]> => {
     const res = await fetch(`/api/admin/spotify/playlists/${playlistId}/tracks`);
     if (!res.ok) throw new Error('Failed to fetch playlist tracks');
     return res.json();

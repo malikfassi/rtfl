@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SongBrowser } from './SongBrowser';
 import { GamePreview } from './GamePreview';
 import type { AdminGame } from '@/types/admin';
-import type { SpotifyTrack } from '@/types/spotify';
+import type { Track } from '@spotify/web-api-ts-sdk';
 import { format } from 'date-fns';
 
 export type EditorMode = 'preview' | 'search';
@@ -18,7 +18,7 @@ interface GameEditorProps {
 export function GameEditor({ selectedDate, game, onGameUpdate, mode, onModeChange }: GameEditorProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleSelectSong = async (track: SpotifyTrack) => {
+  const handleSelectSong = async (track: Track) => {
     setIsUpdating(true);
     try {
       const response = await fetch('/api/admin/games', {
@@ -28,7 +28,7 @@ export function GameEditor({ selectedDate, game, onGameUpdate, mode, onModeChang
         },
         body: JSON.stringify({
           date: format(selectedDate, 'yyyy-MM-dd'),
-          spotifyId: track.spotifyId,
+          spotifyId: track.id,
         }),
       });
 

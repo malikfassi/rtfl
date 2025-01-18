@@ -1,6 +1,6 @@
 import { prisma } from '../db';
-import type { Song, Game } from '@prisma/client';
 import { Prisma } from '@prisma/client';
+import type { Song, Game } from '@prisma/client';
 
 let songIdCounter = 0;
 let dateCounter = 0;
@@ -11,21 +11,39 @@ export const getUniqueDate = () => {
   return formatDate(date);
 };
 
+const toInputJsonValue = <T extends object>(data: T): Prisma.InputJsonValue => {
+  const jsonStr = JSON.stringify(data);
+  const jsonData = JSON.parse(jsonStr);
+  return jsonData;
+};
+
 export const createTestSong = async (
-  overrides?: Partial<Omit<Song, 'maskedLyrics'>> & { maskedLyrics?: Prisma.InputJsonValue }
+  overrides?: Partial<Omit<Song, 'maskedLyrics' | 'spotifyData' | 'geniusData'>> & {
+    maskedLyrics?: Prisma.InputJsonValue;
+    spotifyData?: Prisma.InputJsonValue;
+    geniusData?: Prisma.InputJsonValue;
+  }
 ): Promise<Song> => {
   const uniqueId = `spotify:track:${Buffer.from(`test-song-${songIdCounter++}`).toString('base64').replace(/[+/=]/g, '')}`;
-  const defaultSong = {
+  
+  const songData: Prisma.SongCreateInput = {
     spotifyId: uniqueId,
-    title: 'Test Song',
-    artist: 'Test Artist',
-    previewUrl: 'https://test.com/preview.mp3',
     lyrics: 'Test lyrics\nSecond line\nThird line',
-    maskedLyrics: {
-      title: 'T*** S***',
-      artist: 'T*** A*****',
-      lyrics: 'T*** l*****\nS***** l***\nT**** l***',
-    } satisfies Prisma.InputJsonValue,
+    spotifyData: toInputJsonValue({
+      id: uniqueId,
+      name: 'Test Song',
+      artists: [{ id: 'artist1', name: 'Test Artist' }]
+    }),
+    geniusData: toInputJsonValue({
+      id: 123,
+      title: 'Test Song',
+      artist_names: 'Test Artist'
+    }),
+    maskedLyrics: toInputJsonValue({
+      title: ['T***', 'S***'],
+      artist: ['T***', 'A*****'],
+      lyrics: ['T***', 'l*****']
+    })
   };
 
   try {
@@ -41,7 +59,7 @@ export const createTestSong = async (
     // Create new song if it doesn't exist
     return await prisma.song.create({
       data: {
-        ...defaultSong,
+        ...songData,
         ...overrides,
         spotifyId: overrides?.spotifyId || uniqueId,
       },

@@ -1,24 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/Input';
 import { useDebounce } from '@/hooks/useDebounce';
-import { SpotifyTrack } from '@/lib/clients/spotify';
+import type { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 import { PlaylistSongsList } from './PlaylistSongsList';
 
-interface SpotifyPlaylist {
-  id: string;
-  name: string;
-  image?: string;
-}
-
 interface PlaylistBrowserProps {
-  onPlaylistSelect: (playlist: { tracks: SpotifyTrack[] }) => void;
+  onPlaylistSelect: (playlist: { tracks: Track[] }) => void;
 }
 
 export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
   const [query, setQuery] = useState('');
-  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
-  const [selectedPlaylist, setSelectedPlaylist] = useState<SpotifyPlaylist | null>(null);
-  const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
+  const [playlists, setPlaylists] = useState<SimplifiedPlaylist[]>([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<SimplifiedPlaylist | null>(null);
+  const [tracks, setTracks] = useState<Track[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const debouncedQuery = useDebounce(query, 300);
@@ -51,7 +45,7 @@ export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
     fetchPlaylists();
   }, [debouncedQuery]);
 
-  const handleSelectPlaylist = async (playlist: SpotifyPlaylist) => {
+  const handleSelectPlaylist = async (playlist: SimplifiedPlaylist) => {
     try {
       setSelectedPlaylist(playlist);
       setIsLoading(true);

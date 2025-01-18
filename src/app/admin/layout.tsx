@@ -3,13 +3,10 @@
 import { useState, useCallback } from 'react';
 import { AdminDashboard } from '@/components/admin/game/AdminDashboard';
 import { format } from 'date-fns';
+import type { Track } from '@spotify/web-api-ts-sdk';
 
 interface Playlist {
-  tracks: Array<{
-    spotifyId: string;
-    title: string;
-    artist: string;
-  }>;
+  tracks: Track[];
 }
 
 export default function AdminLayout() {

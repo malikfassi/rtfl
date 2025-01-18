@@ -31,8 +31,6 @@ export class GameService {
 
   async createOrUpdate(
     spotifyId: string,
-    title: string,
-    artist: string,
     date: string
   ): Promise<Game> {
     try {
@@ -44,20 +42,16 @@ export class GameService {
         include: { song: true }
       });
 
+      // If the game exists with the same song, return it immediately
       if (existingGame && existingGame.song.spotifyId === spotifyId) {
-        // If the game exists and has the same song, no need to update
         return existingGame;
       }
 
       // Get or create the song
-      const song = await this.songService.getOrCreate(
-        spotifyId,
-        title,
-        artist
-      );
+      const song = await this.songService.getOrCreate(spotifyId);
 
       if (existingGame) {
-        // Update the existing game with the new song
+        // If the game exists and has a different song, update it
         return await this.prisma.game.update({
           where: { id: existingGame.id },
           data: { songId: song.id },

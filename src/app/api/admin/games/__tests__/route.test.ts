@@ -3,6 +3,7 @@ import { GET, POST } from '../route';
 import { createGameService } from '@/lib/services/game';
 import { createSongService } from '@/lib/services/song';
 import { spotifyClient } from '@/lib/clients/spotify';
+import type { Track } from '@spotify/web-api-ts-sdk';
 
 jest.mock('@/lib/services/game', () => ({
   createGameService: jest.fn()
@@ -144,15 +145,61 @@ describe('POST /api/admin/games', () => {
     createOrUpdate: jest.fn()
   };
 
+  const mockSpotifyTrack: Track = {
+    id: '1234567890abcdef1234',
+    name: 'Test Song',
+    artists: [{ id: 'artist1', name: 'Test Artist', type: 'artist', uri: '', href: '', external_urls: { spotify: '' } }],
+    album: {
+      id: 'album1',
+      name: 'Test Album',
+      images: [{ url: '', height: 300, width: 300 }],
+      type: 'album',
+      uri: '',
+      href: '',
+      external_urls: { spotify: '' },
+      release_date: '',
+      release_date_precision: 'day',
+      total_tracks: 1,
+      artists: [],
+      album_group: 'album',
+      album_type: 'album',
+      available_markets: [],
+      copyrights: [],
+      external_ids: {
+        upc: 'TEST123',
+        isrc: 'TEST123',
+        ean: 'TEST123'
+      },
+      genres: [],
+      label: '',
+      popularity: 0
+    },
+    preview_url: 'https://test.com/preview.mp3',
+    uri: '',
+    external_urls: { spotify: '' },
+    type: 'track',
+    href: '',
+    duration_ms: 0,
+    explicit: false,
+    external_ids: {
+      upc: 'TEST123',
+      isrc: 'TEST123',
+      ean: 'TEST123'
+    },
+    is_local: false,
+    popularity: 0,
+    track_number: 1,
+    disc_number: 1,
+    available_markets: [],
+    episode: false,
+    track: true
+  };
+
   beforeEach(() => {
     jest.resetAllMocks();
     (createGameService as jest.Mock).mockReturnValue(mockGameService);
     (createSongService as jest.Mock).mockReturnValue({});
-    (spotifyClient.getTrack as jest.Mock).mockResolvedValue({
-      spotifyId: '1234567890abcdef1234',
-      title: 'Test Song',
-      artist: 'Test Artist'
-    });
+    (spotifyClient.getTrack as jest.Mock).mockResolvedValue(mockSpotifyTrack);
   });
 
   it('creates a new game with valid data', async () => {
@@ -162,9 +209,7 @@ describe('POST /api/admin/games', () => {
       method: 'POST',
       body: JSON.stringify({
         date: '2024-01-01',
-        spotifyId: '1234567890abcdef1234',
-        title: 'Test Song',
-        artist: 'Test Artist'
+        spotifyId: '1234567890abcdef1234'
       })
     });
     

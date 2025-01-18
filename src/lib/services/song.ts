@@ -1,7 +1,9 @@
 import { prisma } from '@/lib/db';
 import { geniusClient } from '@/lib/clients/genius';
-import { Song } from '@prisma/client';
+import { spotifyClient } from '@/lib/clients/spotify';
+import { Song, Prisma } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
+import type { SpotifyTrack } from '@/types/spotify';
 
 export class SongError extends Error {
   constructor(
@@ -23,6 +25,18 @@ interface ProgressCallback {
       artist: string;
     };
   }): void;
+}
+
+interface GeniusData {
+  id: number;
+  title: string;
+  artist_names: string;
+  url: string;
+}
+
+interface GeniusResult {
+  lyrics: string;
+  data: GeniusData;
 }
 
 export class SongService {
@@ -50,7 +64,7 @@ export class SongService {
     return text.split(/(\n|\s+)/).filter(token => token.length > 0);
   }
 
-  private createMaskedLyrics(title: string, artist: string, lyrics: string) {
+  private createMaskedLyrics(title: string, artist: string, lyrics: string): Prisma.JsonObject {
     return {
       title: this.splitPreservingNewlines(title).map(word => this.maskWord(word)),
       artist: this.splitPreservingNewlines(artist).map(word => this.maskWord(word)),
@@ -60,34 +74,10 @@ export class SongService {
 
   async getOrCreate(
     spotifyId: string,
-    title: string | undefined,
-    artist: string | undefined,
     date?: string,
     onProgress?: ProgressCallback
   ): Promise<Song> {
     try {
-      // Validate inputs
-      if (!spotifyId || !title || !artist) {
-        const error = new SongError(
-          `Invalid input parameters: spotifyId="${spotifyId}", title="${title}", artist="${artist}"`,
-          'INVALID_INPUT'
-        );
-        onProgress?.({
-          type: 'error',
-          message: error.message,
-          date,
-          song: title && artist ? { title, artist } : undefined
-        });
-        throw error;
-      }
-
-      onProgress?.({
-        type: 'progress',
-        message: `Looking for existing song "${title}" by "${artist}"...`,
-        date,
-        song: { title, artist }
-      });
-
       // First try to find existing song
       const existing = await this.prisma.song.findFirst({
         where: { spotifyId }
@@ -96,24 +86,46 @@ export class SongService {
       if (existing) {
         onProgress?.({
           type: 'success',
-          message: `Found existing song "${title}" by "${artist}"`,
-          date,
-          song: { title, artist }
+          message: `Found existing song with ID ${spotifyId}`,
+          date
         });
         return existing;
       }
 
-      // Get lyrics from Genius
+      // Fetch track data from Spotify
+      const rawTrackData = await spotifyClient.getTrack(spotifyId);
+      if (!rawTrackData) {
+        const error = new SongError(
+          `Track not found: ${spotifyId}`,
+          'SPOTIFY_NOT_FOUND'
+        );
+        onProgress?.({
+          type: 'error',
+          message: error.message,
+          date
+        });
+        throw error;
+      }
+
+      const spotifyTrackData = rawTrackData as SpotifyTrack;
+      const title = spotifyTrackData.name;
+      const artist = spotifyTrackData.artists[0].name;
+
       onProgress?.({
         type: 'progress',
-        message: `Fetching lyrics for "${title}" by "${artist}"...`,
+        message: `Looking for lyrics for "${title}" by "${artist}"...`,
         date,
         song: { title, artist }
       });
 
+      // Get lyrics from Genius
       let lyrics: string;
+      let geniusData: GeniusData | null = null;
       try {
-        lyrics = await geniusClient.searchSong(title, artist);
+        const rawGeniusResult = await geniusClient.searchSong(title, artist);
+        const geniusResult = rawGeniusResult as unknown as GeniusResult;
+        lyrics = geniusResult.lyrics;
+        geniusData = geniusResult.data;
       } catch (error) {
         if (error instanceof Error) {
           const errorMessage = error.name === 'GeniusError' ? 
@@ -150,8 +162,8 @@ export class SongService {
       const song = await this.prisma.song.create({
         data: {
           spotifyId,
-          title,
-          artist,
+          spotifyData: JSON.parse(JSON.stringify(spotifyTrackData)) as Prisma.InputJsonValue,
+          geniusData: geniusData ? (JSON.parse(JSON.stringify(geniusData)) as Prisma.InputJsonValue) : Prisma.JsonNull,
           lyrics,
           maskedLyrics: this.createMaskedLyrics(title, artist, lyrics)
         }
@@ -167,14 +179,13 @@ export class SongService {
       return song;
     } catch (error) {
       const errorMessage = error instanceof Error ? 
-        `Failed to create/get song "${title}" by "${artist}": ${error.message}` :
-        `Failed to create/get song "${title}" by "${artist}": Unknown error`;
+        `Failed to create/get song: ${error.message}` :
+        'Failed to create/get song: Unknown error';
 
       onProgress?.({
         type: 'error',
         message: errorMessage,
-        date,
-        song: title && artist ? { title, artist } : undefined
+        date
       });
 
       if (error instanceof SongError) {

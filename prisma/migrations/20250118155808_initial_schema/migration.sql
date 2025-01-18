@@ -2,9 +2,8 @@
 CREATE TABLE "Song" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "spotifyId" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "artist" TEXT NOT NULL,
-    "previewUrl" TEXT,
+    "spotifyData" JSONB NOT NULL,
+    "geniusData" JSONB,
     "lyrics" TEXT NOT NULL,
     "maskedLyrics" JSONB NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -21,6 +20,16 @@ CREATE TABLE "Game" (
     CONSTRAINT "Game_songId_fkey" FOREIGN KEY ("songId") REFERENCES "Song" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
+-- CreateTable
+CREATE TABLE "Guess" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "gameId" TEXT NOT NULL,
+    "playerId" TEXT NOT NULL,
+    "word" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Guess_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "Game" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Song_spotifyId_key" ON "Song"("spotifyId");
 
@@ -35,3 +44,12 @@ CREATE INDEX "Game_date_idx" ON "Game"("date");
 
 -- CreateIndex
 CREATE INDEX "Game_songId_idx" ON "Game"("songId");
+
+-- CreateIndex
+CREATE INDEX "Guess_gameId_idx" ON "Guess"("gameId");
+
+-- CreateIndex
+CREATE INDEX "Guess_playerId_idx" ON "Guess"("playerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Guess_gameId_playerId_word_key" ON "Guess"("gameId", "playerId", "word");

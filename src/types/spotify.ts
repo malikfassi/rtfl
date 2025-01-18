@@ -1,13 +1,4 @@
-export interface SpotifyTrack {
-  spotifyId: string;
-  title: string;
-  artist: string;
-  imageUrl?: string;
-}
+import type { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 
-export interface SpotifyPlaylist {
-  id: string;
-  name: string;
-  imageUrl?: string;
-  trackCount: number;
-} 
+export type SpotifyTrack = Track;
+export type SpotifyPlaylist = SimplifiedPlaylist; 

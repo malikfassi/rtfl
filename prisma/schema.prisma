@@ -16,11 +16,10 @@ datasource db {
 model Song {
   id           String   @id @default(cuid())
   spotifyId    String   @unique
-  title        String
-  artist       String
-  previewUrl   String?
+  spotifyData  Json     // Raw Spotify track object from Spotify API
+  geniusData   Json?    // Raw song data from Genius API
   lyrics       String
-  maskedLyrics Json
+  maskedLyrics Json     // Array of masked words for title, artist, and lyrics
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   games        Game[]
@@ -33,9 +32,23 @@ model Game {
   date      String   @unique
   songId    String
   song      Song     @relation(fields: [songId], references: [id])
+  guesses   Guess[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([date])
   @@index([songId])
+}
+
+model Guess {
+  id        String   @id @default(cuid())
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id])
+  playerId  String   // We'll add proper Player relation later if needed
+  word      String
+  createdAt DateTime @default(now())
+
+  @@unique([gameId, playerId, word])
+  @@index([gameId])
+  @@index([playerId])
 }

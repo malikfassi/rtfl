@@ -3,6 +3,10 @@ import { format, parseISO } from 'date-fns';
 import type { AdminGame } from '@/types/admin';
 import { useCallback } from 'react';
 
+function getTrackTitle(track: { name: string } | undefined) {
+  return track?.name || '';
+}
+
 export function useGames(currentMonth: Date) {
   const queryClient = useQueryClient();
   const month = format(currentMonth, 'yyyy-MM');
@@ -29,7 +33,7 @@ export function useGames(currentMonth: Date) {
       console.log('Month games data (first 4):', normalizedData.slice(0, 4).map((g: AdminGame) => ({
         date: g.date,
         spotifyId: g.song.spotifyId,
-        title: g.song.title
+        title: getTrackTitle(g.song.spotifyData)
       })));
       
       if (normalizedData.length > 4) {

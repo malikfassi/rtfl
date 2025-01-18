@@ -1,9 +1,11 @@
+import type { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
+
 export type GameStatus = 'to-create' | 'to-edit' | 'loading' | 'success' | 'error';
 
 export interface GameStatusInfo {
   status: GameStatus;
-  currentSong?: SpotifyTrack;
-  newSong?: SpotifyTrack;
+  currentSong?: Track;
+  newSong?: Track;
   error?: string;
 }
 
@@ -12,9 +14,8 @@ export interface AdminGame {
   date: string;
   song: {
     id: string;
-    title: string;
-    artist: string;
     spotifyId: string;
+    spotifyData: Track;
     lyrics: string;
     maskedLyrics: {
       title: string[];
@@ -25,19 +26,7 @@ export interface AdminGame {
   status?: GameStatusInfo;
 }
 
-export interface Playlist {
-  id: string;
-  name: string;
-  description?: string;
-  trackCount: number;
-}
-
-export interface SpotifyTrack {
-  spotifyId: string;
-  title: string;
-  artist: string;
-  imageUrl?: string;
-}
+export interface Playlist extends SimplifiedPlaylist {}
 
 export interface GameMutations {
   createOrUpdateGame: (date: string, spotifyId: string) => Promise<AdminGame>;
@@ -53,5 +42,5 @@ export interface AdminApiClient {
   
   // Playlist Management
   listPlaylists(): Promise<Playlist[]>;
-  getPlaylistTracks(playlistId: string): Promise<SpotifyTrack[]>;
+  getPlaylistTracks(playlistId: string): Promise<Track[]>;
 } 

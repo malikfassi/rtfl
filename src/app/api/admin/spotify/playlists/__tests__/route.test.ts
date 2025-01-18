@@ -1,6 +1,7 @@
 import { spotifyClient } from '@/lib/clients/spotify';
 import { GET } from '../route';
 import { NextRequest } from 'next/server';
+import type { SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 
 jest.mock('@/lib/clients/spotify', () => ({
   spotifyClient: {
@@ -9,18 +10,54 @@ jest.mock('@/lib/clients/spotify', () => ({
 }));
 
 describe('GET /api/admin/spotify/playlists', () => {
-  const mockPlaylists = [
+  const mockPlaylists: SimplifiedPlaylist[] = [
     {
       id: '1',
       name: 'Playlist 1',
       description: 'Description 1',
-      trackCount: 10
+      tracks: { total: 10, href: '' },
+      collaborative: false,
+      external_urls: { spotify: '' },
+      followers: { total: 0, href: null },
+      href: '',
+      images: [],
+      owner: {
+        display_name: 'Test User',
+        external_urls: { spotify: '' },
+        href: '',
+        id: '',
+        type: 'user',
+        uri: ''
+      },
+      public: true,
+      snapshot_id: '',
+      type: 'playlist',
+      uri: '',
+      primary_color: ''
     },
     {
       id: '2',
       name: 'Playlist 2',
       description: 'Description 2',
-      trackCount: 20
+      tracks: { total: 20, href: '' },
+      collaborative: false,
+      external_urls: { spotify: '' },
+      followers: { total: 0, href: null },
+      href: '',
+      images: [],
+      owner: {
+        display_name: 'Test User',
+        external_urls: { spotify: '' },
+        href: '',
+        id: '',
+        type: 'user',
+        uri: ''
+      },
+      public: true,
+      snapshot_id: '',
+      type: 'playlist',
+      uri: '',
+      primary_color: ''
     }
   ];
 

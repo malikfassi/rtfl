@@ -1,100 +1,48 @@
-import SpotifyWebApi from 'spotify-web-api-node';
-
-export interface SpotifyTrack {
-  spotifyId: string;
-  title: string;
-  artist: string;
-  imageUrl?: string;
-  lyrics?: string;
-  maskedLyrics?: string;
-}
-
-export interface SpotifyPlaylist {
-  id: string;
-  name: string;
-  imageUrl?: string;
-  trackCount: number;
-}
+import { SpotifyApi } from '@spotify/web-api-ts-sdk';
+import type { Track, SimplifiedPlaylist, TrackReference } from '@spotify/web-api-ts-sdk';
 
 export class SpotifyClient {
-  private client: SpotifyWebApi;
+  private client: SpotifyApi;
 
   constructor() {
-    this.client = new SpotifyWebApi({
-      clientId: process.env.SPOTIFY_CLIENT_ID,
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    });
+    this.client = SpotifyApi.withClientCredentials(
+      process.env.SPOTIFY_CLIENT_ID || '',
+      process.env.SPOTIFY_CLIENT_SECRET || ''
+    );
   }
 
-  async searchPlaylists(query: string): Promise<SpotifyPlaylist[]> {
-    await this.refreshAccessToken();
-    const response = await this.client.searchPlaylists(query, { limit: 50 });
-    
-    return response.body.playlists?.items
-      .filter((playlist): playlist is NonNullable<typeof playlist> => 
-        playlist !== null && 
-        typeof playlist === 'object' && 
-        'id' in playlist
-      )
-      .map(playlist => ({
-        id: playlist.id,
-        name: playlist.name,
-        imageUrl: playlist.images?.[0]?.url,
-        trackCount: playlist.tracks.total
-      })) || [];
+  async searchPlaylists(query: string): Promise<SimplifiedPlaylist[]> {
+    const response = await this.client.search(query, ['playlist'], undefined, 50);
+    return response.playlists.items.map(playlist => ({
+      ...playlist,
+      tracks: {
+        href: '',
+        total: 0
+      } as TrackReference
+    })) as SimplifiedPlaylist[];
   }
 
-  async getPlaylistTracks(playlistId: string): Promise<SpotifyTrack[]> {
-    await this.refreshAccessToken();
-    const response = await this.client.getPlaylistTracks(playlistId);
-    
-    return response.body.items
+  async getPlaylistTracks(playlistId: string): Promise<Track[]> {
+    const response = await this.client.playlists.getPlaylistItems(playlistId);
+    return response.items
       .map(item => item.track)
-      .filter((track): track is NonNullable<typeof track> => 
-        track !== null && 'id' in track
-      )
-      .map(track => ({
-        spotifyId: track.id,
-        title: track.name,
-        artist: track.artists.map(artist => artist.name).join(', '),
-        imageUrl: track.album.images?.[0]?.url
-      }));
+      .filter((track): track is Track => 
+        track !== null && 'id' in track && track.type === 'track'
+      );
   }
 
-  async getTrack(trackId: string): Promise<SpotifyTrack | null> {
-    await this.refreshAccessToken();
-    const response = await this.client.getTrack(trackId);
-    
-    if (!response.body) return null;
-    
-    const track = response.body;
-    return {
-      spotifyId: track.id,
-      title: track.name,
-      artist: track.artists.map(artist => artist.name).join(', '),
-      imageUrl: track.album.images?.[0]?.url
-    };
+  async getTrack(trackId: string): Promise<Track | null> {
+    try {
+      return await this.client.tracks.get(trackId);
+    } catch (error) {
+      console.error('Failed to get track:', error);
+      return null;
+    }
   }
 
-  async searchTracks(query: string): Promise<SpotifyTrack[]> {
-    await this.refreshAccessToken();
-    const response = await this.client.searchTracks(query, { limit: 50 });
-    
-    return response.body.tracks?.items
-      .filter((track): track is NonNullable<typeof track> => 
-        track !== null && 'id' in track
-      )
-      .map(track => ({
-        spotifyId: track.id,
-        title: track.name,
-        artist: track.artists.map(artist => artist.name).join(', '),
-        imageUrl: track.album.images?.[0]?.url
-      })) || [];
-  }
-
-  private async refreshAccessToken() {
-    const response = await this.client.clientCredentialsGrant();
-    this.client.setAccessToken(response.body.access_token);
+  async searchTracks(query: string): Promise<Track[]> {
+    const response = await this.client.search(query, ['track'], undefined, 50);
+    return response.tracks.items;
   }
 }
 

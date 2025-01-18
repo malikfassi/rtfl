@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
-import { SpotifyTrack } from '@/types/spotify';
+import type { Track } from '@spotify/web-api-ts-sdk';
 import { GameStatus, GameStatusInfo } from '@/types/admin';
 import { Button } from '@/components/ui/Button';
 import { PlaylistBrowser } from './PlaylistBrowser';
@@ -10,12 +10,16 @@ interface BatchGameEditorProps {
   selectedDates: Date[];
   games: Array<{
     date: string;
-    song: SpotifyTrack;
+    song: {
+      id: string;
+      title: string;
+      artist: string;
+    };
   }>;
   pendingChanges: Record<string, GameStatusInfo>;
   onPendingChanges: (changes: Record<string, GameStatusInfo> | ((prev: Record<string, GameStatusInfo>) => Record<string, GameStatusInfo>)) => void;
   onComplete: () => void;
-  onPlaylistChange?: (playlist: { tracks: Array<{ spotifyId: string; title: string; artist: string; }> }) => void;
+  onPlaylistChange?: (playlist: { tracks: Track[] }) => void;
   onReshuffle?: () => void;
 }
 
@@ -30,7 +34,7 @@ export function BatchGameEditor({
   const [isUpdating, setIsUpdating] = useState(false);
   const { createOrUpdateGame } = useGameMutations();
 
-  const handlePlaylistSelect = useCallback((playlist: { tracks: SpotifyTrack[] }) => {
+  const handlePlaylistSelect = useCallback((playlist: { tracks: Track[] }) => {
     console.log('BatchGameEditor: Selected playlist with tracks:', playlist.tracks.length);
     onPlaylistChange?.(playlist);
   }, [onPlaylistChange]);
@@ -62,7 +66,7 @@ export function BatchGameEditor({
           // Process update
           await createOrUpdateGame({
             date: dateStr,
-            spotifyId: status.newSong.spotifyId
+            spotifyId: status.newSong.id
           });
 
           // Set success state for this date
