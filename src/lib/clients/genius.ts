@@ -1,3 +1,5 @@
+import { decode } from 'html-entities';
+
 interface GeniusSearchResponse {
   response: {
     hits: Array<{
@@ -85,7 +87,7 @@ export class GeniusClient {
         const extracted = pattern.extract(matches);
         if (extracted) {
           // Clean up the lyrics text
-          const lyrics = extracted
+          const lyrics = decode(extracted)
             .replace(/<br\s*\/?>/gi, '\n') // Convert <br> to newlines
             .replace(/<[^>]+>/g, '')  // Remove remaining HTML tags
             .replace(/\[.+?\]/g, '')   // Remove section headers

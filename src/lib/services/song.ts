@@ -2,8 +2,7 @@ import { prisma } from '@/lib/db';
 import { GeniusError } from '@/lib/clients/genius';
 import { getGeniusClient } from '@/lib/clients/genius';
 import { getSpotifyClient } from '@/lib/clients/spotify';
-import { Song, Prisma } from '@prisma/client';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma, Song } from '@prisma/client';
 
 export class SongError extends Error {
   constructor(
@@ -29,22 +28,24 @@ export class SongService {
     );
   }
 
-  private extractWords(lyrics: string): string[] {
-    return lyrics
-      .toLowerCase()
-      .replace(/[^\w\s]/g, '')
-      .split(/\s+/)
-      .filter(word => word.length > 0);
-  }
-
   private maskWord(word: string): string {
-    // Simply replace all alphanumeric characters with underscores
-    return word.replace(/[a-zA-Z0-9]/g, '_');
+    // Extract trailing punctuation
+    const match = word.match(/^(.*?)([.,!?]*)$/);
+    if (!match) return word;
+
+    const [, mainPart, punctuation] = match;
+    // Mask the main part of the word, preserving apostrophes
+    const maskedMain = mainPart.replace(/[\p{L}\p{N}]/gu, '_');
+    // Add back any trailing punctuation
+    return maskedMain + punctuation;
   }
 
   private splitPreservingNewlines(text: string): string[] {
-    // Split by whitespace and newlines, keeping all other characters
-    return text.split(/(\n|\s+)/).filter(token => token.length > 0);
+    // Split on word boundaries and punctuation, preserving newlines
+    return text.split(/(\n|[.,!?]|\s+)/)
+      .filter(token => token.length > 0)
+      .map(token => token.trim())
+      .filter(token => token.length > 0);
   }
 
   private createMaskedLyrics(title: string, artist: string, lyrics: string): Prisma.JsonObject {
@@ -100,8 +101,6 @@ export class SongService {
         throw new SongError(errorMessage, 'GENIUS_NOT_FOUND');
       }
 
-      const lyricsStr: string = lyrics;
-
       // Create song with lyrics
       const prisma = tx || this.prisma;
       return await prisma.song.create({
@@ -109,8 +108,8 @@ export class SongService {
           spotifyId,
           spotifyData: JSON.parse(JSON.stringify(track)) as Prisma.InputJsonValue,
           geniusData: JSON.parse(JSON.stringify({})) as Prisma.InputJsonValue,
-          lyrics: lyricsStr,
-          maskedLyrics: this.createMaskedLyrics(title, artist, lyricsStr)
+          lyrics,
+          maskedLyrics: this.createMaskedLyrics(title, artist, lyrics)
         }
       });
     } catch (error) {
