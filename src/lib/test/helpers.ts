@@ -48,7 +48,7 @@ export const createTestSong = async (
 
   try {
     // Try to find existing song with the same spotifyId
-    const existingSong = await prisma.song.findUnique({
+    const existingSong = await prisma.song.findFirst({
       where: { spotifyId: overrides?.spotifyId || uniqueId },
     });
 

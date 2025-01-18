@@ -4,11 +4,15 @@ import type { Track, SimplifiedPlaylist, TrackReference } from '@spotify/web-api
 export class SpotifyClient {
   private client: SpotifyApi;
 
-  constructor() {
-    this.client = SpotifyApi.withClientCredentials(
-      process.env.SPOTIFY_CLIENT_ID || '',
-      process.env.SPOTIFY_CLIENT_SECRET || ''
-    );
+  constructor(clientId?: string, clientSecret?: string) {
+    const id = clientId || process.env.SPOTIFY_CLIENT_ID;
+    const secret = clientSecret || process.env.SPOTIFY_CLIENT_SECRET;
+
+    if (!id || !secret) {
+      throw new Error('Spotify credentials not configured');
+    }
+
+    this.client = SpotifyApi.withClientCredentials(id, secret);
   }
 
   async searchPlaylists(query: string): Promise<SimplifiedPlaylist[]> {
@@ -33,7 +37,8 @@ export class SpotifyClient {
 
   async getTrack(trackId: string): Promise<Track | null> {
     try {
-      return await this.client.tracks.get(trackId);
+      const id = trackId.replace(/^spotify:track:/, '');
+      return await this.client.tracks.get(id);
     } catch (error) {
       console.error('Failed to get track:', error);
       return null;
@@ -41,15 +46,32 @@ export class SpotifyClient {
   }
 
   async searchTracks(query: string): Promise<Track[]> {
-    const response = await this.client.search(query, ['track'], undefined, 50);
-    return response.tracks.items;
+    try {
+      const response = await this.client.search(query, ['track'], undefined, 50);
+      // Filter tracks to only include exact matches
+      return response.tracks.items.filter(track => {
+        const searchTerms = query.toLowerCase().split(' ');
+        const trackName = track.name.toLowerCase();
+        const artistNames = track.artists.map(artist => artist.name.toLowerCase());
+        
+        // Check if all search terms appear in either the track name or artist names
+        return searchTerms.every(term => 
+          trackName.includes(term) || artistNames.some(name => name.includes(term))
+        );
+      });
+    } catch (error) {
+      console.error('Failed to search tracks:', error);
+      return [];
+    }
   }
 }
 
-// Export a singleton instance
-export const spotifyClient = new SpotifyClient();
+// Export a factory function instead of a singleton
+let spotifyClientInstance: SpotifyClient | null = null;
 
-// Keep the factory function for testing/mocking
-export function createSpotifyClient() {
-  return new SpotifyClient();
+export function getSpotifyClient(clientId?: string, clientSecret?: string): SpotifyClient {
+  if (!spotifyClientInstance) {
+    spotifyClientInstance = new SpotifyClient(clientId, clientSecret);
+  }
+  return spotifyClientInstance;
 } 

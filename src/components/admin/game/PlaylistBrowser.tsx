@@ -9,7 +9,7 @@ interface PlaylistBrowserProps {
 }
 
 function LoadingState() {
-  return <div key="loading">Loading...</div>;
+  return <div>Loading...</div>;
 }
 
 function SelectedPlaylistView({ playlist, tracks, isLoading }: { 
@@ -18,7 +18,7 @@ function SelectedPlaylistView({ playlist, tracks, isLoading }: {
   isLoading: boolean; 
 }) {
   return (
-    <div key="selected">
+    <div>
       <h3 className="text-sm font-medium">{playlist.name}</h3>
       <PlaylistSongsList
         tracks={tracks}
@@ -32,18 +32,26 @@ function PlaylistList({ playlists, onSelect }: {
   playlists: SimplifiedPlaylist[]; 
   onSelect: (playlist: SimplifiedPlaylist) => void; 
 }) {
+  // Filter out any invalid playlists
+  const validPlaylists = playlists.filter(playlist => playlist && playlist.id && playlist.name);
+
+  if (!validPlaylists.length) {
+    return <div className="text-sm text-muted">No playlists found</div>;
+  }
+
   return (
-    <div key="playlist-list" className="space-y-2">
-      {playlists.map(playlist => (
-        <button
-          key={playlist.id}
-          onClick={() => onSelect(playlist)}
-          className="w-full p-2 text-left hover:bg-accent rounded-md transition-colors"
-        >
-          {playlist.name}
-        </button>
+    <ul className="space-y-2">
+      {validPlaylists.map((playlist, index) => (
+        <li key={`${playlist.id}-${index}`}>
+          <button
+            onClick={() => onSelect(playlist)}
+            className="w-full p-2 text-left hover:bg-accent rounded-md transition-colors"
+          >
+            {playlist.name}
+          </button>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
@@ -106,6 +114,27 @@ export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
     }
   };
 
+  const renderContent = () => {
+    if (isLoading) {
+      return <LoadingState />;
+    }
+    if (selectedPlaylist) {
+      return (
+        <SelectedPlaylistView 
+          playlist={selectedPlaylist} 
+          tracks={tracks} 
+          isLoading={isLoading} 
+        />
+      );
+    }
+    return (
+      <PlaylistList 
+        playlists={playlists} 
+        onSelect={handleSelectPlaylist} 
+      />
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -122,25 +151,7 @@ export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
         />
         {error && <div className="text-sm text-destructive">{error}</div>}
       </div>
-
-      {(() => {
-        if (isLoading) return <LoadingState />;
-        if (selectedPlaylist) {
-          return (
-            <SelectedPlaylistView 
-              playlist={selectedPlaylist} 
-              tracks={tracks} 
-              isLoading={isLoading} 
-            />
-          );
-        }
-        return (
-          <PlaylistList 
-            playlists={playlists} 
-            onSelect={handleSelectPlaylist} 
-          />
-        );
-      })()}
+      {renderContent()}
     </div>
   );
 } 

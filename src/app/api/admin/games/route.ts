@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createGameService } from '@/lib/services/game';
 import { createSongService } from '@/lib/services/song';
-import { spotifyClient } from '@/lib/clients/spotify';
+import { getSpotifyClient } from '@/lib/clients/spotify';
 import { z } from 'zod';
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'INVALID_FORMAT: Invalid date format');
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
       const { date, spotifyId } = createGameSchema.parse(body);
 
       // Get track details from Spotify
-      const track = await spotifyClient.getTrack(spotifyId);
+      const track = await getSpotifyClient().getTrack(spotifyId);
       if (!track) {
         return Response.json(
           { error: 'NOT_FOUND', message: 'Track not found on Spotify' },

@@ -36,30 +36,38 @@ export class GameService {
     try {
       this.validateDateFormat(date);
 
-      // Create a new song
-      const song = await this.songService.create(spotifyId);
+      // Wrap game operations in a transaction
+      return await this.prisma.$transaction(async (tx) => {
+        // Check if game exists for this date
+        const existingGame = await tx.game.findFirst({
+          where: { date },
+          include: { 
+            song: true 
+          }
+        });
 
-      // Check if game exists for this date
-      const existingGame = await this.prisma.game.findFirst({
-        where: { date }
-      });
+        // Create a new song
+        const song = await this.songService.create(spotifyId, tx);
 
-      if (existingGame) {
-        // Update existing game with new song
-        return await this.prisma.game.update({
-          where: { id: existingGame.id },
-          data: { songId: song.id },
+        // If game exists, update it with new song
+        if (existingGame) {
+          return await tx.game.update({
+            where: { id: existingGame.id },
+            data: { songId: song.id },
+            include: { song: true }
+          });
+        }
+
+        // Create a new game
+        return await tx.game.create({
+          data: {
+            date,
+            songId: song.id
+          },
           include: { song: true }
         });
-      }
-
-      // Create a new game
-      return await this.prisma.game.create({
-        data: {
-          date,
-          songId: song.id
-        },
-        include: { song: true }
+      }, {
+        timeout: 30000 // 30 second timeout for external API calls
       });
     } catch (error) {
       console.error('Failed to create/update game:', error);

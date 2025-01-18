@@ -13,7 +13,7 @@ interface GeniusSearchResponse {
   };
 }
 
-class GeniusError extends Error {
+export class GeniusError extends Error {
   constructor(
     message: string,
     public code: 'GENIUS_NOT_FOUND' | 'GENIUS_PARSE_ERROR' | 'GENIUS_API_ERROR'
@@ -26,8 +26,8 @@ class GeniusError extends Error {
 export class GeniusClient {
   private accessToken: string;
 
-  constructor() {
-    this.accessToken = process.env.GENIUS_ACCESS_TOKEN!;
+  constructor(accessToken?: string) {
+    this.accessToken = accessToken || process.env.GENIUS_ACCESS_TOKEN || '';
 
     if (!this.accessToken) {
       throw new Error('Genius access token not configured');
@@ -54,49 +54,46 @@ export class GeniusClient {
     return response.json();
   }
 
-  private extractLyricsFromHTML(html: string): string | null {
+  private async extractLyricsFromHTML(html: string): Promise<string | null> {
     // Try different selectors and patterns to find lyrics
     const patterns = [
-      // Method 1: New DOM structure with preloaded state
+      // Method 1: Modern lyrics container with data attribute (most reliable)
       {
-        regex: /window\.__PRELOADED_STATE__ = JSON\.parse\('(.+?)'\)/,
-        extract: (match: string) => {
-          try {
-            const state = JSON.parse(match.replace(/\\(.)/g, '$1'));
-            if (state?.songPage?.lyricsData?.body?.html) {
-              return state.songPage.lyricsData.body.html;
-            }
-          } catch (e) {
-            console.warn('Failed to parse state JSON:', e);
-          }
-          return null;
+        regex: /<div[^>]+?data-lyrics-container[^>]*?>([\s\S]*?)<\/div>/gi,
+        extract: (matches: RegExpMatchArray | null) => {
+          if (!matches) return null;
+          return Array.from(matches)
+            .map(match => match.replace(/<div[^>]+?data-lyrics-container[^>]*?>/i, '')
+                              .replace(/<\/div>/i, '')
+                              .trim())
+            .join('\n\n');
         }
       },
-      // Method 2: Direct lyrics div
+      // Method 2: Legacy lyrics div
       {
-        regex: /<div[^>]+class="[^"]*lyrics[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
-        extract: (match: string) => match
-      },
-      // Method 3: Lyrics container
-      {
-        regex: /<div[^>]+class="[^"]*Lyrics__Container[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
-        extract: (match: string) => match
+        regex: /<div[^>]+?class="lyrics"[^>]*?>([\s\S]*?)<\/div>/i,
+        extract: (match: RegExpMatchArray | null) => {
+          if (!match || !match[1]) return null;
+          return match[1];
+        }
       }
     ];
 
     for (const pattern of patterns) {
-      const match = html.match(pattern.regex);
-      if (match && match[1]) {
-        const extracted = pattern.extract(match[1]);
+      const matches = html.match(pattern.regex);
+      if (matches) {
+        const extracted = pattern.extract(matches);
         if (extracted) {
+          // Clean up the lyrics text
           const lyrics = extracted
-            .replace(/<[^>]+>/g, '') // Remove HTML tags
-            .replace(/\[.+?\]/g, '')  // Remove section headers
-            .replace(/\d+ Contributors?/g, '') // Remove contributor count
-            .replace(/Translations/g, '') // Remove translations text
-            .replace(/Lyrics/g, '') // Remove "Lyrics" text
-            .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
-            .replace(/^\s+|\s+$/gm, '') // Trim each line
+            .replace(/<br\s*\/?>/gi, '\n') // Convert <br> to newlines
+            .replace(/<[^>]+>/g, '')  // Remove remaining HTML tags
+            .replace(/\[.+?\]/g, '')   // Remove section headers
+            .replace(/\{.+?\}/g, '')   // Remove annotations
+            .replace(/\(\d+x\)/g, '')  // Remove repeat indicators
+            .replace(/\s*\n\s*/g, '\n')  // Normalize whitespace around newlines
+            .replace(/\n{3,}/g, '\n\n')  // Normalize multiple newlines
+            .replace(/^\s+|\s+$/g, '')   // Trim start/end whitespace
             .trim();
 
           if (lyrics.length > 0) {
@@ -109,78 +106,67 @@ export class GeniusClient {
     return null;
   }
 
-  async searchSong(title?: string, artist?: string): Promise<string> {
-    // Validate inputs
-    if (!title || !artist) {
-      throw new GeniusError(
-        `Invalid search parameters: title="${title}", artist="${artist}"`,
-        'GENIUS_API_ERROR'
-      );
-    }
-
+  async searchSong(query: string): Promise<string | null> {
     try {
-      // Try different search variations
-      const searchQueries = [
-        `${title} ${artist}`,
-        title,
-        `${title} ${artist}`,
-        `${title} ${artist}`
-      ];
+      // Search for the song
+      const response = await this.request<GeniusSearchResponse>('/search', { q: query });
+      const hits = response.response.hits;
 
-      for (const query of searchQueries) {
-        console.log('Trying search query:', query);
-        const response = await this.request<GeniusSearchResponse>('/search', {
-          q: query
-        });
+      console.log(`Search query "${query}" returned ${hits.length} hits`);
 
-        const hits = response.response.hits;
-        if (hits.length === 0) continue;
-
-        // Find best match
-        const hit = hits.find(h => {
-          const resultTitle = h.result.title.toLowerCase();
-          const resultArtist = h.result.primary_artist.name.toLowerCase();
-          const searchTitle = title.toLowerCase();
-          const searchArtist = artist.toLowerCase();
-
-          return (
-            resultTitle.includes(searchTitle) ||
-            searchTitle.includes(resultTitle) ||
-            resultArtist.includes(searchArtist) ||
-            searchArtist.includes(resultArtist)
-          );
-        });
-
-        if (hit) {
-          console.log('Found match:', `"${hit.result.title}" by "${hit.result.primary_artist.name}"`);
-          
-          // Fetch the song page
-          const response = await fetch(hit.result.url);
-          const html = await response.text();
-
-          const lyrics = this.extractLyricsFromHTML(html);
-          if (lyrics) {
-            return lyrics;
-          }
-        }
+      if (hits.length === 0) {
+        console.log('No hits found, returning null');
+        return null;
       }
 
-      throw new GeniusError(
-        `No lyrics found for "${title}" by "${artist}"`,
-        'GENIUS_NOT_FOUND'
-      );
+      // Get the first result that matches the query terms
+      const queryTerms = query.toLowerCase().split(' ');
+      const hit = hits.find(hit => {
+        const title = hit.result.title.toLowerCase();
+        const artist = hit.result.primary_artist.name.toLowerCase();
+        // Check if all query terms appear in either the title or artist name
+        return queryTerms.every(term => title.includes(term) || artist.includes(term));
+      });
+
+      if (!hit) {
+        console.log('No matching hits found, returning null');
+        return null;
+      }
+
+      console.log('Found match:', `"${hit.result.title}" by "${hit.result.primary_artist.name}"`);
+      
+      // Fetch the song page
+      const pageResponse = await fetch(hit.result.url);
+      if (!pageResponse.ok) {
+        console.error(`Failed to fetch lyrics page: ${pageResponse.statusText}`);
+        return null;
+      }
+
+      const html = await pageResponse.text();
+      const lyrics = await this.extractLyricsFromHTML(html);
+
+      if (!lyrics) {
+        console.log('No lyrics found in HTML, returning null');
+        return null;
+      }
+
+      return lyrics;
     } catch (error) {
-      if (error instanceof GeniusError) {
-        throw error;
-      }
       console.error('Error searching for lyrics:', error);
-      throw new GeniusError(
-        `Failed to search lyrics for "${title}" by "${artist}"`,
-        'GENIUS_API_ERROR'
-      );
+      return null;
     }
   }
 }
 
-// Export singleton instance
-export const geniusClient = new GeniusClient(); 
+// Export a factory function instead of a singleton
+let geniusClientInstance: GeniusClient | null = null;
+
+export function getGeniusClient(accessToken?: string): GeniusClient {
+  if (!geniusClientInstance) {
+    geniusClientInstance = new GeniusClient(accessToken);
+  }
+  return geniusClientInstance;
+}
+
+// Remove the automatic singleton creation
+// export const geniusClient = new GeniusClient(); 

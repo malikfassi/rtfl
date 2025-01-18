@@ -1,12 +1,16 @@
 import { NextRequest } from 'next/server';
 import { GET } from '../route';
-import { spotifyClient } from '@/lib/clients/spotify';
 import type { Track } from '@spotify/web-api-ts-sdk';
 
+// Create a mock instance
+const mockSpotifyClient = {
+  getPlaylistTracks: jest.fn()
+};
+
+// Mock the spotify module
 jest.mock('@/lib/clients/spotify', () => ({
-  spotifyClient: {
-    getPlaylistTracks: jest.fn()
-  }
+  __esModule: true,
+  getSpotifyClient: () => mockSpotifyClient
 }));
 
 describe('GET /api/admin/spotify/playlists/[id]/tracks', () => {
@@ -112,7 +116,7 @@ describe('GET /api/admin/spotify/playlists/[id]/tracks', () => {
       }
     ];
 
-    (spotifyClient.getPlaylistTracks as jest.Mock).mockResolvedValue(mockTracks);
+    mockSpotifyClient.getPlaylistTracks.mockResolvedValue(mockTracks);
 
     const request = new NextRequest(new URL('http://localhost:3000'));
     const context = { params: { id: 'playlist123' } };
@@ -121,11 +125,11 @@ describe('GET /api/admin/spotify/playlists/[id]/tracks', () => {
 
     expect(response.status).toBe(200);
     expect(data).toEqual(mockTracks);
-    expect(spotifyClient.getPlaylistTracks).toHaveBeenCalledWith('playlist123');
+    expect(mockSpotifyClient.getPlaylistTracks).toHaveBeenCalledWith('playlist123');
   });
 
   it('should handle errors', async () => {
-    (spotifyClient.getPlaylistTracks as jest.Mock).mockRejectedValue(new Error('Failed to fetch tracks'));
+    mockSpotifyClient.getPlaylistTracks.mockRejectedValue(new Error('Failed to fetch tracks'));
 
     const request = new NextRequest(new URL('http://localhost:3000'));
     const context = { params: { id: 'playlist123' } };

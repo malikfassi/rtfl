@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { GET, POST } from '../route';
 import { createGameService } from '@/lib/services/game';
 import { createSongService } from '@/lib/services/song';
-import { spotifyClient } from '@/lib/clients/spotify';
+import { getSpotifyClient } from '@/lib/clients/spotify';
 import type { Track } from '@spotify/web-api-ts-sdk';
 
 jest.mock('@/lib/services/game', () => ({
@@ -14,9 +14,9 @@ jest.mock('@/lib/services/song', () => ({
 }));
 
 jest.mock('@/lib/clients/spotify', () => ({
-  spotifyClient: {
+  getSpotifyClient: jest.fn().mockReturnValue({
     getTrack: jest.fn()
-  }
+  })
 }));
 
 describe('GET /api/admin/games', () => {
@@ -199,7 +199,10 @@ describe('POST /api/admin/games', () => {
     jest.resetAllMocks();
     (createGameService as jest.Mock).mockReturnValue(mockGameService);
     (createSongService as jest.Mock).mockReturnValue({});
-    (spotifyClient.getTrack as jest.Mock).mockResolvedValue(mockSpotifyTrack);
+    const mockSpotifyClient = {
+      getTrack: jest.fn().mockResolvedValue(mockSpotifyTrack)
+    };
+    (getSpotifyClient as jest.Mock).mockReturnValue(mockSpotifyClient);
   });
 
   it('creates a new game with valid data', async () => {

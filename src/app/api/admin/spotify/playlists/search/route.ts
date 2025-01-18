@@ -1,4 +1,4 @@
-import { spotifyClient } from '@/lib/clients/spotify';
+import { getSpotifyClient } from '@/lib/clients/spotify';
 
 export async function GET(request: Request) {
   try {
@@ -9,6 +9,7 @@ export async function GET(request: Request) {
       return Response.json([]);
     }
 
+    const spotifyClient = getSpotifyClient();
     const playlists = await spotifyClient.searchPlaylists(query);
     return Response.json(playlists);
   } catch (error) {

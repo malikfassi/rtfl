@@ -15,7 +15,7 @@ datasource db {
 
 model Song {
   id           String   @id @default(cuid())
-  spotifyId    String   @unique
+  spotifyId    String
   spotifyData  Json     // Raw Spotify track object from Spotify API
   geniusData   Json?    // Raw song data from Genius API
   lyrics       String

@@ -1,12 +1,16 @@
-import { spotifyClient } from '@/lib/clients/spotify';
 import { GET } from '../route';
 import { NextRequest } from 'next/server';
 import type { SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 
+// Create a mock instance
+const mockSpotifyClient = {
+  searchPlaylists: jest.fn()
+};
+
+// Mock the spotify module
 jest.mock('@/lib/clients/spotify', () => ({
-  spotifyClient: {
-    searchPlaylists: jest.fn()
-  }
+  __esModule: true,
+  getSpotifyClient: () => mockSpotifyClient
 }));
 
 describe('GET /api/admin/spotify/playlists', () => {
@@ -67,7 +71,7 @@ describe('GET /api/admin/spotify/playlists', () => {
 
   it('returns playlists successfully', async () => {
     // Mock the Spotify client
-    jest.spyOn(spotifyClient, 'searchPlaylists').mockResolvedValue(mockPlaylists);
+    mockSpotifyClient.searchPlaylists.mockResolvedValue(mockPlaylists);
 
     const response = await GET(
       new NextRequest('http://localhost/api/admin/spotify/playlists?q=test')
@@ -76,12 +80,12 @@ describe('GET /api/admin/spotify/playlists', () => {
 
     expect(response.status).toBe(200);
     expect(data).toEqual(mockPlaylists);
-    expect(spotifyClient.searchPlaylists).toHaveBeenCalledWith('test');
+    expect(mockSpotifyClient.searchPlaylists).toHaveBeenCalledWith('test');
   });
 
   it('handles errors gracefully', async () => {
     // Mock the Spotify client to throw an error
-    jest.spyOn(spotifyClient, 'searchPlaylists').mockRejectedValue(new Error('Spotify API error'));
+    mockSpotifyClient.searchPlaylists.mockRejectedValue(new Error('Spotify API error'));
 
     const response = await GET(
       new NextRequest('http://localhost/api/admin/spotify/playlists?q=test')
@@ -90,6 +94,6 @@ describe('GET /api/admin/spotify/playlists', () => {
 
     expect(response.status).toBe(500);
     expect(data).toEqual({ error: 'Failed to search playlists' });
-    expect(spotifyClient.searchPlaylists).toHaveBeenCalledWith('test');
+    expect(mockSpotifyClient.searchPlaylists).toHaveBeenCalledWith('test');
   });
 }); 

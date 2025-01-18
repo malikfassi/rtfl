@@ -1,86 +1,125 @@
-import { PrismaClient, Prisma } from '@prisma/client';
-import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
-import { SongService } from '../song';
-import { spotifyClient } from '@/lib/clients/spotify';
-import { geniusClient } from '@/lib/clients/genius';
-import { mockSpotifyTrackData, mockGeniusData } from '@/lib/test/utils';
-
-const mockSong = {
-  id: '1',
-  spotifyId: 'spotify123',
-  spotifyData: JSON.parse(JSON.stringify(mockSpotifyTrackData)) as Prisma.JsonValue,
-  geniusData: JSON.parse(JSON.stringify(mockGeniusData)) as Prisma.JsonValue,
-  lyrics: 'Test lyrics',
-  maskedLyrics: {
-    title: ['Test', 'Song'],
-    artist: ['Test', 'Artist'],
-    lyrics: ['Test', 'lyrics']
-  } as Prisma.JsonValue,
-  createdAt: new Date('2025-01-17T09:19:20.784Z'),
-  updatedAt: new Date('2025-01-17T09:19:20.784Z')
-};
-
-jest.mock('@/lib/clients/genius', () => ({
-  geniusClient: {
-    searchSong: jest.fn()
-  }
-}));
+import { getSpotifyClient } from '@/lib/clients/spotify';
+import { getGeniusClient } from '@/lib/clients/genius';
+import { getTrack, searchTracks, getLyrics } from '../song';
+import { PARTY_IN_THE_U_S_A_ } from '@/lib/fixtures/songs';
+import type { Track, SimplifiedArtist, SimplifiedAlbum } from '@spotify/web-api-ts-sdk';
 
 jest.mock('@/lib/clients/spotify', () => ({
-  spotifyClient: {
-    getTrack: jest.fn()
-  }
+  getSpotifyClient: jest.fn().mockReturnValue({
+    getTrack: jest.fn(),
+    searchTracks: jest.fn()
+  })
 }));
 
-describe('SongService', () => {
-  let songService: SongService;
-  let prismaMock: DeepMockProxy<PrismaClient>;
+jest.mock('@/lib/clients/genius', () => ({
+  getGeniusClient: jest.fn().mockReturnValue({
+    searchSong: jest.fn()
+  })
+}));
+
+describe('Song Service', () => {
+  const spotifyClient = getSpotifyClient();
+  const geniusClient = getGeniusClient();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    prismaMock = mockDeep<PrismaClient>();
-    songService = new SongService(prismaMock);
   });
 
-  describe('create', () => {
-    it('should create a new song', async () => {
-      const mockSpotifyTrack = mockSpotifyTrackData;
-      const mockGeniusResult = {
-        lyrics: 'Test lyrics',
-        data: mockGeniusData
-      };
+  const mockArtist: SimplifiedArtist = {
+    name: PARTY_IN_THE_U_S_A_.maskedLyrics.artist.join(' '),
+    id: 'artist1',
+    type: 'artist',
+    uri: 'spotify:artist:1',
+    external_urls: { spotify: 'https://open.spotify.com/artist/1' },
+    href: 'https://api.spotify.com/v1/artists/1'
+  };
 
-      // Mock Spotify API call
-      (spotifyClient.getTrack as jest.Mock).mockResolvedValue(mockSpotifyTrack);
-      // Mock Genius API call
-      (geniusClient.searchSong as jest.Mock).mockResolvedValue(mockGeniusResult);
+  const mockAlbum: SimplifiedAlbum = {
+    id: 'album1',
+    name: 'Test Album',
+    type: 'album',
+    uri: 'spotify:album:1',
+    album_type: 'album',
+    album_group: 'album',
+    artists: [mockArtist],
+    available_markets: ['US'],
+    external_urls: { spotify: 'https://open.spotify.com/album/1' },
+    href: 'https://api.spotify.com/v1/albums/1',
+    images: [],
+    release_date: '2024-01-01',
+    release_date_precision: 'day',
+    total_tracks: 1,
+    copyrights: [],
+    external_ids: { upc: 'upc123', isrc: 'US-123', ean: 'ean123' },
+    genres: [],
+    label: 'Test Label',
+    popularity: 80,
+    restrictions: { reason: 'market' }
+  };
 
-      prismaMock.song.create.mockResolvedValue(mockSong);
+  const createMockTrack = (): Track => ({
+    id: PARTY_IN_THE_U_S_A_.spotifyId,
+    name: PARTY_IN_THE_U_S_A_.maskedLyrics.title.join(' '),
+    artists: [mockArtist],
+    album: mockAlbum,
+    duration_ms: 200000,
+    external_ids: { isrc: 'US-123', ean: 'ean123', upc: 'upc123' },
+    external_urls: { spotify: 'https://open.spotify.com/track/1' },
+    href: 'https://api.spotify.com/v1/tracks/1',
+    is_local: false,
+    is_playable: true,
+    popularity: 80,
+    preview_url: 'https://preview.spotify.com/track/1',
+    track_number: 1,
+    type: 'track',
+    uri: 'spotify:track:1',
+    available_markets: ['US'],
+    disc_number: 1,
+    explicit: false,
+    restrictions: { reason: 'market' },
+    episode: false,
+    track: true
+  });
 
-      const result = await songService.create('spotify123');
-      expect(result).toEqual(mockSong);
+  describe('getTrack', () => {
+    it('should get track by ID', async () => {
+      const mockTrack = createMockTrack();
+      jest.spyOn(spotifyClient, 'getTrack').mockResolvedValue(mockTrack);
 
-      expect(spotifyClient.getTrack).toHaveBeenCalledWith('spotify123');
-      expect(geniusClient.searchSong).toHaveBeenCalledWith(
-        mockSpotifyTrack.name,
-        mockSpotifyTrack.artists[0].name
-      );
+      const track = await getTrack(PARTY_IN_THE_U_S_A_.spotifyId);
+      expect(track).toEqual(mockTrack);
+      expect(spotifyClient.getTrack).toHaveBeenCalledWith(PARTY_IN_THE_U_S_A_.spotifyId);
+    });
+  });
+
+  describe('searchTracks', () => {
+    it('should search tracks by query', async () => {
+      const mockTracks = [createMockTrack()];
+      jest.spyOn(spotifyClient, 'searchTracks').mockResolvedValue(mockTracks);
+
+      const query = `${PARTY_IN_THE_U_S_A_.maskedLyrics.title.join(' ')} ${PARTY_IN_THE_U_S_A_.maskedLyrics.artist.join(' ')}`;
+      const tracks = await searchTracks(query);
+      expect(tracks).toEqual(mockTracks);
+      expect(spotifyClient.searchTracks).toHaveBeenCalledWith(query);
+    });
+  });
+
+  describe('getLyrics', () => {
+    it('should get lyrics by query', async () => {
+      jest.spyOn(geniusClient, 'searchSong').mockResolvedValue(PARTY_IN_THE_U_S_A_.lyrics);
+
+      const query = `${PARTY_IN_THE_U_S_A_.maskedLyrics.title.join(' ')} ${PARTY_IN_THE_U_S_A_.maskedLyrics.artist.join(' ')}`;
+      const lyrics = await getLyrics(query);
+      expect(lyrics).toBe(PARTY_IN_THE_U_S_A_.lyrics);
+      expect(geniusClient.searchSong).toHaveBeenCalledWith(query);
     });
 
-    it('should throw an error if track is not found', async () => {
-      (spotifyClient.getTrack as jest.Mock).mockResolvedValue(null);
+    it('should return null when lyrics not found', async () => {
+      jest.spyOn(geniusClient, 'searchSong').mockRejectedValue(new Error('Not found'));
 
-      await expect(songService.create('')).rejects.toThrow('Track not found');
-    });
-
-    it('should throw an error if lyrics are not found', async () => {
-      const mockSpotifyTrack = mockSpotifyTrackData;
-      (spotifyClient.getTrack as jest.Mock).mockResolvedValue(mockSpotifyTrack);
-      (geniusClient.searchSong as jest.Mock).mockRejectedValue(new Error('GeniusError'));
-
-      await expect(songService.create('spotify123')).rejects.toThrow(
-        'Failed to fetch lyrics for "Test Song" by "Test Artist" - GeniusError'
-      );
+      const lyrics = await getLyrics('nonexistent song');
+      expect(lyrics).toBeNull();
+      expect(geniusClient.searchSong).toHaveBeenCalledWith('nonexistent song');
     });
   });
 }); 
