@@ -1,35 +1,21 @@
 import { GET } from '../route';
 import { NextRequest } from 'next/server';
-import { 
-  setupUnitTest,
-  cleanupUnitTest,
-  type UnitTestContext,
-  spotifyData
-} from '@/lib/test';
+import { setupUnitTest, type UnitTestContext, spotifyData } from '@/lib/test';
 import { SpotifyError } from '@/lib/errors/spotify';
 
-// Mock the spotify client getter
-jest.mock('@/lib/clients/spotify', () => ({
-  ...jest.requireActual('@/lib/clients/spotify'),
-  getSpotifyClient: jest.fn()
-}));
+jest.mock('@/lib/clients/spotify');
 
 describe('GET /api/admin/spotify/playlists/[id]/tracks', () => {
   let context: UnitTestContext;
+  const playlistId = Object.keys(spotifyData.playlists)[0];
+  const tracks = spotifyData.playlistTracks[playlistId];
 
   beforeEach(() => {
     context = setupUnitTest();
   });
 
-  afterEach(() => {
-    cleanupUnitTest();
-  });
-
   test('returns tracks when found', async () => {
     const { mockSpotifyClient } = context;
-    const playlistId = 'playlist1';
-    const tracks = Object.values(spotifyData.tracks);
-
     mockSpotifyClient.getPlaylistTracks.mockResolvedValue(tracks);
 
     const request = new NextRequest(
@@ -46,20 +32,19 @@ describe('GET /api/admin/spotify/playlists/[id]/tracks', () => {
 
   test('returns empty array when no tracks found', async () => {
     const { mockSpotifyClient } = context;
-    const playlistId = 'empty-playlist';
-
+    const emptyPlaylistId = 'empty-playlist';
     mockSpotifyClient.getPlaylistTracks.mockResolvedValue([]);
 
     const request = new NextRequest(
-      new URL(`http://localhost:3000/api/admin/spotify/playlists/${playlistId}/tracks`)
+      new URL(`http://localhost:3000/api/admin/spotify/playlists/${emptyPlaylistId}/tracks`)
     );
 
-    const response = await GET(request, { params: { id: playlistId } });
+    const response = await GET(request, { params: { id: emptyPlaylistId } });
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data).toEqual([]);
-    expect(mockSpotifyClient.getPlaylistTracks).toHaveBeenCalledWith(playlistId);
+    expect(mockSpotifyClient.getPlaylistTracks).toHaveBeenCalledWith(emptyPlaylistId);
   });
 
   test('returns 404 when playlist not found', async () => {
