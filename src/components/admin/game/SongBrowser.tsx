@@ -29,15 +29,16 @@ export function SongBrowser({ onSelect, onCancel: _onCancel, disabled = false }:
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch(`/api/admin/spotify/tracks?q=${encodeURIComponent(debouncedQuery)}`);
+        const response = await fetch(`/api/admin/spotify/tracks/search?q=${encodeURIComponent(debouncedQuery)}`);
         if (!response.ok) {
-          throw new Error('Failed to search tracks');
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to search tracks');
         }
         const data = await response.json();
         setTracks(data);
       } catch (error) {
         console.error('Failed to search tracks:', error);
-        setError('Failed to search tracks');
+        setError(error instanceof Error ? error.message : 'Failed to search tracks');
       } finally {
         setIsLoading(false);
       }
@@ -65,28 +66,36 @@ export function SongBrowser({ onSelect, onCancel: _onCancel, disabled = false }:
         placeholder="Search for a song..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        disabled={disabled}
+        disabled={disabled || isLoading}
         autoFocus
       />
 
       {error && <div className="text-red-500">{error}</div>}
 
-      <div className="space-y-2">
-        {tracks.map((track) => (
-          <button
-            key={track.id}
-            onClick={() => handleSelectTrack(track)}
-            disabled={disabled || isLoading}
-            className={cn(
-              'w-full p-2 text-left hover:bg-gray-100 rounded',
-              selectedTrackId === track.id && 'bg-gray-100'
-            )}
-          >
-            <div className="font-medium">{track.name}</div>
-            <div className="text-sm text-muted">{track.artists[0].name}</div>
-          </button>
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="text-center text-muted">Searching...</div>
+      ) : tracks.length === 0 && debouncedQuery ? (
+        <div className="text-center text-muted">No tracks found</div>
+      ) : (
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {tracks.map((track) => (
+            <button
+              key={track.id}
+              onClick={() => handleSelectTrack(track)}
+              disabled={disabled || isLoading}
+              className={cn(
+                'w-full p-2 text-left hover:bg-gray-100 rounded',
+                selectedTrackId === track.id && 'bg-gray-100'
+              )}
+            >
+              <div className="font-medium">{track.name}</div>
+              <div className="text-sm text-muted">
+                {track.artists.map(artist => artist.name).join(', ')}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 } 

@@ -1,154 +1,155 @@
 import { prisma } from '@/lib/db';
-import { GeniusError } from '@/lib/clients/genius';
-import { getGeniusClient } from '@/lib/clients/genius';
-import { getSpotifyClient } from '@/lib/clients/spotify';
+import { getGeniusClient, type GeniusClient } from '@/lib/clients/genius';
+import { getSpotifyClient, type SpotifyClient } from '@/lib/clients/spotify';
 import { PrismaClient, Prisma, Song } from '@prisma/client';
-
-export class SongError extends Error {
-  constructor(
-    message: string,
-    public code: 'INTERNAL_ERROR' | 'GENIUS_NOT_FOUND' | 'SPOTIFY_NOT_FOUND' | 'INVALID_INPUT'
-  ) {
-    super(message);
-    this.name = 'SongError';
-  }
-}
+import { lyricsService } from './lyrics';
+import type { Track } from '@spotify/web-api-ts-sdk';
+import { ValidationError } from '@/lib/errors/base';
+import { 
+  SongNotFoundError,
+  InvalidTrackIdError,
+  NoLyricsFoundError
+} from '@/lib/errors/song';
 
 export class SongService {
-  private prisma: PrismaClient;
-  private geniusClient;
-  private spotifyClient;
-
-  constructor(prisma: PrismaClient) {
-    this.prisma = prisma;
-    this.geniusClient = getGeniusClient(process.env.GENIUS_ACCESS_TOKEN);
-    this.spotifyClient = getSpotifyClient(
-      process.env.SPOTIFY_CLIENT_ID,
-      process.env.SPOTIFY_CLIENT_SECRET
-    );
-  }
-
-  private maskWord(word: string): string {
-    // Extract trailing punctuation
-    const match = word.match(/^(.*?)([.,!?]*)$/);
-    if (!match) return word;
-
-    const [, mainPart, punctuation] = match;
-    // Mask the main part of the word, preserving apostrophes
-    const maskedMain = mainPart.replace(/[\p{L}\p{N}]/gu, '_');
-    // Add back any trailing punctuation
-    return maskedMain + punctuation;
-  }
-
-  private splitPreservingNewlines(text: string): string[] {
-    // Split on word boundaries and punctuation, preserving newlines
-    return text.split(/(\n|[.,!?]|\s+)/)
-      .filter(token => token.length > 0)
-      .map(token => token.trim())
-      .filter(token => token.length > 0);
-  }
-
-  private createMaskedLyrics(title: string, artist: string, lyrics: string): Prisma.JsonObject {
-    return {
-      title: this.splitPreservingNewlines(title).map(word => this.maskWord(word)),
-      artist: this.splitPreservingNewlines(artist).map(word => this.maskWord(word)),
-      lyrics: this.splitPreservingNewlines(lyrics).map(word => this.maskWord(word))
-    };
-  }
+  constructor(
+    private prisma: PrismaClient,
+    private spotifyClient: SpotifyClient,
+    private geniusClient: GeniusClient
+  ) {}
 
   async create(spotifyId: string, tx?: Prisma.TransactionClient): Promise<Song> {
+    if (!spotifyId?.trim()) {
+      throw new ValidationError('Spotify ID is required');
+    }
+
     try {
-      // Get track from Spotify
-      const track = await this.spotifyClient.getTrack(spotifyId);
-      if (!track) {
-        throw new SongError('Track not found', 'SPOTIFY_NOT_FOUND');
-      }
+      // First, fetch all external data
+      const [track, lyrics] = await this.fetchExternalData(spotifyId);
 
-      // Get lyrics from Genius
-      const title = track.name;
-      const artist = track.artists[0].name;
-
-      // Try multiple search variations
-      const searchAttempts = [
-        `${title} ${artist}`,
-        title,
-        // Remove parentheses and their contents
-        `${title.replace(/\([^)]*\)/g, '').trim()} ${artist}`,
-        // Remove 'feat.' and everything after
-        `${title.replace(/\s*(?:feat|ft|featuring)\.?.*/i, '').trim()} ${artist}`
-      ];
-
-      let lyrics: string | null = null;
-      let lastError: Error | null = null;
-
-      for (const searchQuery of searchAttempts) {
-        try {
-          console.log('Trying search query:', searchQuery);
-          lyrics = await this.geniusClient.searchSong(searchQuery);
-          if (lyrics) break;
-        } catch (error) {
-          console.warn(`Failed attempt with query "${searchQuery}":`, error);
-          lastError = error as Error;
-        }
-      }
-
-      if (!lyrics) {
-        const errorMessage = lastError instanceof GeniusError ?
-          lastError.code === 'GENIUS_NOT_FOUND' ?
-            `No lyrics found for "${title}" by "${artist}"` :
-            `Failed to fetch lyrics for "${title}" by "${artist}" - ${lastError.message}` :
-          `Failed to fetch lyrics for "${title}" by "${artist}" - ${lastError?.message}`;
-        throw new SongError(errorMessage, 'GENIUS_NOT_FOUND');
-      }
-
-      // Create song with lyrics
-      const prisma = tx || this.prisma;
-      return await prisma.song.create({
-        data: {
-          spotifyId,
-          spotifyData: JSON.parse(JSON.stringify(track)) as Prisma.InputJsonValue,
-          geniusData: JSON.parse(JSON.stringify({})) as Prisma.InputJsonValue,
-          lyrics,
-          maskedLyrics: this.createMaskedLyrics(title, artist, lyrics)
-        }
-      });
+      // Then, create the song in the database
+      return await this.createSongInDb(spotifyId, track, lyrics, tx);
     } catch (error) {
-      if (error instanceof SongError) {
-        throw error;
+      if (error instanceof Error && error.message.includes('Genius API error')) {
+        throw new NoLyricsFoundError();
       }
-      throw new SongError('Failed to create song', 'INTERNAL_ERROR');
+      throw error;
     }
   }
-}
 
-// Export factory function
-export function createSongService() {
-  return new SongService(prisma);
-}
+  async getTrack(id: string): Promise<Track> {
+    if (!id.trim()) {
+      throw new ValidationError('Spotify ID is required');
+    }
 
-// Export standalone functions
-export async function getTrack(id: string) {
-  const spotifyClient = getSpotifyClient(
-    process.env.SPOTIFY_CLIENT_ID,
-    process.env.SPOTIFY_CLIENT_SECRET
-  );
-  return spotifyClient.getTrack(id);
-}
-
-export async function searchTracks(query: string) {
-  const spotifyClient = getSpotifyClient(
-    process.env.SPOTIFY_CLIENT_ID,
-    process.env.SPOTIFY_CLIENT_SECRET
-  );
-  return spotifyClient.searchTracks(query);
-}
-
-export async function getLyrics(query: string): Promise<string | null> {
-  try {
-    const geniusClient = getGeniusClient(process.env.GENIUS_ACCESS_TOKEN);
-    return await geniusClient.searchSong(query);
-  } catch (error) {
-    console.error('Failed to get lyrics:', error);
-    return null;
+    try {
+      return await this.spotifyClient.getTrack(id);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes('Track not found')) {
+          throw new SongNotFoundError();
+        }
+        if (error.message.includes('Invalid track ID')) {
+          throw new InvalidTrackIdError(id);
+        }
+      }
+      throw error;
+    }
   }
-} 
+
+  async searchTracks(query: string): Promise<Track[]> {
+    if (!query.trim()) {
+      throw new ValidationError('Search query is required');
+    }
+
+    return this.spotifyClient.searchTracks(query);
+  }
+
+  async searchLyrics(query: string): Promise<string | null> {
+    const result = await this.geniusClient.search(query);
+    if (!result.response.hits.length) {
+      return null;
+    }
+
+    return this.geniusClient.searchSong(query, '');
+  }
+
+  private async fetchExternalData(spotifyId: string): Promise<[Track, string | null]> {
+    const track = await this.spotifyClient.getTrack(spotifyId);
+
+    const searchQuery = `${track.name} ${track.artists[0].name}`;
+    const searchResult = await this.geniusClient.search(searchQuery);
+    if (!searchResult.response.hits.length) {
+      return [track, null];
+    }
+
+    const lyrics = await this.geniusClient.searchSong(track.name, track.artists[0].name);
+    return [track, lyrics];
+  }
+
+  private async createSongInDb(
+    spotifyId: string, 
+    track: Track, 
+    lyrics: string | null, 
+    tx?: Prisma.TransactionClient
+  ): Promise<Song> {
+    const prisma = tx || this.prisma;
+    const title = track.name;
+    const artist = track.artists[0].name;
+
+    const maskedLyrics = {
+      title: lyricsService.mask(title),
+      artist: lyricsService.mask(artist),
+      lyrics: lyrics ? lyricsService.mask(lyrics) : []
+    };
+
+    const spotifyData = JSON.parse(JSON.stringify(track)) as Prisma.InputJsonValue;
+    const searchQuery = `${title} ${artist}`;
+    const geniusData = JSON.parse(JSON.stringify({
+      search: await this.geniusClient.search(searchQuery)
+    })) as Prisma.InputJsonValue;
+
+    return await prisma.song.create({
+      data: {
+        spotifyId,
+        spotifyData,
+        geniusData,
+        lyrics: lyrics || '',
+        maskedLyrics
+      }
+    });
+  }
+
+  async getSongWithLyrics(spotifyId: string): Promise<{ track: Track; lyrics: string | null }> {
+    if (!spotifyId?.trim()) {
+      throw new ValidationError('Spotify ID is required');
+    }
+
+    const track = await this.spotifyClient.getTrack(spotifyId);
+
+    const searchQuery = `${track.name} ${track.artists[0].name}`;
+    const searchResult = await this.geniusClient.search(searchQuery);
+    if (!searchResult.response.hits.length) {
+      return { track, lyrics: null };
+    }
+
+    const lyrics = await this.geniusClient.searchSong(track.name, track.artists[0].name);
+    return { track, lyrics };
+  }
+}
+
+// Default instance using default dependencies
+export const songService = new SongService(
+  prisma,
+  getSpotifyClient(),
+  getGeniusClient()
+);
+
+// Factory function to create new instances with custom dependencies
+export const createSongService = (
+  prismaClient: PrismaClient = prisma,
+  spotifyClient: SpotifyClient = getSpotifyClient(),
+  geniusClient: GeniusClient = getGeniusClient()
+) => {
+  return new SongService(prismaClient, spotifyClient, geniusClient);
+}; 

@@ -1,84 +1,193 @@
-import { createGameService } from '../game';
-import { createSongService, SongError } from '../song';
-import { prisma } from '@/lib/db';
-import { Game, Song } from '@prisma/client';
-
-interface GameWithSong extends Game {
-  song: Song;
-}
+import {
+  GameNotFoundError,
+  InvalidGameDateError,
+  InvalidGameMonthError,
+} from '@/lib/errors/game';
+import { ValidationError } from '@/lib/errors/base';
+import { MissingTrackIdError } from '@/lib/errors/spotify';
+import { spotifyData, getLyrics, getMaskedLyrics, getMaskedTitle, getMaskedArtist } from '@/lib/test/fixtures';
+import { setupIntegrationTest, type IntegrationTestContext, cleanupIntegrationTest } from '@/lib/test/test-env/integration';
 
 describe('GameService Integration', () => {
-  const songService = createSongService();
-  const gameService = createGameService(songService);
+  let context: IntegrationTestContext;
 
-  // Clean up the database before each test
+  // Get test data from fixtures
+  const [TRACK_ID_1, TRACK_1] = Object.entries(spotifyData.tracks)[0];
+  const [TRACK_ID_2, TRACK_2] = Object.entries(spotifyData.tracks)[1];
+
   beforeEach(async () => {
-    await prisma.game.deleteMany();
-    await prisma.song.deleteMany();
-  }, 10000);
+    // Setup integration test context with clean database
+    context = await setupIntegrationTest();
+  });
 
-  // Clean up the database after each test
   afterEach(async () => {
-    await prisma.game.deleteMany();
-    await prisma.song.deleteMany();
-  }, 10000);
+    // Cleanup test context and database
+    await cleanupIntegrationTest();
+  });
 
   describe('createOrUpdate', () => {
-    const BAR_SONG = '2FQrifJ1N335Ljm3TjTVVf';
-    const BABY_ONE_MORE_TIME = '3MjUtNVVq3C8Fn0MP3zhXa';
-
-    it('should create a new game with a song', async () => {
+    it('creates a new game with a song', async () => {
       const date = '2025-01-17';
-      const game = await gameService.createOrUpdate(BAR_SONG, date) as GameWithSong;
+      const trackId = TRACK_ID_1;
+
+      const game = await context.gameService.createOrUpdate(date, trackId);
 
       expect(game).toBeDefined();
       expect(game.date).toBe(date);
       expect(game.song).toBeDefined();
-      expect(game.song.spotifyId).toBe(BAR_SONG);
-      expect(game.song.lyrics).toBeDefined();
-      expect(game.song.lyrics.length).toBeGreaterThan(100);
-    }, 10000);
-
-    it('should update an existing game with a new song', async () => {
-      const date = '2025-01-17';
-
-      // Create initial game and wait for it to complete
-      const initialGame = await gameService.createOrUpdate(BAR_SONG, date) as GameWithSong;
-      expect(initialGame.song.spotifyId).toBe(BAR_SONG);
-
-      // Update with new song
-      const updatedGame = await gameService.createOrUpdate(BABY_ONE_MORE_TIME, date) as GameWithSong;
-      expect(updatedGame.id).toBe(initialGame.id);
-      expect(updatedGame.date).toBe(date);
-      expect(updatedGame.song.spotifyId).toBe(BABY_ONE_MORE_TIME);
-    }, 10000);
-
-    it('should create a new song when updating with same spotify ID', async () => {
-      const date = '2025-01-17';
-
-      // Create initial game and wait for it to complete
-      const initialGame = await gameService.createOrUpdate(BAR_SONG, date) as GameWithSong;
-
-      // Try to update with same song
-      const updatedGame = await gameService.createOrUpdate(BAR_SONG, date) as GameWithSong;
-      expect(updatedGame.id).toBe(initialGame.id);
-      expect(updatedGame.song.id).not.toBe(initialGame.song.id);
-      expect(updatedGame.song.spotifyId).toBe(BAR_SONG);
-    }, 10000);
-
-    it('should throw GameError for invalid date format', async () => {
-      const invalidDate = '2025-1-17';
-      await expect(gameService.createOrUpdate(BAR_SONG, invalidDate))
-        .rejects
-        .toThrow('Invalid date format. Expected YYYY-MM-DD');
+      expect(game.song.spotifyId).toBe(trackId);
+      expect(game.song.spotifyData).toMatchObject(TRACK_1);
+      expect(game.song.lyrics).toBe(getLyrics(trackId));
+      expect(game.song.maskedLyrics).toEqual({
+        title: getMaskedTitle(trackId),
+        artist: getMaskedArtist(trackId),
+        lyrics: getMaskedLyrics(trackId)
+      });
     });
 
-    it('should throw SongError for non-existent track', async () => {
+    it('updates existing game with new song', async () => {
       const date = '2025-01-17';
-      const invalidSpotifyId = 'invalid_id';
-      await expect(gameService.createOrUpdate(invalidSpotifyId, date))
+      const trackId1 = TRACK_ID_1;
+      const trackId2 = TRACK_ID_2;
+
+      // Create initial game
+      const game1 = await context.gameService.createOrUpdate(date, trackId1);
+      expect(game1.song.spotifyId).toBe(trackId1);
+      expect(game1.song.spotifyData).toMatchObject(TRACK_1);
+      expect(game1.song.lyrics).toBe(getLyrics(trackId1));
+      expect(game1.song.maskedLyrics).toEqual({
+        title: getMaskedTitle(trackId1),
+        artist: getMaskedArtist(trackId1),
+        lyrics: getMaskedLyrics(trackId1)
+      });
+
+      // Update with new song
+      const game2 = await context.gameService.createOrUpdate(date, trackId2);
+      expect(game2.id).toBe(game1.id);
+      expect(game2.song.spotifyId).toBe(trackId2);
+      expect(game2.song.spotifyData).toMatchObject(TRACK_2);
+      expect(game2.song.lyrics).toBe(getLyrics(trackId2));
+      expect(game2.song.maskedLyrics).toEqual({
+        title: getMaskedTitle(trackId2),
+        artist: getMaskedArtist(trackId2),
+        lyrics: getMaskedLyrics(trackId2)
+      });
+    });
+
+    it('throws ValidationError when date is empty', async () => {
+      await expect(context.gameService.createOrUpdate('', 'trackId'))
         .rejects
-        .toThrow(SongError);
+        .toThrow(new ValidationError('Invalid date format. Expected YYYY-MM-DD'));
+    });
+
+    it('throws ValidationError when date is only whitespace', async () => {
+      await expect(context.gameService.createOrUpdate('   ', 'trackId'))
+        .rejects
+        .toThrow(new ValidationError('Invalid date format. Expected YYYY-MM-DD'));
+    });
+
+    it('throws InvalidGameDateError for invalid date format', async () => {
+      await expect(context.gameService.createOrUpdate('invalid-date', 'trackId'))
+        .rejects
+        .toThrow(new InvalidGameDateError('invalid-date'));
+    });
+
+    it('throws ValidationError when track ID is empty', async () => {
+      const date = '2025-01-17';
+      await expect(context.gameService.createOrUpdate(date, ''))
+        .rejects
+        .toThrow(new ValidationError('Spotify ID is required'));
+    });
+
+    it('throws GameCreationError when song creation fails', async () => {
+      const date = '2024-01-01';
+      await expect(context.gameService.createOrUpdate(date, 'nonexistent'))
+        .rejects
+        .toThrow(new MissingTrackIdError());
+    });
+  });
+
+  describe('getByDate', () => {
+    it('returns game for date when found', async () => {
+      const date = '2025-01-17';
+      const trackId = TRACK_ID_1;
+
+      // Create game first
+      await context.gameService.createOrUpdate(date, trackId);
+
+      // Then get it
+      const game = await context.gameService.getByDate(date);
+      expect(game).toBeDefined();
+      expect(game.date).toBe(date);
+      expect(game.song).toBeDefined();
+      expect(game.song.spotifyId).toBe(trackId);
+      expect(game.song.spotifyData).toMatchObject(TRACK_1);
+      expect(game.song.lyrics).toBe(getLyrics(trackId));
+      expect(game.song.maskedLyrics).toEqual({
+        title: getMaskedTitle(trackId),
+        artist: getMaskedArtist(trackId),
+        lyrics: getMaskedLyrics(trackId)
+      });
+    });
+
+    it('throws ValidationError when date is empty', async () => {
+      await expect(context.gameService.getByDate(''))
+        .rejects
+        .toThrow(new ValidationError('Invalid date format. Expected YYYY-MM-DD'));
+    });
+
+    it('throws InvalidGameDateError for invalid date format', async () => {
+      await expect(context.gameService.getByDate('invalid-date'))
+        .rejects
+        .toThrow(new InvalidGameDateError('invalid-date'));
+    });
+
+    it('throws GameNotFoundError when game does not exist', async () => {
+      await expect(context.gameService.getByDate('2025-01-17'))
+        .rejects
+        .toThrow(new GameNotFoundError('2025-01-17'));
+    });
+  });
+
+  describe('getByMonth', () => {
+    it('returns games for month when found', async () => {
+      const trackId1 = TRACK_ID_1;
+      const trackId2 = TRACK_ID_2;
+
+      // Create games
+      await context.gameService.createOrUpdate('2025-01-01', trackId1);
+      await context.gameService.createOrUpdate('2025-01-02', trackId2);
+
+      // Get games for month
+      const games = await context.gameService.getByMonth('2025-01');
+      expect(games).toHaveLength(2);
+      expect(games[0].song.spotifyId).toBe(trackId1);
+      expect(games[0].song.spotifyData).toMatchObject(TRACK_1);
+      expect(games[0].song.lyrics).toBe(getLyrics(trackId1));
+      expect(games[0].song.maskedLyrics).toEqual({
+        title: getMaskedTitle(trackId1),
+        artist: getMaskedArtist(trackId1),
+        lyrics: getMaskedLyrics(trackId1)
+      });
+      expect(games[1].song.spotifyId).toBe(trackId2);
+      expect(games[1].song.spotifyData).toMatchObject(TRACK_2);
+      expect(games[1].song.lyrics).toBe(getLyrics(trackId2));
+      expect(games[1].song.maskedLyrics).toEqual({
+        title: getMaskedTitle(trackId2),
+        artist: getMaskedArtist(trackId2),
+        lyrics: getMaskedLyrics(trackId2)
+      });
+    });
+
+    it('returns empty array when no games for month', async () => {
+      const games = await context.gameService.getByMonth('2025-01');
+      expect(games).toHaveLength(0);
+    });
+
+    it('throws error for invalid month format', async () => {
+      await expect(context.gameService.getByMonth('invalid-month'))
+        .rejects
+        .toThrow(new InvalidGameMonthError('invalid-month'));
     });
   });
 }); 

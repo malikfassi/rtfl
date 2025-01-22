@@ -1,142 +1,100 @@
-import { NextRequest } from 'next/server';
 import { GET } from '../route';
-import type { Track } from '@spotify/web-api-ts-sdk';
+import { NextRequest } from 'next/server';
+import { 
+  setupUnitTest,
+  cleanupUnitTest,
+  type UnitTestContext,
+  spotifyData
+} from '@/lib/test';
+import { SpotifyError } from '@/lib/errors/spotify';
 
-// Create a mock instance
-const mockSpotifyClient = {
-  getPlaylistTracks: jest.fn()
-};
-
-// Mock the spotify module
+// Mock the spotify client getter
 jest.mock('@/lib/clients/spotify', () => ({
-  __esModule: true,
-  getSpotifyClient: () => mockSpotifyClient
+  ...jest.requireActual('@/lib/clients/spotify'),
+  getSpotifyClient: jest.fn()
 }));
 
 describe('GET /api/admin/spotify/playlists/[id]/tracks', () => {
-  it('should return tracks from a playlist', async () => {
-    const mockTracks: Track[] = [
-      {
-        id: 'track1',
-        name: 'Test Track 1',
-        artists: [{ id: 'artist1', name: 'Test Artist 1', type: 'artist', uri: '', href: '', external_urls: { spotify: '' } }],
-        album: {
-          id: 'album1',
-          name: 'Test Album 1',
-          images: [{ url: '', height: 300, width: 300 }],
-          type: 'album',
-          uri: '',
-          href: '',
-          external_urls: { spotify: '' },
-          release_date: '',
-          release_date_precision: 'day',
-          total_tracks: 1,
-          artists: [],
-          album_group: 'album',
-          album_type: 'album',
-          available_markets: [],
-          copyrights: [],
-          external_ids: {
-            upc: 'TEST123',
-            isrc: 'TEST123',
-            ean: 'TEST123'
-          },
-          genres: [],
-          label: '',
-          popularity: 0
-        },
-        preview_url: '',
-        uri: '',
-        external_urls: { spotify: '' },
-        type: 'track',
-        href: '',
-        duration_ms: 0,
-        explicit: false,
-        external_ids: {
-          upc: 'TEST123',
-          isrc: 'TEST123',
-          ean: 'TEST123'
-        },
-        is_local: false,
-        popularity: 0,
-        track_number: 1,
-        disc_number: 1,
-        available_markets: [],
-        episode: false,
-        track: true
-      },
-      {
-        id: 'track2',
-        name: 'Test Track 2',
-        artists: [{ id: 'artist2', name: 'Test Artist 2', type: 'artist', uri: '', href: '', external_urls: { spotify: '' } }],
-        album: {
-          id: 'album2',
-          name: 'Test Album 2',
-          images: [{ url: '', height: 300, width: 300 }],
-          type: 'album',
-          uri: '',
-          href: '',
-          external_urls: { spotify: '' },
-          release_date: '',
-          release_date_precision: 'day',
-          total_tracks: 1,
-          artists: [],
-          album_group: 'album',
-          album_type: 'album',
-          available_markets: [],
-          copyrights: [],
-          external_ids: {
-            upc: 'TEST123',
-            isrc: 'TEST123',
-            ean: 'TEST123'
-          },
-          genres: [],
-          label: '',
-          popularity: 0
-        },
-        preview_url: '',
-        uri: '',
-        external_urls: { spotify: '' },
-        type: 'track',
-        href: '',
-        duration_ms: 0,
-        explicit: false,
-        external_ids: {
-          upc: 'TEST123',
-          isrc: 'TEST123',
-          ean: 'TEST123'
-        },
-        is_local: false,
-        popularity: 0,
-        track_number: 1,
-        disc_number: 1,
-        available_markets: [],
-        episode: false,
-        track: true
-      }
-    ];
+  let context: UnitTestContext;
 
-    mockSpotifyClient.getPlaylistTracks.mockResolvedValue(mockTracks);
+  beforeEach(() => {
+    context = setupUnitTest();
+  });
 
-    const request = new NextRequest(new URL('http://localhost:3000'));
-    const context = { params: { id: 'playlist123' } };
-    const response = await GET(request, context);
+  afterEach(() => {
+    cleanupUnitTest();
+  });
+
+  test('returns tracks when found', async () => {
+    const { mockSpotifyClient } = context;
+    const playlistId = 'playlist1';
+    const tracks = Object.values(spotifyData.tracks);
+
+    mockSpotifyClient.getPlaylistTracks.mockResolvedValue(tracks);
+
+    const request = new NextRequest(
+      new URL(`http://localhost:3000/api/admin/spotify/playlists/${playlistId}/tracks`)
+    );
+
+    const response = await GET(request, { params: { id: playlistId } });
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data).toEqual(mockTracks);
-    expect(mockSpotifyClient.getPlaylistTracks).toHaveBeenCalledWith('playlist123');
+    expect(data).toEqual(tracks);
+    expect(mockSpotifyClient.getPlaylistTracks).toHaveBeenCalledWith(playlistId);
   });
 
-  it('should handle errors', async () => {
-    mockSpotifyClient.getPlaylistTracks.mockRejectedValue(new Error('Failed to fetch tracks'));
+  test('returns empty array when no tracks found', async () => {
+    const { mockSpotifyClient } = context;
+    const playlistId = 'empty-playlist';
 
-    const request = new NextRequest(new URL('http://localhost:3000'));
-    const context = { params: { id: 'playlist123' } };
-    const response = await GET(request, context);
+    mockSpotifyClient.getPlaylistTracks.mockResolvedValue([]);
+
+    const request = new NextRequest(
+      new URL(`http://localhost:3000/api/admin/spotify/playlists/${playlistId}/tracks`)
+    );
+
+    const response = await GET(request, { params: { id: playlistId } });
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toEqual([]);
+    expect(mockSpotifyClient.getPlaylistTracks).toHaveBeenCalledWith(playlistId);
+  });
+
+  test('returns 404 when playlist not found', async () => {
+    const { mockSpotifyClient } = context;
+    mockSpotifyClient.getPlaylistTracks.mockRejectedValue(new SpotifyError('Playlist not found'));
+
+    const request = new NextRequest(
+      new URL('http://localhost:3000/api/admin/spotify/playlists/nonexistent/tracks')
+    );
+
+    const response = await GET(request, { params: { id: 'nonexistent' } });
+    const data = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(data).toEqual({
+      error: 'NOT_FOUND',
+      message: 'Playlist not found'
+    });
+  });
+
+  test('returns 500 when get playlist tracks fails', async () => {
+    const { mockSpotifyClient } = context;
+    mockSpotifyClient.getPlaylistTracks.mockRejectedValue(new SpotifyError('API error'));
+
+    const request = new NextRequest(
+      new URL('http://localhost:3000/api/admin/spotify/playlists/error/tracks')
+    );
+
+    const response = await GET(request, { params: { id: 'error' } });
     const data = await response.json();
 
     expect(response.status).toBe(500);
-    expect(data).toEqual({ error: 'Failed to fetch playlist tracks' });
+    expect(data).toEqual({
+      error: 'SPOTIFY_ERROR',
+      message: 'API error'
+    });
   });
 }); 

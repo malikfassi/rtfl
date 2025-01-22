@@ -1,95 +1,79 @@
-import { Game, PrismaClient } from '@prisma/client';
-import { SongService } from './song';
+import { Game, PrismaClient, Song } from '@prisma/client';
+import { SongService, songService, createSongService } from './song';
 import { prisma } from '../db';
+import {
+  GameNotFoundError,
+  InvalidGameDateError,
+  InvalidGameMonthError,
+} from '@/lib/errors/game';
+import { ValidationError } from '@/lib/errors/base';
 
-export class GameError extends Error {
-  code: string;
-
-  constructor(message: string, code: string) {
-    super(message);
-    this.code = code;
-  }
-}
+// Type for Game with included song relation
+export type GameWithSong = Game & {
+  song: Song;
+};
 
 export class GameService {
   constructor(
-    private prisma: PrismaClient,
-    private songService: SongService
+    private songService: SongService,
+    private prisma: PrismaClient
   ) {}
 
   private validateDateFormat(date: string): void {
+    if (!date?.trim()) {
+      throw new ValidationError('Invalid date format. Expected YYYY-MM-DD');
+    }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      throw new GameError('Invalid date format. Expected YYYY-MM-DD', 'INVALID_FORMAT');
+      throw new InvalidGameDateError(date);
     }
   }
 
   private validateMonthFormat(month: string): void {
+    if (!month?.trim()) {
+      throw new ValidationError('Invalid month format. Expected YYYY-MM');
+    }
     if (!/^\d{4}-\d{2}$/.test(month)) {
-      throw new GameError('Invalid month format. Expected YYYY-MM', 'INVALID_FORMAT');
+      throw new InvalidGameMonthError(month);
     }
   }
 
   async createOrUpdate(
-    spotifyId: string,
-    date: string
-  ): Promise<Game> {
-    try {
-      this.validateDateFormat(date);
-
-      // Wrap game operations in a transaction
-      return await this.prisma.$transaction(async (tx) => {
-        // Check if game exists for this date
-        const existingGame = await tx.game.findFirst({
-          where: { date },
-          include: { 
-            song: true 
-          }
-        });
-
-        // Create a new song
-        const song = await this.songService.create(spotifyId, tx);
-
-        // If game exists, update it with new song
-        if (existingGame) {
-          return await tx.game.update({
-            where: { id: existingGame.id },
-            data: { songId: song.id },
-            include: { song: true }
-          });
-        }
-
-        // Create a new game
-        return await tx.game.create({
-          data: {
-            date,
-            songId: song.id
-          },
-          include: { song: true }
-        });
-      }, {
-        timeout: 30000 // 30 second timeout for external API calls
-      });
-    } catch (error) {
-      console.error('Failed to create/update game:', error);
-      throw error;
+    date: string,
+    trackId: string
+  ): Promise<GameWithSong> {
+    if (!trackId?.trim()) {
+      throw new ValidationError('Spotify ID is required');
     }
+
+    this.validateDateFormat(date);
+
+    // Create song first
+    const song = await this.songService.create(trackId);
+
+    // Then create or update game
+    return await this.prisma.game.upsert({
+      where: { date },
+      update: { songId: song.id },
+      create: { date, songId: song.id },
+      include: { song: true }
+    });
   }
 
-  async getByDate(date: string): Promise<Game> {
+  async getByDate(date: string): Promise<GameWithSong> {
     this.validateDateFormat(date);
-    const game = await this.prisma.game.findFirst({
+    const game = await this.prisma.game.findUnique({
       where: { date },
       include: { song: true }
     });
 
     if (!game) {
-      throw new GameError(`Game not found for date: ${date}`, 'NOT_FOUND');
+      throw new GameNotFoundError(date);
     }
 
     return game;
   }
 
-  async getByMonth(month: string): Promise<Game[]> {
+  async getByMonth(month: string): Promise<GameWithSong[]> {
     this.validateMonthFormat(month);
     const [year, monthStr] = month.split('-');
     const monthNum = parseInt(monthStr, 10);
@@ -97,7 +81,7 @@ export class GameService {
     const firstDay = `${year}-${monthStr.padStart(2, '0')}-01`;
     const lastDay = `${year}-${monthStr.padStart(2, '0')}-${new Date(parseInt(year, 10), monthNum, 0).getDate().toString().padStart(2, '0')}`;
 
-    const games = await this.prisma.game.findMany({
+    return await this.prisma.game.findMany({
       where: {
         date: {
           gte: firstDay,
@@ -111,18 +95,16 @@ export class GameService {
         date: 'asc'
       }
     });
-
-    return games;
   }
 
   async delete(date: string) {
     this.validateDateFormat(date);
-    const game = await this.prisma.game.findFirst({
+    const game = await this.prisma.game.findUnique({
       where: { date }
     });
 
     if (!game) {
-      throw new GameError(`Game not found for date: ${date}`, 'NOT_FOUND');
+      throw new GameNotFoundError(date);
     }
 
     await this.prisma.game.delete({
@@ -131,6 +113,13 @@ export class GameService {
   }
 }
 
-export function createGameService(songService: SongService) {
-  return new GameService(prisma, songService);
-} 
+// Default instance using default dependencies
+export const gameService = new GameService(
+  songService,
+  prisma
+);
+
+// Factory function to create new instances with custom dependencies
+export const createGameService = (songService: SongService = createSongService(), prismaClient: PrismaClient = prisma) => {
+  return new GameService(songService, prismaClient);
+}; 

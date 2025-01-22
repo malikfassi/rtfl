@@ -1,24 +1,30 @@
+import { NextRequest } from 'next/server';
 import { getSpotifyClient } from '@/lib/clients/spotify';
+import { withErrorHandler } from '@/lib/middleware/error';
+import { PlaylistNotFoundError, PlaylistTracksError } from '@/lib/errors/spotify';
+import { validateSchema, schemas } from '@/lib/validation';
 
-export async function GET(
-  request: Request,
+export const GET = withErrorHandler(async (
+  request: NextRequest,
   { params }: { params: { id: string } }
-) {
+) => {
+  // Validate playlist ID using shared validation
+  const id = validateSchema(schemas.playlistId, params.id);
+
   try {
-    const spotifyClient = getSpotifyClient();
-    const tracks = await spotifyClient.getPlaylistTracks(params.id);
-    return new Response(JSON.stringify(tracks), { 
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const client = getSpotifyClient();
+    const tracks = await client.getPlaylistTracks(id);
+    
+    if (!tracks) {
+      throw new PlaylistNotFoundError();
+    }
+
+    return Response.json(tracks);
   } catch (error) {
-    console.error('Failed to fetch playlist tracks:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to fetch playlist tracks' }), 
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    // Transform external errors at system boundary
+    if (error instanceof Error && error.message.includes('NOT_FOUND')) {
+      throw new PlaylistNotFoundError();
+    }
+    throw new PlaylistTracksError(error instanceof Error ? error : new Error(String(error)));
   }
-} 
+}); 

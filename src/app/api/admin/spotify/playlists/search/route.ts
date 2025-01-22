@@ -1,19 +1,21 @@
+import { NextRequest } from 'next/server';
 import { getSpotifyClient } from '@/lib/clients/spotify';
+import { withErrorHandler } from '@/lib/middleware/error';
+import { SpotifyApiError } from '@/lib/errors/spotify';
+import { validateSearchParam, schemas } from '@/lib/validation';
 
-export async function GET(request: Request) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
+  const { searchParams } = new URL(request.url);
+  
+  // Validate search query using shared validation
+  const query = validateSearchParam(searchParams, 'q', schemas.searchQuery);
+
   try {
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q');
-
-    if (!query) {
-      return Response.json([]);
-    }
-
-    const spotifyClient = getSpotifyClient();
-    const playlists = await spotifyClient.searchPlaylists(query);
+    const client = getSpotifyClient();
+    const playlists = await client.searchPlaylists(query);
     return Response.json(playlists);
   } catch (error) {
-    console.error('Failed to search playlists:', error);
-    return Response.json({ error: 'Failed to search playlists' }, { status: 500 });
+    // Transform external errors at system boundary
+    throw new SpotifyApiError(error instanceof Error ? error : new Error(String(error)));
   }
-} 
+}); 

@@ -1,11 +1,4 @@
-import { setupTestDb, cleanupTestDb } from './src/lib/db/test';
+// Import test environment setup
+import './src/lib/test/test-env/environment';
 
-beforeAll(async () => {
-  // Set up the test database and run migrations
-  await setupTestDb();
-}, 30000);
-
-afterAll(async () => {
-  // Clean up test database
-  await cleanupTestDb();
-}); 
+// Any additional global test setup can go here 

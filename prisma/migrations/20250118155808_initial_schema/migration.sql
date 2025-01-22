@@ -2,10 +2,10 @@
 CREATE TABLE "Song" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "spotifyId" TEXT NOT NULL,
-    "spotifyData" JSONB NOT NULL,
-    "geniusData" JSONB,
+    "spotifyData" JSON NOT NULL,
+    "geniusData" JSON,
     "lyrics" TEXT NOT NULL,
-    "maskedLyrics" JSONB NOT NULL,
+    "maskedLyrics" JSON NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
