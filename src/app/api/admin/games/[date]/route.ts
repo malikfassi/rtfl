@@ -1,6 +1,11 @@
 import { createGameService } from '@/lib/services/game';
 import { createSongService } from '@/lib/services/song';
 
+function handleError(error: Error) {
+  const status = error.name === 'GameNotFoundError' ? 404 : 400;
+  return Response.json({ error: error.message }, { status });
+}
+
 export async function GET(
   req: Request,
   context: { params: { date: string } }
@@ -13,8 +18,7 @@ export async function GET(
     const game = await gameService.getByDate(date);
     return Response.json(game);
   } catch (error) {
-    console.error('Failed to get game:', error);
-    return Response.json({ error: 'Failed to get game' }, { status: 500 });
+    return handleError(error as Error);
   }
 }
 
@@ -24,9 +28,9 @@ export async function POST(
 ) {
   const { date } = context.params;
   const body = await req.json();
-  const { spotifyId, title, artist } = body;
+  const { spotifyId } = body;
 
-  if (!date || !spotifyId || !title || !artist) {
+  if (!date || !spotifyId) {
     return Response.json(
       { error: 'Missing required fields' },
       { status: 400 }
@@ -37,13 +41,9 @@ export async function POST(
   const gameService = createGameService(songService);
 
   try {
-    const game = await gameService.createOrUpdate(spotifyId, date);
+    const game = await gameService.createOrUpdate(date, spotifyId);
     return Response.json(game);
   } catch (error) {
-    console.error('Failed to create/update game:', error);
-    return Response.json(
-      { error: 'Failed to create/update game' },
-      { status: 500 }
-    );
+    return handleError(error as Error);
   }
 } 
