@@ -1,0 +1,5 @@
+
+> rtfl@0.1.0 test /Users/malikfassifihri/dev/rtfl
+> jest
+
+ ELIFECYCLE  Test failed. See above for more details.

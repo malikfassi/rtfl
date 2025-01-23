@@ -1,6 +1,5 @@
 import { expect } from '@jest/globals';
 import type { SongTestCase, PlaylistTestCase } from './test_cases';
-import type { GeniusSearchResponse } from '@/types/genius';
 import type { Game, Song } from '@prisma/client';
 import type { Track } from '@spotify/web-api-ts-sdk';
 import type { JsonValue } from '@prisma/client/runtime/library';
@@ -15,19 +14,24 @@ export const validators = {
       // Check Spotify data
       expect(actual.spotifyId).toBe(testCase.id);
       expect(actual.spotifyData).toMatchObject({
-        id: track.id,
         name: track.name,
-        uri: track.uri,
-        artists: track.artists,
-        album: track.album
+        artists: track.artists.map(artist => ({
+          id: artist.id,
+          name: artist.name
+        })),
+        album: {
+          name: track.album.name,
+          images: track.album.images
+        },
+        preview_url: track.preview_url
       });
 
-      // Check Genius data (excluding dynamic stats)
-      const actualGenius = actual.geniusData as GeniusSearchResponse;
-      expect(actualGenius.meta.status).toBe(geniusData.meta.status);
-      expect(actualGenius.response.hits[0].result.title).toBe(geniusData.response.hits[0].result.title);
-      expect(actualGenius.response.hits[0].result.artist_names).toBe(geniusData.response.hits[0].result.artist_names);
-      expect(actualGenius.response.hits[0].result.url).toBe(geniusData.response.hits[0].result.url);
+      // Check Genius data
+      const actualGenius = actual.geniusData as { url: string; title: string; artist: string };
+      const expectedGenius = geniusData.response.hits[0].result;
+      expect(actualGenius.url).toBe(expectedGenius.url);
+      expect(actualGenius.title).toBe(expectedGenius.title);
+      expect(actualGenius.artist).toBe(expectedGenius.primary_artist.name);
 
       // Check lyrics and masked lyrics
       expect(actual.lyrics).toBe(testCase.lyrics.get());
@@ -36,8 +40,14 @@ export const validators = {
     playlist: (actual: Record<string, unknown>, testCase: PlaylistTestCase) => {
       expect(actual).toMatchObject({
         id: testCase.id,
-        spotifyData: testCase.spotify.getPlaylist(),
-        tracks: testCase.spotify.getTracks()
+        spotifyData: {
+          id: testCase.spotify.getPlaylist().id,
+          name: testCase.spotify.getPlaylist().name,
+          owner: {
+            id: testCase.spotify.getPlaylist().owner.id,
+            display_name: testCase.spotify.getPlaylist().owner.display_name
+          }
+        }
       });
     },
     game: (actual: Record<string, unknown>, testCase: SongTestCase, date: string) => {
@@ -53,20 +63,24 @@ export const validators = {
       
       const track = testCase.spotify.getTrack();
       expect(song.spotifyData as unknown as Track).toMatchObject({
-        id: track.id,
         name: track.name,
-        uri: track.uri,
-        artists: track.artists,
-        album: track.album
+        artists: track.artists.map(artist => ({
+          id: artist.id,
+          name: artist.name
+        })),
+        album: {
+          name: track.album.name,
+          images: track.album.images
+        },
+        preview_url: track.preview_url
       });
       
       // Validate Genius data
-      const geniusData = song.geniusData as unknown as GeniusSearchResponse;
-      const expectedGeniusData = testCase.genius.getSearch();
-      expect(geniusData.meta.status).toBe(expectedGeniusData.meta.status);
-      expect(geniusData.response.hits[0].result.title).toBe(expectedGeniusData.response.hits[0].result.title);
-      expect(geniusData.response.hits[0].result.artist_names).toBe(expectedGeniusData.response.hits[0].result.artist_names);
-      expect(geniusData.response.hits[0].result.url).toBe(expectedGeniusData.response.hits[0].result.url);
+      const geniusData = song.geniusData as { url: string; title: string; artist: string };
+      const expectedGeniusData = testCase.genius.getSearch().response.hits[0].result;
+      expect(geniusData.url).toBe(expectedGeniusData.url);
+      expect(geniusData.title).toBe(expectedGeniusData.title);
+      expect(geniusData.artist).toBe(expectedGeniusData.primary_artist.name);
 
       // Validate lyrics and masked lyrics
       expect(song.lyrics).toBe(testCase.lyrics.get());
@@ -80,8 +94,16 @@ export const validators = {
       expect(actual).toMatchObject({
         spotifyId: testCase.id,
         spotifyData: {
-          id: track.id,
-          uri: track.uri
+          name: track.name,
+          artists: track.artists.map(artist => ({
+            id: artist.id,
+            name: artist.name
+          })),
+          album: {
+            name: track.album.name,
+            images: track.album.images
+          },
+          preview_url: track.preview_url
         },
         lyrics: testCase.lyrics.get(),
         maskedLyrics: {
@@ -97,7 +119,11 @@ export const validators = {
         id: testCase.id,
         spotifyData: {
           id: playlist.id,
-          uri: playlist.uri
+          name: playlist.name,
+          owner: {
+            id: playlist.owner.id,
+            display_name: playlist.owner.display_name
+          }
         }
       });
     },
@@ -114,8 +140,16 @@ export const validators = {
       expect(game.song.spotifyId).toBe(testCase.id);
       const track = testCase.spotify.getTrack();
       expect((game.song.spotifyData as JsonValue) as unknown as Track).toMatchObject({
-        id: track.id,
-        uri: track.uri
+        name: track.name,
+        artists: track.artists.map(artist => ({
+          id: artist.id,
+          name: artist.name
+        })),
+        album: {
+          name: track.album.name,
+          images: track.album.images
+        },
+        preview_url: track.preview_url
       });
       expect(game.song.lyrics).toBe(testCase.lyrics.get());
       expect(game.song.maskedLyrics).toEqual(testCase.lyrics.getMasked());

@@ -1,4 +1,15 @@
 // Import test environment setup
-import './src/lib/test/test-env/environment';
+require('./src/lib/test/test-env/environment');
+const { setupTestDb, cleanupTestDb, prisma } = require('./src/lib/test/test-env/db');
 
-// Any additional global test setup can go here 
+// Global setup
+beforeAll(async () => {
+  // Initialize test database once at the start
+  await setupTestDb();
+}, 30000); // Increase timeout for database setup
+
+// Global cleanup
+afterAll(async () => {
+  await prisma.$disconnect();
+  await cleanupTestDb();
+}, 30000); // Increase timeout for cleanup 

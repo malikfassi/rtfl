@@ -31,6 +31,12 @@ export function setupUnitTest(): UnitTestContext {
   const mockPrisma = mockDeep<PrismaClient>();
   const mockTx = mockDeep<PrismaClient>();
   
+  // Ensure transaction mock has same methods as prisma mock
+  mockTx.game.upsert.mockImplementation(mockPrisma.game.upsert);
+  mockTx.game.findUnique.mockImplementation(mockPrisma.game.findUnique);
+  mockTx.game.findMany.mockImplementation(mockPrisma.game.findMany);
+  mockTx.game.delete.mockImplementation(mockPrisma.game.delete);
+  
   // Create mock clients
   const mockSpotifyClient = {
     getTrack: jest.fn(),
@@ -63,14 +69,15 @@ export function setupUnitTest(): UnitTestContext {
   const mockGuessService = new GuessService(mockPrisma);
 
   // Mock transaction
-  mockPrisma.$transaction.mockImplementation((fn: unknown) => {
+  mockPrisma.$transaction.mockImplementation(async (fn: unknown) => {
     if (Array.isArray(fn)) {
       // Handle array of promises
       return Promise.all(fn);
     }
     // Handle callback
     if (typeof fn === 'function') {
-      return fn(mockTx);
+      const result = await fn(mockTx);
+      return result;
     }
     throw new Error('Invalid transaction argument');
   });

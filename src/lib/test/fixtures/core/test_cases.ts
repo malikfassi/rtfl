@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals';
-import { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
+import { Track, type SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 import type { GeniusSearchResponse } from '@/types/genius';
 import type { Song, Game } from '@prisma/client';
 import type { JsonValue } from '@prisma/client/runtime/library';
@@ -151,27 +151,51 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
             input: () => ({
               data: {
                 spotifyId: id,
-                spotifyData: JSON.parse(JSON.stringify(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks])),
-                geniusData: JSON.parse(JSON.stringify(typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId])),
+                spotifyData: JSON.parse(JSON.stringify({
+                  name: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].name,
+                  artists: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].artists.map(a => ({ name: a.name, id: a.id })),
+                  album: {
+                    name: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].album.name,
+                    images: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].album.images
+                  },
+                  preview_url: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].preview_url
+                })),
+                geniusData: JSON.parse(JSON.stringify({
+                  url: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.url,
+                  title: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.title,
+                  artist: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.primary_artist.name
+                })),
                 lyrics: typedLyricsJson[id as keyof typeof typedLyricsJson],
-                maskedLyrics: {
+                maskedLyrics: JSON.parse(JSON.stringify({
                   title: maskText(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].name),
                   artist: maskText(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].artists[0].name),
                   lyrics: maskText(typedLyricsJson[id as keyof typeof typedLyricsJson])
-                }
+                }))
               }
             }),
             output: (mockId: string = '1') => ({
               id: mockId,
               spotifyId: id,
-              spotifyData: JSON.parse(JSON.stringify(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks])),
-              geniusData: JSON.parse(JSON.stringify(typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId])),
+              spotifyData: JSON.parse(JSON.stringify({
+                name: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].name,
+                artists: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].artists.map(a => ({ name: a.name, id: a.id })),
+                album: {
+                  name: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].album.name,
+                  images: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].album.images
+                },
+                preview_url: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].preview_url
+              })),
+              geniusData: JSON.parse(JSON.stringify({
+                url: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.url,
+                title: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.title,
+                artist: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.primary_artist.name
+              })),
               lyrics: typedLyricsJson[id as keyof typeof typedLyricsJson],
-              maskedLyrics: {
+              maskedLyrics: JSON.parse(JSON.stringify({
                 title: maskText(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].name),
                 artist: maskText(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].artists[0].name),
                 lyrics: maskText(typedLyricsJson[id as keyof typeof typedLyricsJson])
-              },
+              })),
               createdAt: new Date(),
               updatedAt: new Date()
             })

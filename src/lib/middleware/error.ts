@@ -15,7 +15,7 @@ function logError(error: unknown, req: NextRequest) {
   };
 
   if (error instanceof AppError) {
-    console.error(`${error.code}:`, {
+    console.log(`${error.code}:`, {
       ...errorContext,
       status: error.status,
       message: error.message
@@ -24,7 +24,7 @@ function logError(error: unknown, req: NextRequest) {
   }
 
   if (error instanceof z.ZodError) {
-    console.error('Validation error:', {
+    console.log('Validation error:', {
       ...errorContext,
       errors: error.errors.map(err => ({
         path: err.path.join('.'),
@@ -55,14 +55,7 @@ function createErrorResponse(error: unknown): { response: unknown; status: numbe
   if (error instanceof z.ZodError) {
     return {
       response: {
-        error: error.errors.map(err => ({
-          code: err.code,
-          validation: err.code === 'invalid_string' ? err.validation : undefined,
-          message: err.message,
-          path: err.path,
-          expected: err.code === 'invalid_type' ? err.expected : undefined,
-          received: err.code === 'invalid_type' ? err.received : undefined
-        }))
+        error: error.errors[0].message
       },
       status: 400
     };

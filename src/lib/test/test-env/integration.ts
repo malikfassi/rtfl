@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { prisma } from '@/lib/db';
+import { prisma } from './db';
 import { SongService } from '@/lib/services/song';
 import { GameService } from '@/lib/services/game';
 import { GuessService } from '@/lib/services/guess';
@@ -17,18 +17,28 @@ config();
  */
 export interface IntegrationTestContext {
   prisma: PrismaClient;
-  gameService: GameService;
   songService: SongService;
+  gameService: GameService;
   guessService: GuessService;
+  cleanup: () => Promise<void>;
 }
 
 /**
  * Cleans the database by deleting all records
  */
-async function cleanDatabase() {
-  await prisma.guess.deleteMany();
-  await prisma.game.deleteMany();
-  await prisma.song.deleteMany();
+export async function cleanDatabase() {
+  await prisma.$transaction(async (tx) => {
+    // Disable foreign key checks for SQLite
+    await tx.$executeRaw`PRAGMA foreign_keys = OFF;`;
+
+    // Delete records from all tables in the correct order
+    await tx.guess.deleteMany();
+    await tx.game.deleteMany();
+    await tx.song.deleteMany();
+
+    // Re-enable foreign key checks
+    await tx.$executeRaw`PRAGMA foreign_keys = ON;`;
+  });
 }
 
 /**
@@ -37,7 +47,7 @@ async function cleanDatabase() {
  * @returns IntegrationTestContext
  */
 export async function setupIntegrationTest(): Promise<IntegrationTestContext> {
-  // Clean database first
+  // Clean existing data
   await cleanDatabase();
 
   // Create real client instances
@@ -56,9 +66,10 @@ export async function setupIntegrationTest(): Promise<IntegrationTestContext> {
 
   return {
     prisma,
-    gameService,
     songService,
-    guessService
+    gameService,
+    guessService,
+    cleanup: cleanDatabase
   };
 }
 
@@ -66,6 +77,10 @@ export async function setupIntegrationTest(): Promise<IntegrationTestContext> {
  * Cleans up the integration test context
  */
 export async function cleanupIntegrationTest() {
-  // Clean database
-  await cleanDatabase();
+  try {
+    await cleanDatabase();
+  } catch (error) {
+    console.error('Error during test cleanup:', error);
+    throw error;
+  }
 } 

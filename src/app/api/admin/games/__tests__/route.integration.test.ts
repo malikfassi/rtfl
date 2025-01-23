@@ -4,7 +4,6 @@ import {
   setupIntegrationTest, 
   cleanupIntegrationTest
 } from '@/lib/test';
-import { prisma } from '@/lib/db';
 import { TEST_CASES } from '@/lib/test/fixtures/core/test_cases';
 import { validators } from '@/lib/test/fixtures/core/validators';
 import type { Game, Song } from '@prisma/client';
@@ -13,13 +12,12 @@ type GameWithSong = Game & { song: Song };
 
 describe('Games API Integration', () => {
   const validSongCase = TEST_CASES.SONGS.VALID;
-  const date = '2024-01-01';
-  const date2 = '2024-01-02';
+  const date = '2025-01-01';
+  const date2 = '2025-01-02';
+  let context: Awaited<ReturnType<typeof setupIntegrationTest>>;
 
   beforeEach(async () => {
-    await setupIntegrationTest();
-    // Clean up any existing games
-    await prisma.game.deleteMany();
+    context = await setupIntegrationTest();
   });
 
   afterEach(async () => {
@@ -27,25 +25,24 @@ describe('Games API Integration', () => {
   });
 
   describe('GET /api/admin/games', () => {
-    beforeEach(async () => {
-      const context = await setupIntegrationTest();
-      // Create test games
+    test('returns games for month', async () => {
+      // Create test games sequentially to avoid race conditions
       await context.gameService.createOrUpdate(date, validSongCase.id);
       await context.gameService.createOrUpdate(date2, validSongCase.id);
-    });
 
-    test('returns games for month', async () => {
       const request = new NextRequest(
-        'http://localhost:3000/api/admin/games?month=2024-01'
+        'http://localhost:3000/api/admin/games?month=2025-01'
       );
-
       const response = await GET(request, undefined);
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveLength(2);
-      expect(data[0].date).toBe(date);
-      expect(data[1].date).toBe(date2);
+      
+      // Sort both arrays to ensure consistent comparison
+      const responseDates = data.map((game: GameWithSong) => game.date).sort();
+      const expectedDates = [date, date2].sort();
+      expect(responseDates).toEqual(expectedDates);
 
       // Test both games have the expected song data
       data.forEach((game: GameWithSong) => {
@@ -54,6 +51,9 @@ describe('Games API Integration', () => {
     });
 
     test('returns game for date', async () => {
+      // Create test game
+      await context.gameService.createOrUpdate(date, validSongCase.id);
+
       const request = new NextRequest(
         `http://localhost:3000/api/admin/games?date=${date}`
       );
@@ -67,14 +67,14 @@ describe('Games API Integration', () => {
 
     test('returns 404 when game not found', async () => {
       const request = new NextRequest(
-        'http://localhost:3000/api/admin/games?date=2024-01-03'
+        'http://localhost:3000/api/admin/games?date=2025-01-03'
       );
 
       const response = await GET(request, undefined);
       const data = await response.json();
 
       expect(response.status).toBe(404);
-      expect(data.error).toBe('Game not found for date: 2024-01-03');
+      expect(data.error).toBe('Game not found for date: 2025-01-03');
     });
 
     test('returns 400 when no date or month provided', async () => {
@@ -110,7 +110,7 @@ describe('Games API Integration', () => {
       validators.integration.game(data, validSongCase, date);
 
       // Verify in database
-      const game = await prisma.game.findUnique({
+      const game = await context.prisma.game.findUnique({
         where: { date },
         include: { song: true }
       });
@@ -141,13 +141,10 @@ describe('Games API Integration', () => {
   });
 
   describe('DELETE /api/admin/games', () => {
-    beforeEach(async () => {
-      const context = await setupIntegrationTest();
+    test('deletes game for date', async () => {
       // Create test game
       await context.gameService.createOrUpdate(date, validSongCase.id);
-    });
 
-    test('deletes game for date', async () => {
       const request = new NextRequest(
         `http://localhost:3000/api/admin/games?date=${date}`,
         { method: 'DELETE' }
@@ -160,7 +157,7 @@ describe('Games API Integration', () => {
       expect(data.date).toBe(date);
 
       // Verify game was deleted
-      const game = await prisma.game.findFirst({
+      const game = await context.prisma.game.findFirst({
         where: { date }
       });
       expect(game).toBeNull();
@@ -181,7 +178,7 @@ describe('Games API Integration', () => {
 
     test('returns 404 when game not found', async () => {
       const request = new NextRequest(
-        'http://localhost:3000/api/admin/games?date=2024-01-03',
+        'http://localhost:3000/api/admin/games?date=2025-01-03',
         { method: 'DELETE' }
       );
 
@@ -189,7 +186,7 @@ describe('Games API Integration', () => {
       const data = await response.json();
 
       expect(response.status).toBe(404);
-      expect(data.error).toBe('Game not found for date: 2024-01-03');
+      expect(data.error).toBe('Game not found for date: 2025-01-03');
     });
   });
 }); 

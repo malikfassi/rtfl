@@ -71,7 +71,14 @@ export async function validateJsonBody<T>(req: Request, schema: z.Schema<T>): Pr
 // Common schemas
 export const spotifyIdSchema = z.string().trim()
   .min(1, 'Spotify ID is required')
-  .regex(/^[a-zA-Z0-9]{22}$/, 'Invalid Spotify track ID format');
+  .transform((val) => {
+    // If it's a Spotify URI, extract the ID
+    if (val.startsWith('spotify:track:')) {
+      return val.split(':')[2];
+    }
+    return val;
+  })
+  .refine((val) => /^[a-zA-Z0-9]{22}$/.test(val), 'Invalid Spotify track ID format');
 
 export const searchQuerySchema = z.string().trim()
   .min(1, 'Search query is required');

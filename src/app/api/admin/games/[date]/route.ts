@@ -1,49 +1,44 @@
+import { validateSchema, gameDateSchema } from '@/lib/validation';
+import { withErrorHandler } from '@/lib/middleware/error';
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import { createGameService } from '@/lib/services/game';
 import { createSongService } from '@/lib/services/song';
+import { ValidationError } from '@/lib/errors/base';
 
-function handleError(error: Error) {
-  const status = error.name === 'GameNotFoundError' ? 404 : 400;
-  return Response.json({ error: error.message }, { status });
-}
+const requestBodySchema = z.object({
+  spotifyId: z.string({
+    required_error: 'Spotify ID is required'
+  }).min(1, 'Spotify ID is required')
+}).strict();
 
-export async function GET(
-  req: Request,
+export const GET = withErrorHandler(async (
+  req: NextRequest,
   context: { params: { date: string } }
-) {
-  const { date } = context.params;
+) => {
+  const validatedDate = validateSchema(gameDateSchema, context.params.date);
   const songService = createSongService();
   const gameService = createGameService(songService);
+  const game = await gameService.getByDate(validatedDate);
+  return Response.json(game);
+});
 
-  try {
-    const game = await gameService.getByDate(date);
-    return Response.json(game);
-  } catch (error) {
-    return handleError(error as Error);
-  }
-}
-
-export async function POST(
-  req: Request,
+export const POST = withErrorHandler(async (
+  req: NextRequest,
   context: { params: { date: string } }
-) {
-  const { date } = context.params;
-  const body = await req.json();
-  const { spotifyId } = body;
-
-  if (!date || !spotifyId) {
-    return Response.json(
-      { error: 'Missing required fields' },
-      { status: 400 }
-    );
+) => {
+  const validatedDate = validateSchema(gameDateSchema, context.params.date);
+  
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    throw new ValidationError('Spotify ID is required');
   }
 
+  const validatedBody = validateSchema(requestBodySchema, body);
   const songService = createSongService();
   const gameService = createGameService(songService);
-
-  try {
-    const game = await gameService.createOrUpdate(date, spotifyId);
-    return Response.json(game);
-  } catch (error) {
-    return handleError(error as Error);
-  }
-} 
+  const game = await gameService.createOrUpdate(validatedDate, validatedBody.spotifyId);
+  return Response.json(game);
+}); 

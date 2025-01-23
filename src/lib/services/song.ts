@@ -21,11 +21,19 @@ export class SongService {
   async create(spotifyId: string, tx?: Prisma.TransactionClient): Promise<Song> {
     const validatedId = validateSchema(spotifyIdSchema, spotifyId);
 
-    // First, fetch all external data
-    const [track, geniusSearchResult, lyrics] = await this.fetchExternalData(validatedId);
+    try {
+      // First, fetch all external data
+      const [track, geniusSearchResult, lyrics] = await this.fetchExternalData(validatedId);
 
-    // Then, create the song in the database
-    return await this.createSongInDb(validatedId, track, geniusSearchResult, lyrics, tx);
+      // Then, create the song in the database
+      const prisma = tx || this.prisma;
+      return await this.createSongInDb(validatedId, track, geniusSearchResult, lyrics, prisma);
+    } catch (error) {
+      if (error instanceof NoMatchingTracksError) {
+        throw new Error('Track not found');
+      }
+      throw error;
+    }
   }
 
   async getTrack(id: string): Promise<Track> {
@@ -176,9 +184,22 @@ export class SongService {
       lyrics: lyricsService.mask(lyrics)
     } as Prisma.InputJsonValue;
 
-    // 2. Store external data
-    const spotifyData = JSON.parse(JSON.stringify(track)) as Prisma.InputJsonValue;
-    const geniusData = JSON.parse(JSON.stringify(geniusSearchResult)) as Prisma.InputJsonValue;
+    // 2. Store only essential external data
+    const spotifyData = JSON.parse(JSON.stringify({
+      name: track.name,
+      artists: track.artists.map(a => ({ name: a.name, id: a.id })),
+      album: {
+        name: track.album.name,
+        images: track.album.images
+      },
+      preview_url: track.preview_url
+    })) as Prisma.InputJsonValue;
+
+    const geniusData = JSON.parse(JSON.stringify({
+      url: geniusSearchResult.response.hits[0]?.result.url,
+      title: geniusSearchResult.response.hits[0]?.result.title,
+      artist: geniusSearchResult.response.hits[0]?.result.primary_artist.name
+    })) as Prisma.InputJsonValue;
 
     // 3. Create song record
     return await prisma.song.create({

@@ -14,9 +14,7 @@ jest.setTimeout(30000);
 
 /**
  * Global setup - runs once before all test files
- * - Sets up in-memory SQLite database
- * - Pushes latest schema
- * - Connects Prisma client
+ * Sets up SQLite database and pushes latest schema
  */
 beforeAll(async () => {
   await setupTestDb();
@@ -24,8 +22,7 @@ beforeAll(async () => {
 
 /**
  * Global cleanup - runs once after all test files
- * - Disconnects Prisma client
- * - Cleans up test database
+ * Disconnects Prisma client and cleans up database
  */
 afterAll(async () => {
   await cleanupTestDb();
@@ -33,11 +30,15 @@ afterAll(async () => {
 
 /**
  * Per-test setup - runs before each test
- * - Clears all tables while maintaining schema
- * - Handles foreign key constraints
+ * Cleans all tables while maintaining schema
  */
 beforeEach(async () => {
-  await resetTestDb();
+  try {
+    await resetTestDb();
+  } catch (error) {
+    console.error('Failed to reset test database:', error);
+    throw error;
+  }
 });
 
 // Export configured test database client
