@@ -5,7 +5,7 @@ import { ValidationError } from './errors/base';
  * Validates data against a Zod schema and throws a ValidationError if invalid
  * @throws {ValidationError} If validation fails
  */
-export function validateSchema<T>(schema: z.Schema<T>, data: unknown): T {
+export function validateSchema<T>(schema: z.ZodSchema<T>, data: unknown): T {
   try {
     return schema.parse(data);
   } catch (error) {
@@ -25,7 +25,9 @@ export const schemas = {
   month: z.string().regex(/^\d{4}-\d{2}$/, 'Invalid month format'),
   
   // IDs and references
-  spotifyId: z.string().min(1, 'Spotify ID is required'),
+  spotifyId: z.string()
+    .min(1, 'Spotify ID is required')
+    .regex(/^[0-9A-Za-z]{22}$/, 'Invalid Spotify track ID format'),
   playlistId: z.string().min(1, 'Playlist ID is required'),
   
   // Search queries
@@ -64,4 +66,61 @@ export async function validateJsonBody<T>(req: Request, schema: z.Schema<T>): Pr
     }
     throw new ValidationError('Invalid JSON in request body');
   }
-} 
+}
+
+// Common schemas
+export const spotifyIdSchema = z.string().trim()
+  .min(1, 'Spotify ID is required')
+  .regex(/^[a-zA-Z0-9]{22}$/, 'Invalid Spotify track ID format');
+
+export const searchQuerySchema = z.string().trim()
+  .min(1, 'Search query is required');
+
+// Game schemas
+export const gameDateSchema = z.string().trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Expected YYYY-MM-DD')
+  .refine((date) => !isNaN(Date.parse(date)), 'Invalid date');
+
+export const gameMonthSchema = z.string().trim()
+  .regex(/^\d{4}-\d{2}$/, 'Invalid month format. Expected YYYY-MM')
+  .refine((month) => {
+    const monthNum = parseInt(month.split('-')[1], 10);
+    return monthNum >= 1 && monthNum <= 12;
+  }, 'Invalid month');
+
+// Guess schemas
+export const gameIdSchema = z.string().trim()
+  .min(1, 'Game ID is required')
+  .regex(/^[0-9a-fA-F]{24}$/, 'Invalid game ID format');
+
+export const playerIdSchema = z.string().trim()
+  .min(1, 'Player ID is required')
+  .regex(/^[0-9a-fA-F]{24}$/, 'Invalid player ID format');
+
+export const wordSchema = z.string().trim()
+  .min(1, 'Word is required')
+  .regex(/^[a-zA-ZÀ-ÿ]+$/, 'Word must contain only letters');
+
+// Song schemas
+export const songTitleSchema = z.string().trim()
+  .min(1, 'Song title is required');
+
+export const artistNameSchema = z.string().trim()
+  .min(1, 'Artist name is required');
+
+// Request schemas
+export const createGameSchema = z.object({
+  date: gameDateSchema,
+  trackId: spotifyIdSchema
+});
+
+export const submitGuessSchema = z.object({
+  gameId: gameIdSchema,
+  playerId: playerIdSchema,
+  word: wordSchema
+});
+
+export const searchSongSchema = z.object({
+  title: songTitleSchema,
+  artist: artistNameSchema
+}); 

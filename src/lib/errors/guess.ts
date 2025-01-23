@@ -1,52 +1,19 @@
-import { AppError } from './base';
+import { AppError, NotFoundError } from './base';
 
-export class ValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ValidationError';
-  }
-}
-
-export class DuplicateGuessError extends Error {
+export class DuplicateGuessError extends AppError {
   constructor() {
-    super('Player has already submitted a guess for this game');
-    this.name = 'DuplicateGuessError';
+    super('DUPLICATE_GUESS', 'Player has already submitted a guess for this game', 400);
   }
 }
 
-export class InvalidWordError extends Error {
+export class InvalidWordError extends AppError {
   constructor() {
-    super('Word not found in lyrics');
-    this.name = 'InvalidWordError';
+    super('INVALID_WORD', 'Word not found in lyrics', 400);
   }
 }
 
-export class GameNotFoundForGuessError extends Error {
-  code: string;
-  status: number;
-
+export class GameNotFoundForGuessError extends NotFoundError {
   constructor() {
     super('Game or song not found');
-    this.name = 'GameNotFoundForGuessError';
-    this.code = 'NOT_FOUND';
-    this.status = 404;
-  }
-}
-
-export class GuessError extends AppError {
-  constructor(message: string) {
-    super('GUESS_ERROR', message, 500);
-  }
-}
-
-export class GuessSubmissionError extends GuessError {
-  constructor(error: Error) {
-    super(`Failed to submit guess: ${error.message}`);
-  }
-}
-
-export class GuessRetrievalError extends GuessError {
-  constructor(error: Error) {
-    super(`Failed to get player guesses: ${error.message}`);
   }
 } 

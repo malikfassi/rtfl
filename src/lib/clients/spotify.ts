@@ -1,14 +1,15 @@
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import type { Track, SimplifiedPlaylist, TrackReference } from '@spotify/web-api-ts-sdk';
-import {
-  SpotifyError,
+import { 
   SpotifyApiError,
   TrackNotFoundError,
   PlaylistNotFoundError,
-  MissingTrackIdError,
-  MissingPlaylistIdError,
-  MissingSearchQueryError
+  NoMatchingTracksError,
+  NoMatchingPlaylistsError,
+  NoTracksInPlaylistError
 } from '@/lib/errors/spotify';
+import { spotifyIdSchema, searchQuerySchema } from '@/lib/validation';
+import { validateSchema } from '@/lib/validation';
 
 export interface SpotifyClient {
   getTrack(id: string): Promise<Track>;
@@ -26,95 +27,92 @@ export class SpotifyClientImpl implements SpotifyClient {
     private clientSecret: string
   ) {
     if (!clientId || !clientSecret) {
-      throw new SpotifyError('Spotify credentials not configured');
+      throw new SpotifyApiError(new Error('Spotify credentials not configured'));
     }
 
     this.client = SpotifyApi.withClientCredentials(clientId, clientSecret);
   }
 
-  private handleSpotifyError(error: unknown, context: string): never {
-    console.error(`Spotify ${context} error:`, error);
-    
-    // Already transformed errors pass through
-    if (error instanceof SpotifyError) {
-      throw error;
-    }
-
-    // Handle API errors
-    if (error instanceof Error) {
-      if (error.message.includes('404')) {
-        if (context.includes('track')) {
-          throw new TrackNotFoundError();
-        }
-        if (context.includes('playlist')) {
-          throw new PlaylistNotFoundError();
-        }
-      }
-      throw new SpotifyApiError(error);
-    }
-
-    // Unknown errors
-    throw new SpotifyApiError(new Error(`Failed to ${context}`));
-  }
-
   async searchPlaylists(query: string): Promise<SimplifiedPlaylist[]> {
-    if (!query?.trim()) {
-      throw new MissingSearchQueryError();
-    }
+    const validatedQuery = validateSchema(searchQuerySchema, query);
 
     try {
-      const response = await this.client.search(query, ['playlist'], undefined, 50);
-      return response.playlists.items.map(playlist => ({
+      const response = await this.client.search(validatedQuery, ['playlist'], undefined, 50);
+      const playlists = response.playlists.items
+        .filter(playlist => {
+          if (!playlist || !playlist.name) return false;
+          
+          const searchTerms = validatedQuery.toLowerCase().split(' ');
+          const playlistName = playlist.name.toLowerCase();
+          const ownerName = playlist.owner?.display_name?.toLowerCase() || '';
+          
+          return searchTerms.every(term => 
+            playlistName.includes(term) || ownerName.includes(term)
+          );
+        });
+
+      if (playlists.length === 0) {
+        throw new NoMatchingPlaylistsError();
+      }
+
+      return playlists.map(playlist => ({
         ...playlist,
         tracks: {
           href: '',
           total: 0
         } as TrackReference
-      })) as SimplifiedPlaylist[];
+      }));
     } catch (error) {
-      throw this.handleSpotifyError(error, 'search playlists');
+      if (error instanceof NoMatchingPlaylistsError) throw error;
+      throw new SpotifyApiError(error as Error);
     }
   }
 
   async getPlaylistTracks(playlistId: string): Promise<Track[]> {
-    if (!playlistId) {
-      throw new MissingPlaylistIdError();
-    }
+    const validatedId = validateSchema(spotifyIdSchema, playlistId);
 
     try {
-      const response = await this.client.playlists.getPlaylistItems(playlistId);
-      return response.items
+      const response = await this.client.playlists.getPlaylistItems(validatedId);
+      const tracks = response.items
         .map(item => item.track)
         .filter((track): track is Track => 
           track !== null && 'id' in track && track.type === 'track'
         );
+
+      if (tracks.length === 0) {
+        throw new NoTracksInPlaylistError();
+      }
+
+      return tracks;
     } catch (error) {
-      throw this.handleSpotifyError(error, 'get playlist tracks');
+      if (error instanceof NoTracksInPlaylistError) throw error;
+      if (error instanceof Error && error.message.includes('404')) {
+        throw new PlaylistNotFoundError();
+      }
+      throw new SpotifyApiError(error as Error);
     }
   }
 
   async getTrack(trackId: string): Promise<Track> {
-    if (!trackId?.trim()) {
-      throw new MissingTrackIdError();
-    }
+    const validatedId = validateSchema(spotifyIdSchema, trackId.replace(/^spotify:track:/, ''));
 
-    const id = trackId.replace(/^spotify:track:/, '');
-    if (!/^[a-zA-Z0-9]{22}$/.test(id)) {
-      throw new MissingTrackIdError();
+    try {
+      return await this.client.tracks.get(validatedId);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('404')) {
+        throw new TrackNotFoundError();
+      }
+      throw new SpotifyApiError(error as Error);
     }
-
-    return await this.client.tracks.get(id);
   }
 
   async searchTracks(query: string): Promise<Track[]> {
-    if (!query?.trim()) {
-      throw new MissingSearchQueryError();
-    }
+    const validatedQuery = validateSchema(searchQuerySchema, query);
 
     try {
-      const response = await this.client.search(query, ['track'], undefined, 50);
-      return response.tracks.items.filter(track => {
-        const searchTerms = query.toLowerCase().split(' ');
+      const response = await this.client.search(validatedQuery, ['track'], undefined, 50);
+      const tracks = response.tracks.items.filter(track => {
+        const searchTerms = validatedQuery.toLowerCase().split(' ');
         const trackName = track.name.toLowerCase();
         const artistNames = track.artists.map(artist => artist.name.toLowerCase());
         
@@ -122,8 +120,15 @@ export class SpotifyClientImpl implements SpotifyClient {
           trackName.includes(term) || artistNames.some(name => name.includes(term))
         );
       });
+
+      if (tracks.length === 0) {
+        throw new NoMatchingTracksError();
+      }
+
+      return tracks;
     } catch (error) {
-      throw this.handleSpotifyError(error, 'search tracks');
+      if (error instanceof NoMatchingTracksError) throw error;
+      throw new SpotifyApiError(error as Error);
     }
   }
 }

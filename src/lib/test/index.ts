@@ -23,21 +23,13 @@ export {
 
 // Export test data and types
 export {
-  spotifyData,
-  geniusData,
-  getLyrics,
-  getMaskedLyrics,
-  getMaskedTitle,
-  getMaskedArtist,
-  lyricsJson,
-  type GeniusSearchResponse,
-  type GeniusSearchResult,
+  TEST_CASES,
   type Track,
   type SimplifiedPlaylist,
-  type LyricsFixture,
-  type LyricsJson
-} from './fixtures';
-
-// Export mocks
-export { SpotifyClientMock } from './mocks/spotify';
-export { GeniusClientMock } from './mocks/genius'; 
+  type GeniusSearchResponse,
+  type SongKey,
+  type PlaylistKey,
+  type SongTestCase,
+  type PlaylistTestCase,
+  validators
+} from './fixtures'; 

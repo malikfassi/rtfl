@@ -3,9 +3,10 @@ import { PrismaClient, Guess, Song } from '@prisma/client';
 import {
   DuplicateGuessError,
   InvalidWordError,
-  GameNotFoundForGuessError,
+  GameNotFoundForGuessError
 } from '@/lib/errors/guess';
-import { ValidationError } from '@/lib/errors/base';
+import { validateSchema } from '@/lib/validation';
+import { gameIdSchema, playerIdSchema, submitGuessSchema } from '@/lib/validation';
 
 interface SpotifyTrack {
   name: string;
@@ -14,18 +15,6 @@ interface SpotifyTrack {
 
 export class GuessService {
   constructor(private prisma: PrismaClient) {}
-
-  private handleGuessError(error: unknown, context: string): never {
-    console.error(`Guess service ${context} error:`, error);
-
-    // Pass through all errors
-    if (error instanceof Error) {
-      throw error;
-    }
-
-    // Convert non-Error objects to Error
-    throw new Error(String(error));
-  }
 
   private isExactWordMatch(guess: string, target: string): boolean {
     // Convert both strings to lowercase and normalize whitespace
@@ -62,100 +51,73 @@ export class GuessService {
   }
 
   async submitGuess(gameId: string, playerId: string, word: string): Promise<Guess> {
-    try {
-      // Input validation
-      if (!gameId) {
-        throw new ValidationError('Game ID is required');
-      }
-      if (!playerId) {
-        throw new ValidationError('Player ID is required');
-      }
-      if (!word || word.trim() === '') {
-        throw new ValidationError('Word is required');
-      }
+    // Validate all inputs using the schema
+    const validatedData = validateSchema(submitGuessSchema, { gameId, playerId, word });
 
-      // Check if game exists and get song lyrics
-      const game = await this.prisma.game.findFirst({
-        where: { id: gameId },
-        include: { song: true }
-      });
+    // Check if game exists and get song lyrics
+    const game = await this.prisma.game.findFirst({
+      where: { id: validatedData.gameId },
+      include: { song: true }
+    });
 
-      if (!game?.song) {
-        throw new GameNotFoundForGuessError();
-      }
-
-      // Check if word exists in lyrics
-      const isValidWord = await this.validateWord(word, game.song);
-      if (!isValidWord) {
-        throw new InvalidWordError();
-      }
-
-      // Check for duplicate guess
-      const existingGuess = await this.prisma.guess.findFirst({
-        where: {
-          gameId,
-          playerId,
-          word: { equals: word.toLowerCase() }
-        }
-      });
-
-      if (existingGuess) {
-        throw new DuplicateGuessError();
-      }
-
-      // Create guess
-      try {
-        return await this.prisma.guess.create({
-          data: {
-            gameId,
-            playerId,
-            word: word.trim(),
-          },
-        });
-      } catch (error) {
-        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
-          throw new DuplicateGuessError();
-        }
-        throw error;
-      }
-    } catch (error) {
-      throw this.handleGuessError(error, 'submit guess');
+    if (!game?.song) {
+      throw new GameNotFoundForGuessError();
     }
+
+    // Check if word exists in lyrics
+    const isValidWord = await this.validateWord(validatedData.word, game.song);
+    if (!isValidWord) {
+      throw new InvalidWordError();
+    }
+
+    // Check for duplicate guess
+    const existingGuess = await this.prisma.guess.findFirst({
+      where: {
+        gameId: validatedData.gameId,
+        playerId: validatedData.playerId,
+        word: { equals: validatedData.word.toLowerCase() }
+      }
+    });
+
+    if (existingGuess) {
+      throw new DuplicateGuessError();
+    }
+
+    // Create guess
+    return await this.prisma.guess.create({
+      data: {
+        gameId: validatedData.gameId,
+        playerId: validatedData.playerId,
+        word: validatedData.word.trim(),
+      },
+    });
   }
 
   async getPlayerGuesses(gameId: string, playerId: string): Promise<Guess[]> {
-    try {
-      // Input validation
-      if (!gameId) {
-        throw new ValidationError('Game ID is required');
-      }
-      if (!playerId) {
-        throw new ValidationError('Player ID is required');
-      }
+    // Validate inputs
+    const validatedGameId = validateSchema(gameIdSchema, gameId);
+    const validatedPlayerId = validateSchema(playerIdSchema, playerId);
 
-      // Check if game exists
-      const game = await this.prisma.game.findFirst({
-        where: { id: gameId },
-        include: { song: true }
-      });
+    // Check if game exists
+    const game = await this.prisma.game.findFirst({
+      where: { id: validatedGameId },
+      include: { song: true }
+    });
 
-      if (!game?.song) {
-        throw new GameNotFoundForGuessError();
-      }
-
-      // Get guesses
-      return await this.prisma.guess.findMany({
-        where: {
-          gameId,
-          playerId
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
-    } catch (error) {
-      throw this.handleGuessError(error, 'get player guesses');
+    if (!game?.song) {
+      throw new GameNotFoundForGuessError();
     }
+
+    // Get guesses
+    return await this.prisma.guess.findMany({
+      where: {
+        gameId: validatedGameId,
+        playerId: validatedPlayerId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
   }
 }
 

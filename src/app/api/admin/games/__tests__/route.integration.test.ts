@@ -2,13 +2,17 @@ import { GET, POST, DELETE } from '../route';
 import { NextRequest } from 'next/server';
 import { 
   setupIntegrationTest, 
-  cleanupIntegrationTest, 
-  spotifyData
+  cleanupIntegrationTest
 } from '@/lib/test';
 import { prisma } from '@/lib/db';
+import { TEST_CASES } from '@/lib/test/fixtures/core/test_cases';
+import { validators } from '@/lib/test/fixtures/core/validators';
+import type { Game, Song } from '@prisma/client';
+
+type GameWithSong = Game & { song: Song };
 
 describe('Games API Integration', () => {
-  const [trackId] = Object.entries(spotifyData.tracks)[0];
+  const validSongCase = TEST_CASES.SONGS.VALID;
   const date = '2024-01-01';
   const date2 = '2024-01-02';
 
@@ -26,8 +30,8 @@ describe('Games API Integration', () => {
     beforeEach(async () => {
       const context = await setupIntegrationTest();
       // Create test games
-      await context.gameService.createOrUpdate(date, trackId);
-      await context.gameService.createOrUpdate(date2, trackId);
+      await context.gameService.createOrUpdate(date, validSongCase.id);
+      await context.gameService.createOrUpdate(date2, validSongCase.id);
     });
 
     test('returns games for month', async () => {
@@ -35,13 +39,18 @@ describe('Games API Integration', () => {
         'http://localhost:3000/api/admin/games?month=2024-01'
       );
 
-      const response = await GET(request);
+      const response = await GET(request, undefined);
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveLength(2);
       expect(data[0].date).toBe(date);
       expect(data[1].date).toBe(date2);
+
+      // Test both games have the expected song data
+      data.forEach((game: GameWithSong) => {
+        validators.integration.game(game, validSongCase, game.date);
+      });
     });
 
     test('returns game for date', async () => {
@@ -49,11 +58,11 @@ describe('Games API Integration', () => {
         `http://localhost:3000/api/admin/games?date=${date}`
       );
 
-      const response = await GET(request);
+      const response = await GET(request, undefined);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.date).toBe(date);
+      validators.integration.game(data, validSongCase, date);
     });
 
     test('returns 404 when game not found', async () => {
@@ -61,7 +70,7 @@ describe('Games API Integration', () => {
         'http://localhost:3000/api/admin/games?date=2024-01-03'
       );
 
-      const response = await GET(request);
+      const response = await GET(request, undefined);
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -73,11 +82,11 @@ describe('Games API Integration', () => {
         'http://localhost:3000/api/admin/games'
       );
 
-      const response = await GET(request);
+      const response = await GET(request, undefined);
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe('Invalid month format. Expected YYYY-MM');
+      expect(data.error).toBe('Expected string, received null');
     });
   });
 
@@ -89,17 +98,16 @@ describe('Games API Integration', () => {
           method: 'POST',
           body: JSON.stringify({
             date,
-            spotifyId: trackId
+            spotifyId: validSongCase.id
           })
         }
       );
 
-      const response = await POST(request);
+      const response = await POST(request, undefined);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.date).toBe(date);
-      expect(data.song.spotifyId).toBe(trackId);
+      validators.integration.game(data, validSongCase, date);
 
       // Verify in database
       const game = await prisma.game.findUnique({
@@ -107,7 +115,9 @@ describe('Games API Integration', () => {
         include: { song: true }
       });
       expect(game).toBeTruthy();
-      expect(game!.song.spotifyId).toBe(trackId);
+      if (game) {
+        validators.unit.game(game, validSongCase, date);
+      }
     });
 
     test('returns 400 for invalid date', async () => {
@@ -117,16 +127,16 @@ describe('Games API Integration', () => {
           method: 'POST',
           body: JSON.stringify({
             date: 'invalid-date',
-            spotifyId: trackId
+            spotifyId: validSongCase.id
           })
         }
       );
 
-      const response = await POST(request);
+      const response = await POST(request, undefined);
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe('Invalid date format: invalid-date');
+      expect(data.error).toBe('Invalid date format. Expected YYYY-MM-DD');
     });
   });
 
@@ -134,22 +144,23 @@ describe('Games API Integration', () => {
     beforeEach(async () => {
       const context = await setupIntegrationTest();
       // Create test game
-      await context.gameService.createOrUpdate(date, trackId);
+      await context.gameService.createOrUpdate(date, validSongCase.id);
     });
 
-    test('deletes game', async () => {
+    test('deletes game for date', async () => {
       const request = new NextRequest(
         `http://localhost:3000/api/admin/games?date=${date}`,
-        {
-          method: 'DELETE'
-        }
+        { method: 'DELETE' }
       );
 
-      const response = await DELETE(request);
-      expect(response.status).toBe(204);
+      const response = await DELETE(request, undefined);
+      const data = await response.json();
 
-      // Verify deletion
-      const game = await prisma.game.findUnique({
+      expect(response.status).toBe(200);
+      expect(data.date).toBe(date);
+
+      // Verify game was deleted
+      const game = await prisma.game.findFirst({
         where: { date }
       });
       expect(game).toBeNull();
@@ -158,27 +169,23 @@ describe('Games API Integration', () => {
     test('returns 400 when date is missing', async () => {
       const request = new NextRequest(
         'http://localhost:3000/api/admin/games',
-        {
-          method: 'DELETE'
-        }
+        { method: 'DELETE' }
       );
 
-      const response = await DELETE(request);
+      const response = await DELETE(request, undefined);
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe('Invalid date format. Expected YYYY-MM-DD');
+      expect(data.error).toBe('Expected string, received null');
     });
 
     test('returns 404 when game not found', async () => {
       const request = new NextRequest(
         'http://localhost:3000/api/admin/games?date=2024-01-03',
-        {
-          method: 'DELETE'
-        }
+        { method: 'DELETE' }
       );
 
-      const response = await DELETE(request);
+      const response = await DELETE(request, undefined);
       const data = await response.json();
 
       expect(response.status).toBe(404);

@@ -1,4 +1,4 @@
-import { AppError, ValidationError, InternalError } from '../errors/base';
+import { AppError, InternalError } from '../errors/base';
 import { z } from 'zod';
 import { NextRequest } from 'next/server';
 
@@ -6,12 +6,6 @@ export type RouteHandler<T = unknown> = (
   req: NextRequest,
   context: T
 ) => Promise<Response>;
-
-interface ErrorResponse {
-  error: string;
-  message: string;
-  details?: unknown;
-}
 
 function logError(error: unknown, req: NextRequest) {
   const errorContext = {
@@ -21,9 +15,8 @@ function logError(error: unknown, req: NextRequest) {
   };
 
   if (error instanceof AppError) {
-    console.error('Domain error:', {
+    console.error(`${error.code}:`, {
       ...errorContext,
-      code: error.code,
       status: error.status,
       message: error.message
     });
@@ -33,39 +26,64 @@ function logError(error: unknown, req: NextRequest) {
   if (error instanceof z.ZodError) {
     console.error('Validation error:', {
       ...errorContext,
-      errors: error.errors
+      errors: error.errors.map(err => ({
+        path: err.path.join('.'),
+        message: err.message
+      }))
     });
     return;
   }
 
-  console.error('Unexpected error:', {
+  console.error('Unhandled error:', {
     ...errorContext,
-    error: error instanceof Error ? error : String(error)
+    error: error instanceof Error ? error.stack : String(error)
   });
 }
 
-function createErrorResponse(error: unknown): { response: ErrorResponse; status: number } {
-  // Domain errors
+function createErrorResponse(error: unknown): { response: unknown; status: number } {
+  // Domain errors (AppError and its subclasses)
   if (error instanceof AppError) {
     return {
-      response: error.toJSON(),
+      response: {
+        error: error.message
+      },
       status: error.status
     };
   }
 
-  // Validation errors
+  // Zod validation errors
   if (error instanceof z.ZodError) {
-    const validationError = new ValidationError(error.errors[0].message);
     return {
-      response: validationError.toJSON(),
-      status: validationError.status
+      response: {
+        error: error.errors.map(err => ({
+          code: err.code,
+          validation: err.code === 'invalid_string' ? err.validation : undefined,
+          message: err.message,
+          path: err.path,
+          expected: err.code === 'invalid_type' ? err.expected : undefined,
+          received: err.code === 'invalid_type' ? err.received : undefined
+        }))
+      },
+      status: 400
+    };
+  }
+
+  // Prisma errors
+  if (error instanceof Error && error.name === 'PrismaClientKnownRequestError') {
+    return {
+      response: {
+        error: 'A database error occurred'
+      },
+      status: 500
     };
   }
 
   // Unknown errors
   const internalError = new InternalError('An unexpected error occurred');
   return {
-    response: internalError.toJSON(),
+    response: {
+      error: internalError.message
+    },
     status: internalError.status
   };
 }

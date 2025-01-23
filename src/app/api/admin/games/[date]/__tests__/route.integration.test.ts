@@ -2,13 +2,15 @@ import { GET, POST } from '../route';
 import { NextRequest } from 'next/server';
 import { 
   setupIntegrationTest, 
-  cleanupIntegrationTest, 
-  spotifyData 
+  cleanupIntegrationTest
 } from '@/lib/test';
 import { prisma } from '@/lib/db';
+import { TEST_CASES } from '@/lib/test/fixtures/core/test_cases';
+import { validators } from '@/lib/test/fixtures/core/validators';
 
 describe('Games by Date API Integration', () => {
-  const [trackId] = Object.entries(spotifyData.tracks)[0];
+  const validSongCase = TEST_CASES.SONGS.VALID;
+  const frenchSongCase = TEST_CASES.SONGS.FRENCH;
   const date = '2024-01-01';
 
   beforeEach(async () => {
@@ -25,7 +27,7 @@ describe('Games by Date API Integration', () => {
     beforeEach(async () => {
       const context = await setupIntegrationTest();
       // Create test game
-      await context.gameService.createOrUpdate(date, trackId);
+      await context.gameService.createOrUpdate(date, validSongCase.id);
     });
 
     test('returns game when found', async () => {
@@ -37,8 +39,7 @@ describe('Games by Date API Integration', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.date).toBe(date);
-      expect(data.song.spotifyId).toBe(trackId);
+      validators.integration.game(data, validSongCase, date);
     });
 
     test('returns 404 when game not found', async () => {
@@ -64,7 +65,7 @@ describe('Games by Date API Integration', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe(`Invalid date format: ${invalidDate}`);
+      expect(data.error).toBe('Invalid date format. Expected YYYY-MM-DD');
     });
   });
 
@@ -75,7 +76,7 @@ describe('Games by Date API Integration', () => {
         {
           method: 'POST',
           body: JSON.stringify({
-            spotifyId: trackId
+            spotifyId: validSongCase.id
           })
         }
       );
@@ -84,8 +85,7 @@ describe('Games by Date API Integration', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.date).toBe(date);
-      expect(data.song.spotifyId).toBe(trackId);
+      validators.integration.game(data, validSongCase, date);
 
       // Verify in database
       const game = await prisma.game.findUnique({
@@ -93,23 +93,23 @@ describe('Games by Date API Integration', () => {
         include: { song: true }
       });
       expect(game).toBeTruthy();
-      expect(game!.song.spotifyId).toBe(trackId);
+      if (game) {
+        validators.unit.game(game, validSongCase, date);
+      }
     });
 
     test('updates existing game', async () => {
       // First create a game
       const context = await setupIntegrationTest();
-      await context.gameService.createOrUpdate(date, trackId);
+      await context.gameService.createOrUpdate(date, validSongCase.id);
 
       // Then update it with new track
-      const [newTrackId] = Object.entries(spotifyData.tracks)[1];
-
       const request = new NextRequest(
         `http://localhost:3000/api/admin/games/${date}`,
         {
           method: 'POST',
           body: JSON.stringify({
-            spotifyId: newTrackId
+            spotifyId: frenchSongCase.id
           })
         }
       );
@@ -118,8 +118,7 @@ describe('Games by Date API Integration', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.date).toBe(date);
-      expect(data.song.spotifyId).toBe(newTrackId);
+      validators.integration.game(data, frenchSongCase, date);
 
       // Verify in database
       const game = await prisma.game.findUnique({
@@ -127,7 +126,9 @@ describe('Games by Date API Integration', () => {
         include: { song: true }
       });
       expect(game).toBeTruthy();
-      expect(game!.song.spotifyId).toBe(newTrackId);
+      if (game) {
+        validators.unit.game(game, frenchSongCase, date);
+      }
     });
 
     test('returns 400 when required fields are missing', async () => {
@@ -155,7 +156,7 @@ describe('Games by Date API Integration', () => {
         {
           method: 'POST',
           body: JSON.stringify({
-            spotifyId: trackId
+            spotifyId: validSongCase.id
           })
         }
       );
@@ -164,7 +165,7 @@ describe('Games by Date API Integration', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe(`Invalid date format: ${invalidDate}`);
+      expect(data.error).toBe('Invalid date format. Expected YYYY-MM-DD');
     });
   });
 }); 

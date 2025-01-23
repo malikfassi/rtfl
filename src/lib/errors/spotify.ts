@@ -1,14 +1,8 @@
-import { AppError, ValidationError, NotFoundError } from './base';
+import { NotFoundError, InternalError } from './base';
 
-export class SpotifyError extends AppError {
-  constructor(message: string) {
-    super('SPOTIFY_ERROR', message, 500);
-  }
-}
-
-export class MissingTrackIdError extends ValidationError {
-  constructor() {
-    super('Missing track ID');
+export class SpotifyApiError extends InternalError {
+  constructor(error: Error) {
+    super(`Spotify API error: ${error.message}`);
   }
 }
 
@@ -18,31 +12,31 @@ export class TrackNotFoundError extends NotFoundError {
   }
 }
 
-export class MissingPlaylistIdError extends ValidationError {
-  constructor() {
-    super('Missing playlist ID');
-  }
-}
-
 export class PlaylistNotFoundError extends NotFoundError {
   constructor() {
     super('Playlist not found');
   }
 }
 
-export class MissingSearchQueryError extends ValidationError {
+export class NoMatchingTracksError extends NotFoundError {
   constructor() {
-    super('Missing search query');
+    super('No matching tracks found');
   }
 }
 
-export class SpotifyApiError extends SpotifyError {
-  constructor(error: Error) {
-    super(`Spotify API error: ${error.message}`);
+export class NoMatchingPlaylistsError extends NotFoundError {
+  constructor() {
+    super('No matching playlists found');
   }
 }
 
-export class PlaylistTracksError extends SpotifyError {
+export class NoTracksInPlaylistError extends NotFoundError {
+  constructor() {
+    super('No tracks found in playlist');
+  }
+}
+
+export class PlaylistTracksError extends InternalError {
   constructor(error: Error) {
     super(`Failed to fetch playlist tracks: ${error.message}`);
   }

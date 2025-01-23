@@ -19,7 +19,7 @@ export class AppError extends Error {
 
 export class ValidationError extends AppError {
   constructor(message: string) {
-    super('INVALID_REQUEST', message, 400);
+    super('VALIDATION_ERROR', message, 400);
   }
 }
 
@@ -33,4 +33,5 @@ export class InternalError extends AppError {
   constructor(message: string) {
     super('INTERNAL_ERROR', message, 500);
   }
-} 
+}
+

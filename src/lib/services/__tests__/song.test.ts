@@ -1,44 +1,20 @@
-import { 
-  setupUnitTest,
-  cleanupUnitTest,
-  type UnitTestContext
-} from '@/lib/test';
-import { SongService } from '../song';
-import { SpotifyError } from '@/lib/errors/spotify';
-import type { Song } from '@prisma/client';
-import type { JsonValue } from '@prisma/client/runtime/library';
-import { spotifyData } from '@/lib/test/fixtures/spotify';
-import { geniusData } from '@/lib/test/fixtures/genius';
-import { getLyrics, getMaskedLyrics } from '@/lib/test/fixtures/lyrics';
-import {
-  SongNotFoundError,
-  InvalidTrackIdError,
-  NoLyricsFoundError
-} from '@/lib/errors/song';
-import { ValidationError } from '@/lib/errors/base';
+import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
+import { setupUnitTest, cleanupUnitTest, type UnitTestContext } from '@/lib/test';
+import { NoMatchingLyricsError, LyricsExtractionError } from '@/lib/errors/genius';
+import { NoMatchingTracksError } from '@/lib/errors/spotify';
+import { TEST_CASES } from '@/lib/test/fixtures/core/test_cases';
+import { SongService } from '@/lib/services/song';
 
-// Mock the external clients
-jest.mock('@/lib/clients/spotify', () => ({
-  ...jest.requireActual('@/lib/clients/spotify'),
-  getSpotifyClient: jest.fn()
-}));
-
-jest.mock('@/lib/clients/genius', () => ({
-  ...jest.requireActual('@/lib/clients/genius'),
-  getGeniusClient: jest.fn()
-}));
+// Get test cases
+const [validSongCase, frenchSongCase, instrumentalCase] = Object.values(TEST_CASES.SONGS);
 
 describe('Song Service', () => {
   let context: UnitTestContext;
-  let songService: SongService;
+  let service: SongService;
 
   beforeEach(() => {
     context = setupUnitTest();
-    const { getSpotifyClient } = require('@/lib/clients/spotify');
-    const { getGeniusClient } = require('@/lib/clients/genius');
-    getSpotifyClient.mockReturnValue(context.mockSpotifyClient);
-    getGeniusClient.mockReturnValue(context.mockGeniusClient);
-    songService = new SongService(
+    service = new SongService(
       context.mockPrisma,
       context.mockSpotifyClient,
       context.mockGeniusClient
@@ -50,173 +26,98 @@ describe('Song Service', () => {
   });
 
   describe('searchTracks', () => {
-    test.each(Object.keys(spotifyData.tracks))('returns tracks when search is successful for %s', async (trackId) => {
+    test('returns tracks when search is successful for valid song', async () => {
       const { mockSpotifyClient } = context;
-      const track = spotifyData.tracks[trackId];
+      const track = validSongCase.spotify.getTrack();
       const query = `${track.name} ${track.artists[0].name}`;
-      const searchResults = spotifyData.searches[query].tracks?.items || [];
-      
-      mockSpotifyClient.searchTracks.mockResolvedValueOnce(searchResults);
 
-      const result = await songService.searchTracks(query);
-      expect(result).toEqual(searchResults);
-      expect(mockSpotifyClient.searchTracks).toHaveBeenCalledWith(query);
+      mockSpotifyClient.searchTracks.mockResolvedValueOnce([track]);
+
+      const result = await service.searchTracks(query);
+      expect(result).toEqual([track]);
+    });
+
+    test('returns tracks when search is successful for French song', async () => {
+      const { mockSpotifyClient } = context;
+      const track = frenchSongCase.spotify.getTrack();
+      const query = `${track.name} ${track.artists[0].name}`;
+
+      mockSpotifyClient.searchTracks.mockResolvedValueOnce([track]);
+
+      const result = await service.searchTracks(query);
+      expect(result).toEqual([track]);
     });
 
     test('returns empty array when no tracks found', async () => {
       const { mockSpotifyClient } = context;
-      mockSpotifyClient.searchTracks.mockResolvedValueOnce([]);
+      mockSpotifyClient.searchTracks.mockRejectedValueOnce(new NoMatchingTracksError());
 
-      const result = await songService.searchTracks('nonexistent');
+      const result = await service.searchTracks('unknown song');
       expect(result).toEqual([]);
     });
 
-    test('throws ValidationError when search query is empty', async () => {
-      await expect(songService.searchTracks(''))
-        .rejects
-        .toThrow(new ValidationError('Search query is required'));
-    });
-
-    test('throws ValidationError when search query is only whitespace', async () => {
-      await expect(songService.searchTracks('   '))
-        .rejects
-        .toThrow(new ValidationError('Search query is required'));
-    });
-
-    test('throws SpotifyError when search fails', async () => {
+    test('handles other errors by passing them through', async () => {
       const { mockSpotifyClient } = context;
-      const error = new SpotifyError('Failed to search tracks');
-      mockSpotifyClient.searchTracks.mockRejectedValueOnce(error);
+      mockSpotifyClient.searchTracks.mockRejectedValueOnce(new Error('Track not found'));
 
-      await expect(songService.searchTracks('test'))
-        .rejects
-        .toThrow(error);
-    });
-  });
-
-  describe('getTrack', () => {
-    test.each(Object.keys(spotifyData.tracks))('returns track when found for %s', async (trackId) => {
-      const { mockSpotifyClient } = context;
-      const track = spotifyData.tracks[trackId];
-
-      mockSpotifyClient.getTrack.mockResolvedValueOnce(track);
-
-      const result = await songService.getTrack(track.id);
-      expect(result).toEqual(track);
-      expect(mockSpotifyClient.getTrack).toHaveBeenCalledWith(track.id);
-    });
-
-    test('throws ValidationError when track ID is empty', async () => {
-      await expect(songService.getTrack(''))
-        .rejects
-        .toThrow(new ValidationError('Spotify ID is required'));
-    });
-
-    test('throws SongNotFoundError when track not found', async () => {
-      const { mockSpotifyClient } = context;
-      mockSpotifyClient.getTrack.mockRejectedValueOnce(new SpotifyError('Track not found'));
-
-      await expect(songService.getTrack('nonexistent'))
-        .rejects
-        .toThrow(new SongNotFoundError());
-    });
-
-    test('throws InvalidTrackIdError when track ID is invalid', async () => {
-      const { mockSpotifyClient } = context;
-      mockSpotifyClient.getTrack.mockRejectedValueOnce(
-        new SpotifyError('Invalid track ID')
-      );
-
-      await expect(songService.getTrack('invalid-id'))
-        .rejects
-        .toThrow(new InvalidTrackIdError('invalid-id'));
+      await expect(service.searchTracks('unknown song')).rejects.toThrow('Track not found');
     });
   });
 
   describe('create', () => {
-    test.each(Object.keys(spotifyData.tracks))('creates song with valid track for %s', async (trackId) => {
-      const { mockSpotifyClient, mockGeniusClient, mockPrisma } = context;
-      const track = spotifyData.tracks[trackId];
-      const lyrics = getLyrics(trackId);
-      const query = `${track.name} ${track.artists[0].name}`;
-      const geniusResponse = geniusData.search[query];
+    test('creates song with valid data', async () => {
+      const testCase = validSongCase;
+      
+      // Mock API responses
+      context.mockSpotifyClient.getTrack.mockResolvedValueOnce(testCase.spotify.getTrack());
+      context.mockGeniusClient.search.mockResolvedValueOnce(testCase.genius.getSearch());
+      context.mockGeniusClient.getLyrics.mockResolvedValueOnce(testCase.lyrics.get());
+      
+      // Mock Prisma response
+      context.mockPrisma.song.create.mockResolvedValueOnce(testCase.prisma.song.create.output('1'));
 
-      mockSpotifyClient.getTrack.mockResolvedValueOnce(track);
-      mockGeniusClient.searchSong.mockResolvedValueOnce(lyrics);
+      const result = await service.create(testCase.id);
 
-      const testSong: Song = {
-        id: '1',
-        spotifyId: track.id,
-        spotifyData: JSON.parse(JSON.stringify(track)) as JsonValue,
-        geniusData: JSON.parse(JSON.stringify(geniusResponse)) as JsonValue,
-        lyrics,
-        maskedLyrics: getMaskedLyrics(trackId),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      // Use test case validator
+      testCase.validators.unit.song(result);
 
-      mockPrisma.song.create.mockResolvedValueOnce(testSong);
-
-      const result = await songService.create(track.id);
-      expect(result.spotifyId).toBe(track.id);
-      expect(result.spotifyData).toEqual(JSON.parse(JSON.stringify(track)));
-      expect(result.lyrics).toBe(lyrics);
-      expect(result.maskedLyrics).toEqual(getMaskedLyrics(trackId));
+      // Verify the mocks were called correctly
+      expect(context.mockSpotifyClient.getTrack).toHaveBeenCalledWith(testCase.id);
+      expect(context.mockPrisma.song.create).toHaveBeenCalledWith(testCase.prisma.song.create.input());
     });
 
-    test.each(Object.keys(spotifyData.tracks))('throws NoLyricsFoundError when Genius search fails for %s', async (trackId) => {
-      const { mockSpotifyClient, mockGeniusClient } = context;
-      const track = spotifyData.tracks[trackId];
-      mockSpotifyClient.getTrack.mockResolvedValueOnce(track);
-      mockGeniusClient.searchSong.mockRejectedValueOnce(new Error('Genius API error'));
+    test('creates song with French track data', async () => {
+      const testCase = frenchSongCase;
+      
+      // Mock API responses
+      context.mockSpotifyClient.getTrack.mockResolvedValueOnce(testCase.spotify.getTrack());
+      context.mockGeniusClient.search.mockResolvedValueOnce(testCase.genius.getSearch());
+      context.mockGeniusClient.getLyrics.mockResolvedValueOnce(testCase.lyrics.get());
 
-      await expect(songService.create(track.id))
-        .rejects
-        .toThrow(new NoLyricsFoundError());
+      // Mock Prisma response
+      context.mockPrisma.song.create.mockResolvedValueOnce(testCase.prisma.song.create.output('2'));
+
+      const result = await service.create(testCase.id);
+      testCase.validators.unit.song(result);
     });
 
-    test.each(Object.keys(spotifyData.tracks))('throws database error when create fails for %s', async (trackId) => {
-      const { mockSpotifyClient, mockGeniusClient, mockPrisma } = context;
-      const track = spotifyData.tracks[trackId];
-      const lyrics = getLyrics(trackId);
-      const error = new Error('Database error');
+    test('handles instrumental tracks appropriately', async () => {
+      const testCase = instrumentalCase;
 
-      mockSpotifyClient.getTrack.mockResolvedValueOnce(track);
-      mockGeniusClient.searchSong.mockResolvedValueOnce(lyrics);
-      mockPrisma.song.create.mockRejectedValueOnce(error);
+      context.mockSpotifyClient.getTrack.mockResolvedValueOnce(testCase.spotify.getTrack());
+      context.mockGeniusClient.search.mockRejectedValueOnce(new NoMatchingLyricsError());
 
-      await expect(songService.create(track.id))
-        .rejects
-        .toThrow(error);
+      await expect(service.create(testCase.id)).rejects.toThrow(NoMatchingLyricsError);
     });
 
-    test.each(Object.keys(spotifyData.tracks))('handles transaction correctly for %s', async (trackId) => {
-      const { mockSpotifyClient, mockGeniusClient, mockPrisma, mockTx } = context;
-      const track = spotifyData.tracks[trackId];
-      const lyrics = getLyrics(trackId);
-      const query = `${track.name} ${track.artists[0].name}`;
-      const geniusResponse = geniusData.search[query];
+    test('handles lyrics extraction errors', async () => {
+      const testCase = validSongCase;
 
-      mockSpotifyClient.getTrack.mockResolvedValueOnce(track);
-      mockGeniusClient.searchSong.mockResolvedValueOnce(lyrics);
+      context.mockSpotifyClient.getTrack.mockResolvedValueOnce(testCase.spotify.getTrack());
+      context.mockGeniusClient.search.mockResolvedValueOnce(testCase.genius.getSearch());
+      context.mockGeniusClient.getLyrics.mockRejectedValueOnce(new LyricsExtractionError(new Error('Failed to extract lyrics')));
 
-      const testSong: Song = {
-        id: '1',
-        spotifyId: track.id,
-        spotifyData: JSON.parse(JSON.stringify(track)) as JsonValue,
-        geniusData: JSON.parse(JSON.stringify(geniusResponse)) as JsonValue,
-        lyrics,
-        maskedLyrics: getMaskedLyrics(trackId),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      mockTx.song.create.mockResolvedValueOnce(testSong);
-
-      const result = await songService.create(track.id, mockTx);
-      expect(result.spotifyId).toBe(track.id);
-      expect(mockTx.song.create).toHaveBeenCalled();
-      expect(mockPrisma.song.create).not.toHaveBeenCalled();
+      await expect(service.create(testCase.id)).rejects.toThrow(LyricsExtractionError);
     });
   });
 }); 

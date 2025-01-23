@@ -3,8 +3,8 @@ import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { SongService } from '@/lib/services/song';
 import { GameService } from '@/lib/services/game';
 import { GuessService } from '@/lib/services/guess';
-import { SpotifyClientMock } from '@/lib/test/mocks/spotify';
-import { GeniusClientMock } from '@/lib/test/mocks/genius';
+import type { SpotifyClient } from '@/lib/clients/spotify';
+import type { GeniusClient } from '@/lib/clients/genius';
 
 /**
  * Unit test context providing access to:
@@ -15,10 +15,10 @@ import { GeniusClientMock } from '@/lib/test/mocks/genius';
 export interface UnitTestContext {
   mockPrisma: DeepMockProxy<PrismaClient>;
   mockGameService: GameService;
-  mockSongService: SongService;
+  mockSongService: jest.Mocked<SongService>;
   mockGuessService: GuessService;
-  mockSpotifyClient: SpotifyClientMock;
-  mockGeniusClient: GeniusClientMock;
+  mockSpotifyClient: jest.Mocked<SpotifyClient>;
+  mockGeniusClient: jest.Mocked<GeniusClient>;
   mockTx: DeepMockProxy<PrismaClient>;
 }
 
@@ -30,11 +30,35 @@ export function setupUnitTest(): UnitTestContext {
   // Create mock instances
   const mockPrisma = mockDeep<PrismaClient>();
   const mockTx = mockDeep<PrismaClient>();
-  const mockSpotifyClient = new SpotifyClientMock();
-  const mockGeniusClient = new GeniusClientMock();
+  
+  // Create mock clients
+  const mockSpotifyClient = {
+    getTrack: jest.fn(),
+    searchTracks: jest.fn(),
+    searchPlaylists: jest.fn(),
+    getPlaylistTracks: jest.fn()
+  };
 
-  // Create services with mocked dependencies
-  const mockSongService = new SongService(mockPrisma, mockSpotifyClient, mockGeniusClient);
+  const mockGeniusClient = {
+    search: jest.fn(),
+    getLyrics: jest.fn()
+  };
+
+  // Create mock services
+  const mockSongService = {
+    create: jest.fn(),
+    searchTracks: jest.fn(),
+    getBySpotifyId: jest.fn(),
+    getTrack: jest.fn(),
+    getMaskedLyrics: jest.fn(),
+    fetchExternalData: jest.fn(),
+    findBestMatch: jest.fn(),
+    createSongInDb: jest.fn(),
+    prisma: mockPrisma,
+    spotifyClient: mockSpotifyClient,
+    geniusClient: mockGeniusClient
+  } as unknown as jest.Mocked<SongService>;
+
   const mockGameService = new GameService(mockSongService, mockPrisma);
   const mockGuessService = new GuessService(mockPrisma);
 

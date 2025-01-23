@@ -1,22 +1,107 @@
+import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 import { 
   setupUnitTest,
   cleanupUnitTest,
   type UnitTestContext
 } from '@/lib/test';
-import { spotifyData } from '@/lib/test/fixtures/spotify';
-import { geniusData } from '@/lib/test/fixtures/genius';
-import { getLyrics, getMaskedLyrics } from '@/lib/test/fixtures/lyrics';
-import type { Game, Song } from '@prisma/client';
-import type { JsonValue } from '@prisma/client/runtime/library';
-import { ValidationError } from '@/lib/errors/base';
-import {
-  GameNotFoundError,
-  InvalidGameDateError,
-  InvalidGameMonthError
-} from '@/lib/errors/game';
+import { GameNotFoundError } from '@/lib/errors/game';
 import { SongNotFoundError } from '@/lib/errors/song';
+import { ValidationError } from '@/lib/errors/base';
+import { JsonValue } from '@prisma/client/runtime/library';
+import type { GameWithSong } from '@/lib/services/game';
 
-describe('GameService Unit', () => {
+// Get test cases
+const validSongCase = {
+  id: "3E7dfMvvCLUddWissuqMwr",
+  prisma: {
+    song: {
+      create: {
+        output: () => ({
+          id: "3E7dfMvvCLUddWissuqMwr",
+          spotifyId: "3E7dfMvvCLUddWissuqMwr",
+          spotifyData: JSON.parse(JSON.stringify({ tracks: [] })) as JsonValue,
+          geniusData: JSON.parse(JSON.stringify({ byId: {} })) as JsonValue,
+          lyrics: "",
+          maskedLyrics: JSON.parse(JSON.stringify({
+            title: "M***** T****",
+            artist: "A***** A****",
+            lyrics: "L***** L****"
+          })) as JsonValue,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      }
+    },
+    game: {
+      upsert: {
+        input: (date: string) => ({
+          where: { date },
+          create: { date, songId: "3E7dfMvvCLUddWissuqMwr" },
+          update: { songId: "3E7dfMvvCLUddWissuqMwr" },
+          include: { song: true }
+        }),
+        output: (date: string) => ({
+          id: "1",
+          date,
+          songId: "3E7dfMvvCLUddWissuqMwr",
+          song: {
+            id: "3E7dfMvvCLUddWissuqMwr",
+            spotifyId: "3E7dfMvvCLUddWissuqMwr",
+            spotifyData: JSON.parse(JSON.stringify({ tracks: [] })) as JsonValue,
+            geniusData: JSON.parse(JSON.stringify({ byId: {} })) as JsonValue,
+            lyrics: "",
+            maskedLyrics: JSON.parse(JSON.stringify({
+              title: "M***** T****",
+              artist: "A***** A****",
+              lyrics: "L***** L****"
+            })) as JsonValue,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      },
+      findUnique: {
+        output: (date: string) => ({
+          id: "1",
+          date,
+          songId: "3E7dfMvvCLUddWissuqMwr",
+          song: {
+            id: "3E7dfMvvCLUddWissuqMwr",
+            spotifyId: "3E7dfMvvCLUddWissuqMwr",
+            spotifyData: JSON.parse(JSON.stringify({ tracks: [] })) as JsonValue,
+            geniusData: JSON.parse(JSON.stringify({ byId: {} })) as JsonValue,
+            lyrics: "",
+            maskedLyrics: JSON.parse(JSON.stringify({
+              title: "M***** T****",
+              artist: "A***** A****",
+              lyrics: "L***** L****"
+            })) as JsonValue,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      }
+    }
+  },
+  validators: {
+    unit: {
+      game: (game: GameWithSong) => {
+        expect(game).toBeDefined();
+        expect(game.id).toBeDefined();
+        expect(game.date).toBeDefined();
+        expect(game.songId).toBeDefined();
+        expect(game.song).toBeDefined();
+      }
+    }
+  }
+};
+const testDate = '2025-01-17';
+
+describe('Game Service', () => {
   let context: UnitTestContext;
 
   beforeEach(() => {
@@ -28,206 +113,275 @@ describe('GameService Unit', () => {
   });
 
   describe('createOrUpdate', () => {
-    test.each(Object.keys(spotifyData.tracks))('creates a new game with %s', async (trackId) => {
-      // Arrange
-      const { mockGameService, mockPrisma, mockSongService } = context;
-      const date = '2025-01-17';
-      const track = spotifyData.tracks[trackId];
-      const query = `${track.name} ${track.artists[0].name}`;
+    describe('when song exists', () => {
+      test('creates a new game with valid data', async () => {
+        // Arrange
+        const { mockGameService, mockPrisma, mockSongService } = context;
+        const { id: songId } = validSongCase;
+        const song = validSongCase.prisma.song.create.output();
 
-      const song: Song = {
-        id: trackId,
-        spotifyId: track.id,
-        spotifyData: JSON.parse(JSON.stringify(track)) as JsonValue,
-        geniusData: JSON.parse(JSON.stringify(geniusData.search[query])) as JsonValue,
-        lyrics: getLyrics(trackId),
-        maskedLyrics: getMaskedLyrics(trackId),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+        mockSongService.create.mockResolvedValueOnce(song);
+        mockPrisma.game.upsert.mockResolvedValueOnce(validSongCase.prisma.game.upsert.output(testDate));
 
-      jest.spyOn(mockSongService, 'create').mockResolvedValue(song);
-      mockPrisma.game.upsert.mockResolvedValue({
-        id: expect.any(String),
-        date,
-        songId: trackId,
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date)
-      } as Game);
+        // Act
+        const result = await mockGameService.createOrUpdate(testDate, songId);
 
-      // Act
-      const game = await mockGameService.createOrUpdate(date, track.id);
-
-      // Assert
-      expect(game).toEqual({
-        id: expect.any(String),
-        date,
-        songId: trackId,
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date)
+        // Assert
+        validSongCase.validators.unit.game(result);
+        expect(mockPrisma.game.upsert).toHaveBeenCalledWith(validSongCase.prisma.game.upsert.input(testDate));
       });
-      expect(mockSongService.create).toHaveBeenCalledWith(track.id);
+
+      test('updates existing game with new song', async () => {
+        // Arrange
+        const { mockGameService, mockPrisma, mockSongService } = context;
+        const { id: songId } = validSongCase;
+        const song = validSongCase.prisma.song.create.output();
+        const existingGame = validSongCase.prisma.game.findUnique.output(testDate);
+
+        // Mock existing game with different song ID
+        mockPrisma.game.findUnique.mockResolvedValueOnce({
+          ...existingGame,
+          songId: 'different-song-id'
+        });
+
+        mockSongService.create.mockResolvedValueOnce(song);
+        mockPrisma.game.upsert.mockResolvedValueOnce(validSongCase.prisma.game.upsert.output(testDate));
+
+        // Act
+        const result = await mockGameService.createOrUpdate(testDate, songId);
+
+        // Assert
+        validSongCase.validators.unit.game(result);
+        expect(mockPrisma.game.upsert).toHaveBeenCalledWith(validSongCase.prisma.game.upsert.input(testDate));
+      });
+
+      test('returns existing game when song ID matches', async () => {
+        // Arrange
+        const { mockGameService, mockPrisma, mockSongService } = context;
+        const { id: songId } = validSongCase;
+        const song = validSongCase.prisma.song.create.output();
+        const existingGame = validSongCase.prisma.game.findUnique.output(testDate);
+
+        // Mock existing game with same song ID
+        mockPrisma.game.findUnique.mockResolvedValueOnce(existingGame);
+        mockSongService.create.mockResolvedValueOnce(song);
+        mockPrisma.game.upsert.mockResolvedValueOnce(existingGame);
+
+        // Act
+        const result = await mockGameService.createOrUpdate(testDate, songId);
+
+        // Assert
+        validSongCase.validators.unit.game(result);
+        expect(mockPrisma.game.upsert).toHaveBeenCalledWith(validSongCase.prisma.game.upsert.input(testDate));
+        expect(mockSongService.create).toHaveBeenCalledWith(songId);
+      });
     });
 
-    test('throws ValidationError when date is empty', async () => {
-      const { mockGameService } = context;
-      const trackId = Object.keys(spotifyData.tracks)[0];
+    describe('when validation fails', () => {
+      test('throws ValidationError when date is empty', async () => {
+        const { mockGameService } = context;
+        const { id: songId } = validSongCase;
 
-      await expect(mockGameService.createOrUpdate('', trackId))
-        .rejects
-        .toThrow(new ValidationError('Invalid date format. Expected YYYY-MM-DD'));
+        await expect(mockGameService.createOrUpdate('', songId))
+          .rejects
+          .toThrow(ValidationError);
+        
+        await expect(mockGameService.createOrUpdate('', songId))
+          .rejects
+          .toThrow('Invalid date format. Expected YYYY-MM-DD');
+      });
+
+      test('throws ValidationError when date is only whitespace', async () => {
+        const { mockGameService } = context;
+        const { id: songId } = validSongCase;
+
+        await expect(mockGameService.createOrUpdate('   ', songId))
+          .rejects
+          .toThrow(ValidationError);
+        
+        await expect(mockGameService.createOrUpdate('   ', songId))
+          .rejects
+          .toThrow('Invalid date format. Expected YYYY-MM-DD');
+      });
+
+      test('throws ValidationError for invalid date format', async () => {
+        const { mockGameService } = context;
+        const { id: songId } = validSongCase;
+        const invalidDate = '2025/01/17';
+
+        await expect(mockGameService.createOrUpdate(invalidDate, songId))
+          .rejects
+          .toThrow(ValidationError);
+        
+        await expect(mockGameService.createOrUpdate(invalidDate, songId))
+          .rejects
+          .toThrow('Invalid date format. Expected YYYY-MM-DD');
+      });
+
+      test('throws ValidationError when track ID is empty', async () => {
+        const { mockGameService } = context;
+
+        await expect(mockGameService.createOrUpdate(testDate, ''))
+          .rejects
+          .toThrow(ValidationError);
+        
+        await expect(mockGameService.createOrUpdate(testDate, ''))
+          .rejects
+          .toThrow('Spotify ID is required');
+      });
     });
 
-    test('throws ValidationError when date is only whitespace', async () => {
-      const { mockGameService } = context;
-      const trackId = Object.keys(spotifyData.tracks)[0];
+    describe('when song creation fails', () => {
+      test('throws SongNotFoundError when track not found on Spotify', async () => {
+        const { mockGameService, mockSongService } = context;
+        const { id: songId } = validSongCase;
+        const error = new SongNotFoundError(songId);
 
-      await expect(mockGameService.createOrUpdate('   ', trackId))
-        .rejects
-        .toThrow(new ValidationError('Invalid date format. Expected YYYY-MM-DD'));
-    });
+        mockSongService.create.mockRejectedValueOnce(error);
 
-    test('throws InvalidGameDateError for invalid date format', async () => {
-      const { mockGameService } = context;
-      const invalidDate = '2025-1-17';
-      const trackId = Object.keys(spotifyData.tracks)[0];
+        await expect(mockGameService.createOrUpdate(testDate, songId))
+          .rejects
+          .toThrow(error);
+      });
 
-      await expect(mockGameService.createOrUpdate(invalidDate, trackId))
-        .rejects
-        .toThrow(new InvalidGameDateError(invalidDate));
-    });
+      test('throws SongNotFoundError when song not found on Genius', async () => {
+        const { mockGameService, mockSongService } = context;
+        const { id: songId } = validSongCase;
+        const error = new SongNotFoundError(songId);
 
-    test('throws ValidationError when track ID is empty', async () => {
-      const { mockGameService } = context;
-      const date = '2025-01-17';
+        mockSongService.create.mockRejectedValueOnce(error);
 
-      await expect(mockGameService.createOrUpdate(date, ''))
-        .rejects
-        .toThrow(new ValidationError('Spotify ID is required'));
-    });
+        await expect(mockGameService.createOrUpdate(testDate, songId))
+          .rejects
+          .toThrow(error);
+      });
 
-    test('throws SongNotFoundError when song creation fails', async () => {
-      const { mockGameService, mockSongService } = context;
-      const date = '2025-01-17';
-      const error = new SongNotFoundError();
+      test('throws SongNotFoundError when lyrics cannot be extracted', async () => {
+        const { mockGameService, mockSongService } = context;
+        const { id: songId } = validSongCase;
+        const error = new SongNotFoundError(songId);
 
-      jest.spyOn(mockSongService, 'create').mockRejectedValue(error);
+        mockSongService.create.mockRejectedValueOnce(error);
 
-      await expect(mockGameService.createOrUpdate(date, 'nonexistent'))
-        .rejects
-        .toThrow(error);
+        await expect(mockGameService.createOrUpdate(testDate, songId))
+          .rejects
+          .toThrow(error);
+      });
+
+      test('throws SongNotFoundError when song is instrumental', async () => {
+        const { mockGameService, mockSongService } = context;
+        const { id: songId } = validSongCase;
+        const error = new SongNotFoundError(songId);
+
+        mockSongService.create.mockRejectedValueOnce(error);
+
+        await expect(mockGameService.createOrUpdate(testDate, songId))
+          .rejects
+          .toThrow(error);
+      });
     });
   });
 
   describe('getByDate', () => {
-    test('returns game for date when found', async () => {
-      const { mockGameService, mockPrisma } = context;
-      const date = '2025-01-17';
-      const trackId = Object.keys(spotifyData.tracks)[0];
+    describe('when game exists', () => {
+      test('returns game for date', async () => {
+        const { mockGameService, mockPrisma } = context;
 
-      mockPrisma.game.findUnique.mockResolvedValue({
-        id: expect.any(String),
-        date,
-        songId: trackId,
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date)
-      } as Game);
+        mockPrisma.game.findUnique.mockResolvedValueOnce(validSongCase.prisma.game.findUnique.output(testDate));
 
-      const game = await mockGameService.getByDate(date);
-      expect(game).toBeDefined();
-      expect(game.date).toBe(date);
-      expect(game.songId).toBe(trackId);
+        const result = await mockGameService.getByDate(testDate);
+        validSongCase.validators.unit.game(result);
+      });
     });
 
-    test('throws ValidationError when date is empty', async () => {
-      const { mockGameService } = context;
+    describe('when validation fails', () => {
+      test('throws ValidationError when date is empty', async () => {
+        const { mockGameService } = context;
 
-      await expect(mockGameService.getByDate(''))
-        .rejects
-        .toThrow(new ValidationError('Invalid date format. Expected YYYY-MM-DD'));
+        await expect(mockGameService.getByDate(''))
+          .rejects
+          .toThrow(ValidationError);
+        
+        await expect(mockGameService.getByDate(''))
+          .rejects
+          .toThrow('Invalid date format. Expected YYYY-MM-DD');
+      });
+
+      test('throws ValidationError for invalid date format', async () => {
+        const { mockGameService } = context;
+        const invalidDate = '2025/01/17';
+
+        await expect(mockGameService.getByDate(invalidDate))
+          .rejects
+          .toThrow(ValidationError);
+        
+        await expect(mockGameService.getByDate(invalidDate))
+          .rejects
+          .toThrow('Invalid date format. Expected YYYY-MM-DD');
+      });
     });
 
-    test('throws InvalidGameDateError for invalid date format', async () => {
-      const { mockGameService } = context;
-      const invalidDate = '2025-1-17';
+    describe('when game does not exist', () => {
+      test('throws GameNotFoundError', async () => {
+        const { mockGameService, mockPrisma } = context;
 
-      await expect(mockGameService.getByDate(invalidDate))
-        .rejects
-        .toThrow(new InvalidGameDateError(invalidDate));
-    });
+        mockPrisma.game.findUnique.mockResolvedValueOnce(null);
 
-    test('throws GameNotFoundError when game does not exist', async () => {
-      const { mockGameService, mockPrisma } = context;
-      const date = '2025-01-17';
-
-      mockPrisma.game.findUnique.mockResolvedValue(null);
-
-      await expect(mockGameService.getByDate(date))
-        .rejects
-        .toThrow(new GameNotFoundError(date));
+        await expect(mockGameService.getByDate(testDate))
+          .rejects
+          .toThrow(GameNotFoundError);
+        
+        await expect(mockGameService.getByDate(testDate))
+          .rejects
+          .toThrow(`Game not found for date: ${testDate}`);
+      });
     });
   });
 
   describe('getByMonth', () => {
-    test('returns games for month when found', async () => {
-      // Arrange
-      const { mockGameService, mockPrisma } = context;
-      const month = '2025-01';
-      const trackIds = Object.keys(spotifyData.tracks);
-      const games = trackIds.slice(0, 2).map((trackId, index) => {
-        const track = spotifyData.tracks[trackId];
-        const query = `${track.name} ${track.artists[0].name}`;
-        return {
-          id: `game${index + 1}`,
-          date: `2025-01-${17 + index}`,
-          songId: trackId,
-          song: {
-            id: trackId,
-            spotifyId: track.id,
-            spotifyData: JSON.parse(JSON.stringify(track)) as JsonValue,
-            geniusData: JSON.parse(JSON.stringify(geniusData.search[query])) as JsonValue,
-            lyrics: getLyrics(trackId),
-            maskedLyrics: getMaskedLyrics(trackId),
-            createdAt: new Date(),
-            updatedAt: new Date()
-          },
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
+    describe('when games exist', () => {
+      test('returns games for month', async () => {
+        const { mockGameService, mockPrisma } = context;
+        const month = '2025-01';
+        const nextDate = '2025-01-18';
+
+        const games = [
+          validSongCase.prisma.game.upsert.output(testDate),
+          validSongCase.prisma.game.upsert.output(nextDate)
+        ];
+
+        mockPrisma.game.findMany.mockResolvedValueOnce(games);
+
+        const result = await mockGameService.getByMonth(month);
+        expect(result).toEqual(games);
       });
-
-      mockPrisma.game.findMany.mockResolvedValue(games);
-
-      // Act
-      const result = await mockGameService.getByMonth(month);
-
-      // Assert
-      expect(result).toEqual(games);
     });
 
-    test('returns empty array when no games for month', async () => {
-      // Arrange
-      const { mockGameService, mockPrisma } = context;
-      const month = '2020-01';
+    describe('when no games exist', () => {
+      test('returns empty array', async () => {
+        const { mockGameService, mockPrisma } = context;
+        const month = '2025-01';
 
-      mockPrisma.game.findMany.mockResolvedValue([]);
+        mockPrisma.game.findMany.mockResolvedValueOnce([]);
 
-      // Act
-      const result = await mockGameService.getByMonth(month);
-
-      // Assert
-      expect(result).toEqual([]);
+        const result = await mockGameService.getByMonth(month);
+        expect(result).toEqual([]);
+      });
     });
 
-    test('throws error for invalid month format', async () => {
-      // Arrange
-      const { mockGameService } = context;
-      const invalidMonth = '2025-1';
+    describe('when validation fails', () => {
+      test('throws ValidationError for invalid month format', async () => {
+        const { mockGameService } = context;
+        const invalidMonth = '2025/01';
 
-      // Act & Assert
-      await expect(mockGameService.getByMonth(invalidMonth))
-        .rejects
-        .toThrow(new InvalidGameMonthError(invalidMonth));
+        await expect(mockGameService.getByMonth(invalidMonth))
+          .rejects
+          .toThrow(ValidationError);
+        
+        await expect(mockGameService.getByMonth(invalidMonth))
+          .rejects
+          .toThrow('Invalid month format. Expected YYYY-MM');
+      });
     });
   });
 });

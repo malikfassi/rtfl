@@ -1,31 +1,25 @@
-import { AppError, ValidationError, NotFoundError } from './base';
+import { NotFoundError, InternalError } from './base';
 
-export class GeniusError extends AppError {
-  constructor(message: string) {
-    super('GENIUS_ERROR', message, 500);
-  }
-}
-
-export class GeniusApiError extends GeniusError {
+export class GeniusApiError extends InternalError {
   constructor(error: Error) {
     super(`Genius API error: ${error.message}`);
   }
 }
 
-export class LyricsNotFoundError extends NotFoundError {
+export class NoLyricsFoundError extends NotFoundError {
   constructor() {
-    super('Lyrics not found');
+    super('No lyrics found');
   }
 }
 
-export class MissingLyricsUrlError extends ValidationError {
+export class NoMatchingLyricsError extends NotFoundError {
   constructor() {
-    super('Missing lyrics URL');
+    super('No matching lyrics found');
   }
 }
 
-export class LyricsPageError extends GeniusError {
+export class LyricsExtractionError extends InternalError {
   constructor(error: Error) {
-    super(`Failed to fetch lyrics page: ${error.message}`);
+    super(`Failed to extract lyrics: ${error.message}`);
   }
 } 

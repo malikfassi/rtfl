@@ -1,48 +1,16 @@
 import { decode } from 'html-entities';
-import {
-  GeniusError,
+import { 
   GeniusApiError,
-  LyricsNotFoundError,
-  MissingLyricsUrlError,
-  LyricsPageError
+  NoMatchingLyricsError,
+  LyricsExtractionError
 } from '@/lib/errors/genius';
-
-// Raw API response type
-interface RawGeniusSearchResponse {
-  response: {
-    hits: Array<{
-      result: {
-        id: number;
-        title: string;
-        url: string;
-        primary_artist?: {
-          name: string;
-        };
-      };
-    }>;
-  };
-}
-
-export interface GeniusSearchResult {
-  id: number;
-  title: string;
-  primary_artist: {
-    name: string;
-  };
-  url: string;
-}
-
-export interface GeniusSearchResponse {
-  response: {
-    hits: Array<{
-      result: GeniusSearchResult;
-    }>;
-  };
-}
+import { validateSchema } from '@/lib/validation';
+import { searchQuerySchema } from '@/lib/validation';
+import type { GeniusSearchResponse } from '@/types/genius';
 
 export interface GeniusClient {
   search(query: string): Promise<GeniusSearchResponse>;
-  searchSong(title: string, artist: string): Promise<string>;
+  getLyrics(url: string): Promise<string | null>;
 }
 
 export class GeniusClientImpl implements GeniusClient {
@@ -50,19 +18,9 @@ export class GeniusClientImpl implements GeniusClient {
 
   constructor(accessToken?: string) {
     if (!accessToken) {
-      throw new GeniusError('Access token is required');
+      throw new GeniusApiError(new Error('Missing access token'));
     }
     this.accessToken = accessToken;
-  }
-
-  private handleGeniusError(error: unknown, context: string): never {
-    console.error(`Genius ${context} error:`, error);
-    
-    if (error instanceof GeniusError) {
-      throw error;
-    }
-
-    throw new GeniusApiError(error instanceof Error ? error : new Error(String(error)));
   }
 
   private async request<T>(path: string, params: Record<string, string> = {}): Promise<T> {
@@ -71,20 +29,24 @@ export class GeniusClientImpl implements GeniusClient {
       url.searchParams.append(key, value);
     });
 
-    const response = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`
+    try {
+      const response = await fetch(url.toString(), {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
       }
-    });
 
-    if (!response.ok) {
-      throw new GeniusApiError(new Error(`${response.status} ${response.statusText}`));
+      return response.json();
+    } catch (error) {
+      throw new GeniusApiError(error as Error);
     }
-
-    return response.json();
   }
 
-  private async extractLyricsFromHTML(html: string): Promise<string | null> {
+  protected async extractLyricsFromHTML(html: string): Promise<string | null> {
     // Try different selectors and patterns to find lyrics
     const patterns = [
       // Method 1: Modern lyrics container with data attribute (most reliable)
@@ -137,145 +99,42 @@ export class GeniusClientImpl implements GeniusClient {
   }
 
   async search(query: string): Promise<GeniusSearchResponse> {
-    if (!query?.trim()) {
-      throw new GeniusError('Search query is required');
+    const validatedQuery = validateSchema(searchQuerySchema, query);
+
+    try {
+      const response = await this.request<GeniusSearchResponse>('/search', { q: validatedQuery });
+      if (response.response.hits.length === 0) {
+        throw new NoMatchingLyricsError();
+      }
+      return response;
+    } catch (error) {
+      if (error instanceof NoMatchingLyricsError) throw error;
+      throw new GeniusApiError(error as Error);
+    }
+  }
+
+  async getLyrics(url: string): Promise<string | null> {
+    if (!url) {
+      throw new GeniusApiError(new Error('URL is required'));
     }
 
     try {
-      const response = await this.request<RawGeniusSearchResponse>('/search', { q: query });
-      return {
-        response: {
-          hits: response.response.hits.map(hit => ({
-            result: {
-              id: hit.result.id,
-              title: hit.result.title,
-              url: hit.result.url,
-              primary_artist: {
-                name: hit.result.primary_artist?.name || ''
-              }
-            }
-          }))
-        }
-      };
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch lyrics page: ${response.status} ${response.statusText}`);
+      }
+
+      const html = await response.text();
+      const lyrics = await this.extractLyricsFromHTML(html);
+      if (!lyrics) {
+        throw new LyricsExtractionError(new Error('Failed to extract lyrics from HTML'));
+      }
+
+      return lyrics;
     } catch (error) {
-      throw this.handleGeniusError(error, 'search');
+      if (error instanceof LyricsExtractionError) throw error;
+      throw new GeniusApiError(error as Error);
     }
-  }
-
-  async searchSong(title: string, artist: string): Promise<string> {
-    // Input validation
-    if (!title?.trim()) {
-      throw new GeniusError('Title is required');
-    }
-
-    if (!artist?.trim()) {
-      throw new GeniusError('Artist is required');
-    }
-
-    // Validate input format
-    const invalidCharRegex = /^[!@#$%^&*()]+$/;
-    if (invalidCharRegex.test(title) || invalidCharRegex.test(artist)) {
-      throw new GeniusError('Invalid input format');
-    }
-
-    // Try multiple search variations
-    const searchAttempts = [
-      `${title} ${artist}`,
-      title.replace(/\s*-\s*remix/i, '') + ` ${artist}`, // Try without "remix"
-      `${title.replace(/\([^)]*\)/g, '').trim()} ${artist}`, // Remove parentheses
-      `${title.replace(/\s*(?:feat|ft|featuring)\.?.*/i, '').trim()} ${artist}` // Remove 'feat.'
-    ];
-
-    for (const query of searchAttempts) {
-      try {
-        console.log('Trying search query:', query);
-        const response = await this.request<GeniusSearchResponse>('/search', { q: query });
-        const hits = response.response.hits;
-
-        console.log(`Search query "${query}" returned ${hits.length} hits`);
-
-        if (hits.length === 0) {
-          if (query === searchAttempts[searchAttempts.length - 1]) {
-            throw new LyricsNotFoundError();
-          }
-          continue;
-        }
-
-        const hit = this.findMatchingHit(hits, title, artist);
-        if (!hit) {
-          if (query === searchAttempts[searchAttempts.length - 1]) {
-            throw new LyricsNotFoundError();
-          }
-          continue;
-        }
-
-        console.log('Found match:', `"${hit.result.title}" by "${hit.result.primary_artist.name}"`);
-        
-        if (!hit.result.url) {
-          throw new MissingLyricsUrlError();
-        }
-
-        const lyrics = await this.fetchAndExtractLyrics(hit.result.url);
-        if (lyrics) {
-          return lyrics;
-        }
-      } catch (error) {
-        if (error instanceof GeniusError) {
-          if (query === searchAttempts[searchAttempts.length - 1]) {
-            throw error;
-          }
-          continue;
-        }
-        throw this.handleGeniusError(error, 'search song');
-      }
-    }
-
-    throw new LyricsNotFoundError();
-  }
-
-  private findMatchingHit(hits: Array<{ result: GeniusSearchResult }>, title: string, artist: string) {
-    return hits.find(hit => {
-      const hitTitle = hit.result.title.toLowerCase();
-      const hitArtist = hit.result.primary_artist.name.toLowerCase();
-      
-      // Skip translations and non-English results
-      if (this.isTranslation(hitTitle, hitArtist)) {
-        return false;
-      }
-
-      const queryTerms = `${title} ${artist}`.toLowerCase().split(' ');
-      const isRemix = title.toLowerCase().includes('remix');
-
-      if (isRemix) {
-        // For remixes, check if the base song title and artist match
-        const baseTitle = title.toLowerCase().replace(/\s*-\s*remix/i, '');
-        return hitTitle.includes(baseTitle) && hitArtist.includes(artist.toLowerCase());
-      }
-
-      // For regular songs, check if all query terms appear in either the title or artist name
-      return queryTerms.every(term => hitTitle.includes(term) || hitArtist.includes(term));
-    });
-  }
-
-  private isTranslation(title: string, artist: string): boolean {
-    const translationMarkers = [
-      '[türkçe', 'çeviri]', '[русский', 'перевод]', 'translation',
-      'traducción', 'tradução', 'ترجمه', '翻訳', '번역', 'traduzione'
-    ];
-
-    return translationMarkers.some(marker => 
-      title.includes(marker) || artist.includes(marker)
-    );
-  }
-
-  private async fetchAndExtractLyrics(url: string): Promise<string | null> {
-    const pageResponse = await fetch(url);
-    if (!pageResponse.ok) {
-      throw new LyricsPageError(new Error(pageResponse.statusText));
-    }
-
-    const html = await pageResponse.text();
-    return this.extractLyricsFromHTML(html);
   }
 }
 
@@ -284,7 +143,7 @@ let defaultClient: GeniusClientImpl | null = null;
 
 export function getGeniusClient(): GeniusClientImpl {
   if (!defaultClient) {
-    defaultClient = new GeniusClientImpl(process.env.GENIUS_ACCESS_TOKEN!);
+    defaultClient = new GeniusClientImpl(process.env.GENIUS_ACCESS_TOKEN);
   }
   return defaultClient;
 } 

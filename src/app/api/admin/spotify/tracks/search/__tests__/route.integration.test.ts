@@ -1,13 +1,12 @@
-import { GET } from '../route';
 import { NextRequest } from 'next/server';
-import { 
-  setupIntegrationTest, 
-  cleanupIntegrationTest, 
-  spotifyData 
-} from '@/lib/test';
+import { GET } from '../route';
+import { TEST_CASES } from '@/lib/test/fixtures/core/test_cases';
+import { setupIntegrationTest, cleanupIntegrationTest } from '@/lib/test';
+import type { Track } from '@spotify/web-api-ts-sdk';
 
 describe('GET /api/admin/spotify/tracks/search Integration', () => {
-  const track = Object.values(spotifyData.tracks)[0];
+  const validSongCase = TEST_CASES.SONGS.VALID;
+  const spotifyTrack = validSongCase.spotify.getTrack();
 
   beforeEach(async () => {
     await setupIntegrationTest();
@@ -17,10 +16,10 @@ describe('GET /api/admin/spotify/tracks/search Integration', () => {
     await cleanupIntegrationTest();
   });
 
-  test('returns tracks when found', async () => {
-    const query = track.name;
+  it('returns tracks when found', async () => {
+    const searchQuery = spotifyTrack.name;
     const request = new NextRequest(
-      new URL(`http://localhost:3000/api/admin/spotify/tracks/search?q=${encodeURIComponent(query)}`)
+      new URL(`http://localhost:3000/api/admin/spotify/tracks/search?q=${encodeURIComponent(searchQuery)}`)
     );
 
     const response = await GET(request, { params: {} });
@@ -29,28 +28,36 @@ describe('GET /api/admin/spotify/tracks/search Integration', () => {
     expect(response.status).toBe(200);
     expect(Array.isArray(data)).toBe(true);
     expect(data.length).toBeGreaterThan(0);
-    
-    const firstTrack = data[0];
-    expect(firstTrack).toHaveProperty('id');
-    expect(firstTrack).toHaveProperty('name');
-    expect(firstTrack).toHaveProperty('artists');
+
+    // Test first track matches fixture data
+    const matchingTrack = data.find((track: Track) => track.id === spotifyTrack.id);
+    expect(matchingTrack).toBeDefined();
+    expect(matchingTrack).toMatchObject({
+      id: spotifyTrack.id,
+      name: spotifyTrack.name,
+      artists: spotifyTrack.artists,
+      album: expect.objectContaining({
+        name: spotifyTrack.album.name,
+        images: spotifyTrack.album.images,
+      })
+    });
   });
 
-  test('returns empty array for no matches', async () => {
-    const query = 'thisisaveryrandomquerythatwontmatchanything12345';
+  it('returns 404 for no matches', async () => {
     const request = new NextRequest(
-      new URL(`http://localhost:3000/api/admin/spotify/tracks/search?q=${encodeURIComponent(query)}`)
+      new URL('http://localhost:3000/api/admin/spotify/tracks/search?q=thisisaveryrandomquerythatwontmatching12345')
     );
 
     const response = await GET(request, { params: {} });
     const data = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(Array.isArray(data)).toBe(true);
-    expect(data).toHaveLength(0);
+    expect(response.status).toBe(404);
+    expect(data).toEqual({
+      error: 'No matching tracks found'
+    });
   });
 
-  test('returns 400 when query is missing', async () => {
+  it('returns 400 when query is missing', async () => {
     const request = new NextRequest(
       new URL('http://localhost:3000/api/admin/spotify/tracks/search')
     );
@@ -59,11 +66,12 @@ describe('GET /api/admin/spotify/tracks/search Integration', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBe('VALIDATION_ERROR');
-    expect(data.message).toBe('Missing search query');
+    expect(data).toEqual({
+      error: 'Missing required parameter: q'
+    });
   });
 
-  test('returns 400 when query is empty', async () => {
+  it('returns 400 when query is empty', async () => {
     const request = new NextRequest(
       new URL('http://localhost:3000/api/admin/spotify/tracks/search?q=')
     );
@@ -72,20 +80,22 @@ describe('GET /api/admin/spotify/tracks/search Integration', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBe('VALIDATION_ERROR');
-    expect(data.message).toBe('Missing search query');
+    expect(data).toEqual({
+      error: 'Missing required parameter: q'
+    });
   });
 
-  test('handles special characters in search query', async () => {
-    const query = 'test & special + characters';
+  it('handles special characters in search query', async () => {
     const request = new NextRequest(
-      new URL(`http://localhost:3000/api/admin/spotify/tracks/search?q=${encodeURIComponent(query)}`)
+      new URL('http://localhost:3000/api/admin/spotify/tracks/search?q=test%20%26%20special%20%2B%20characters')
     );
 
     const response = await GET(request, { params: {} });
     const data = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(Array.isArray(data)).toBe(true);
+    expect(response.status).toBe(404);
+    expect(data).toEqual({
+      error: 'No matching tracks found'
+    });
   });
 }); 

@@ -2,12 +2,13 @@ import { GET } from '../route';
 import { NextRequest } from 'next/server';
 import { 
   setupIntegrationTest, 
-  cleanupIntegrationTest, 
-  spotifyData 
+  cleanupIntegrationTest
 } from '@/lib/test';
+import { TEST_CASES } from '@/lib/test/fixtures/core/test_cases';
 
 describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
-  const [trackId] = Object.entries(spotifyData.tracks)[0];
+  const validSongCase = TEST_CASES.SONGS.VALID;
+  const spotifyTrack = validSongCase.spotify.getTrack();
 
   beforeEach(async () => {
     await setupIntegrationTest();
@@ -17,36 +18,34 @@ describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
     await cleanupIntegrationTest();
   });
 
-  test('returns track when found', async () => {
+  it('returns track when found', async () => {
     const request = new NextRequest(
-      new URL(`http://localhost:3000/api/admin/spotify/tracks/${trackId}`)
+      new URL(`http://localhost:3000/api/admin/spotify/tracks/${validSongCase.id}`)
     );
 
-    const response = await GET(request, { params: { id: trackId } });
+    const response = await GET(request, { params: { id: validSongCase.id } });
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data.id).toBe(trackId);
-    expect(data.name).toBeDefined();
-    expect(data.artists).toBeDefined();
-    expect(Array.isArray(data.artists)).toBe(true);
+    // The track data comes directly from the Spotify API, so we should match it exactly
+    expect(data).toEqual(spotifyTrack);
   });
 
-  test('returns 404 when track does not exist', async () => {
-    const nonexistentId = '1234567890abcdef1234567890abcdef';
+  it('returns 404 when track does not exist', async () => {
+    // Use a valid format ID that doesn't exist
+    const validFormatButNonexistentId = '1'.repeat(22);
     const request = new NextRequest(
-      new URL(`http://localhost:3000/api/admin/spotify/tracks/${nonexistentId}`)
+      new URL(`http://localhost:3000/api/admin/spotify/tracks/${validFormatButNonexistentId}`)
     );
 
-    const response = await GET(request, { params: { id: nonexistentId } });
+    const response = await GET(request, { params: { id: validFormatButNonexistentId } });
     const data = await response.json();
 
     expect(response.status).toBe(404);
-    expect(data.error).toBe('NOT_FOUND');
-    expect(data.message).toBe('Track not found');
+    expect(data.error).toBe('Track not found');
   });
 
-  test('returns 400 for invalid track ID format', async () => {
+  it('returns 400 for invalid track ID format', async () => {
     const invalidId = 'invalid-id';
     const request = new NextRequest(
       new URL(`http://localhost:3000/api/admin/spotify/tracks/${invalidId}`)
@@ -56,20 +55,20 @@ describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBe('VALIDATION_ERROR');
+    expect(data.error).toBe('Invalid Spotify track ID format');
   });
 
-  test('returns 500 when Spotify API fails unexpectedly', async () => {
-    // Force an API error by using a valid format ID that doesn't exist
-    const validFormatButNonexistentId = '1'.repeat(22);
+  it('returns 400 for malformed track ID', async () => {
+    // Use an ID that's too long
+    const malformedId = '1234567890abcdef1234567890abcdef';
     const request = new NextRequest(
-      new URL(`http://localhost:3000/api/admin/spotify/tracks/${validFormatButNonexistentId}`)
+      new URL(`http://localhost:3000/api/admin/spotify/tracks/${malformedId}`)
     );
 
-    const response = await GET(request, { params: { id: validFormatButNonexistentId } });
+    const response = await GET(request, { params: { id: malformedId } });
     const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data.error).toBe('SPOTIFY_ERROR');
+    expect(response.status).toBe(400);
+    expect(data.error).toBe('Invalid Spotify track ID format');
   });
 }); 
