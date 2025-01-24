@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 
 import { 
   cleanupIntegrationTest,
@@ -9,7 +9,6 @@ import { TEST_CASES } from '@/app/api/lib/test/fixtures/core/test_cases';
 import { validators } from '@/app/api/lib/test/fixtures/core/validators';
 import { prisma } from '@/app/api/lib/test/test-env/db';
 import { createGameService } from '@/app/api/lib/services/game';
-import { createSongService } from '@/app/api/lib/services/song';
 
 import { DELETE, GET, POST } from '../route';
 

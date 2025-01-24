@@ -1,4 +1,4 @@
-import type { Track } from '@spotify/web-api-ts-sdk';
+import type { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 import { writeFileSync } from 'fs';
 import { dirname,join } from 'path';
 import { fileURLToPath } from 'url';
@@ -29,6 +29,7 @@ console.log('API clients initialized');
 
 interface SpotifyData {
   tracks: Partial<Record<SpotifyId, Track>>;
+  playlists: Partial<Record<PlaylistId, SimplifiedPlaylist>>;
   playlistTracks: Partial<Record<PlaylistId, Track[]>>;
   errors: {
     tracks: Partial<Record<SpotifyId, { status: number; message: string }>>;
@@ -88,11 +89,17 @@ async function generateSongData(id: SpotifyId): Promise<{
  * Generate data for a playlist
  */
 async function generatePlaylistData(id: PlaylistId): Promise<{
+  playlist?: SimplifiedPlaylist;
   tracks?: Track[];
   error?: { status: number; message: string };
 }> {
   console.log(`Generating data for playlist ${id}...`);
   try {
+    // Get playlist metadata
+    console.log('- Fetching playlist metadata...');
+    const playlist = await spotify.client.playlists.get(id);
+    console.log('- Playlist metadata fetched');
+
     // Get playlist tracks
     console.log('- Fetching playlist tracks...');
     const tracks = await spotify.getPlaylistTracks(id);
@@ -103,7 +110,7 @@ async function generatePlaylistData(id: PlaylistId): Promise<{
     }
 
     console.log('Data generated successfully');
-    return { tracks };
+    return { playlist, tracks };
   } catch (error) {
     const err = error as { status?: number; message?: string };
     return {
@@ -125,6 +132,7 @@ async function generateFixtures() {
   // Initialize data structures
   const spotifyData: SpotifyData = {
     tracks: {},
+    playlists: {},
     playlistTracks: {},
     errors: {
       tracks: {},
@@ -169,6 +177,9 @@ async function generateFixtures() {
       console.log(`Processing playlist: ${key}`);
       const data = await generatePlaylistData(id);
       
+      if (data.playlist) {
+        spotifyData.playlists[id] = data.playlist;
+      }
       if (data.tracks) {
         spotifyData.playlistTracks[id] = data.tracks;
       }

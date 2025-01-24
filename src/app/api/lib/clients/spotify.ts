@@ -10,7 +10,6 @@ import {
   TrackNotFoundError} from '@/app/api/lib/errors/spotify';
 import { searchQuerySchema,spotifyIdSchema } from '@/app/api/lib/validation';
 import { validateSchema } from '@/app/api/lib/validation';
-import { ValidationError } from '../errors';
 
 export interface SpotifyClient {
   getTrack(id: string): Promise<Track>;

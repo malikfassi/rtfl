@@ -10,8 +10,6 @@ import { constructGeniusSearchQuery } from '@/app/api/lib/utils/genius';
 import { validateSchema } from '@/app/api/lib/validation';
 import { searchQuerySchema,spotifyIdSchema } from '@/app/api/lib/validation';
 import { GeniusSearchResponse } from '@/app/types/genius';
-import { ValidationError } from '@/app/api/lib/errors/base';
-import { z } from 'zod';
 
 import { lyricsService } from './lyrics';
 

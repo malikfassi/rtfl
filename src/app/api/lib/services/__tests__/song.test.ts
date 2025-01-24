@@ -3,7 +3,6 @@ import { afterEach,beforeEach, describe, expect, test } from '@jest/globals';
 import {
   LyricsExtractionError,
   NoMatchingLyricsError} from '@/app/api/lib/errors/genius';
-import { NoMatchingTracksError } from '@/app/api/lib/errors/spotify';
 import { SongService } from '@/app/api/lib/services/song';
 import {
   cleanupUnitTest,

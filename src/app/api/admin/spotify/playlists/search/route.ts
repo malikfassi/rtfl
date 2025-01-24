@@ -4,7 +4,7 @@ import type { SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 import { NextResponse } from 'next/server';
 
 // Internal imports
-import { getSpotifyClient, type SpotifyClient } from '@/app/api/lib/clients/spotify';
+import { getSpotifyClient } from '@/app/api/lib/clients/spotify';
 import { handleError } from '@/app/api/lib/middleware/error';
 import { schemas, validateSearchParam } from '@/app/api/lib/validation';
 
