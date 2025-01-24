@@ -1,10 +1,8 @@
-'use server';
-
 import { NextResponse } from 'next/server';
 import { Handler } from 'typed-route-handler';
 
 import { ValidationError } from '@/app/api/lib/errors/base';
-import { handleError } from '@/app/api/lib/middleware/error';
+import { handleError } from '@/app/api/lib/utils/error-handler';
 import { gameService, type GameWithSong } from '@/app/api/lib/services/game';
 import { schemas, validateSchema } from '@/app/api/lib/validation';
 
@@ -15,12 +13,11 @@ type GetResponse = SuccessResponse<GameWithSong | GameWithSong[]> | ErrorRespons
 type PostResponse = SuccessResponse<GameWithSong> | ErrorResponse;
 type DeleteResponse = SuccessResponse<{ success: boolean }> | ErrorResponse;
 
-export const GET: Handler<GetResponse> = async (request, context) => {
+export const GET: Handler<GetResponse> = async (request) => {
   try {
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month');
-    const params = await context.params;
-    const date = params.date;
+    const date = searchParams.get('date');
 
     if (!date && !month) {
       throw new ValidationError('Date or month is required');
@@ -40,10 +37,13 @@ export const GET: Handler<GetResponse> = async (request, context) => {
   }
 };
 
-export const POST: Handler<PostResponse> = async (request, context) => {
+export const POST: Handler<PostResponse> = async (request) => {
   try {
-    const params = await context.params;
-    const date = params.date;
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get('date');
+    if (!date) {
+      throw new ValidationError('Date is required');
+    }
     const validatedDate = validateSchema(schemas.date, date);
     
     const body = await request.json();
@@ -56,10 +56,13 @@ export const POST: Handler<PostResponse> = async (request, context) => {
   }
 };
 
-export const DELETE: Handler<DeleteResponse> = async (request, context) => {
+export const DELETE: Handler<DeleteResponse> = async (request) => {
   try {
-    const params = await context.params;
-    const date = params.date;
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get('date');
+    if (!date) {
+      throw new ValidationError('Date is required');
+    }
     const validatedDate = validateSchema(schemas.date, date);
     
     await gameService.delete(validatedDate);
