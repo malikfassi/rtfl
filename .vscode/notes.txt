@@ -1,0 +1,8 @@
+- add admin/game/month/:month route
+- add game/:date route
+- add game/month/:month route
+- add game/:date/guess route
+
+- add gameState service 
+    - returns game for a user with : 
+        

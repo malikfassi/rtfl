@@ -2,7 +2,7 @@
 export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  setupFilesAfterEnv: ['<rootDir>/src/lib/test/test-env/environment.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/app/api/lib/test/test-env/environment.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
