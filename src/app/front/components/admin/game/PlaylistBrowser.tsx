@@ -3,6 +3,7 @@ import React, { useEffect, useRef,useState } from 'react';
 
 import { Input } from '@/app/front/components/ui/Input';
 import { useDebounce } from '@/app/front/hooks/useDebounce';
+import { usePlaylists, usePlaylistTracks } from '@/app/front/hooks/use-playlists';
 
 import { PlaylistSongsList } from './PlaylistSongsList';
 
@@ -59,65 +60,25 @@ function PlaylistList({ playlists, onSelect }: {
 
 export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
   const [query, setQuery] = useState('');
-  const [playlists, setPlaylists] = useState<SimplifiedPlaylist[]>([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState<SimplifiedPlaylist | null>(null);
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const debouncedQuery = useDebounce(query, 300);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    async function fetchPlaylists() {
-      if (!debouncedQuery) {
-        setPlaylists([]);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await fetch(`/api/admin/spotify/playlists?q=${encodeURIComponent(debouncedQuery)}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch playlists');
-        }
-        const data = await response.json();
-        setPlaylists(data);
-      } catch (error) {
-        console.error('Failed to fetch playlists:', error);
-        setError('Failed to fetch playlists');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchPlaylists();
-  }, [debouncedQuery]);
+  const { data: playlists = [], isLoading: isLoadingPlaylists, error: playlistError } = usePlaylists(debouncedQuery);
+  const { data: tracks = [], isLoading: isLoadingTracks } = usePlaylistTracks(selectedPlaylist?.id ?? null);
 
   const handleSelectPlaylist = async (playlist: SimplifiedPlaylist) => {
-    try {
-      setSelectedPlaylist(playlist);
-      setIsLoading(true);
-      setError(null);
-      
-      const response = await fetch(`/api/admin/spotify/playlists/${playlist.id}/tracks`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch tracks');
-      }
-      
-      const tracks = await response.json();
-      setTracks(tracks);
-      onPlaylistSelect({ tracks });
-    } catch (error) {
-      console.error('Failed to fetch tracks:', error);
-      setError('Failed to fetch tracks');
-    } finally {
-      setIsLoading(false);
-    }
+    setSelectedPlaylist(playlist);
   };
 
+  useEffect(() => {
+    if (tracks.length > 0) {
+      onPlaylistSelect({ tracks });
+    }
+  }, [tracks, onPlaylistSelect]);
+
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoadingPlaylists) {
       return <LoadingState />;
     }
     if (selectedPlaylist) {
@@ -125,7 +86,7 @@ export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
         <SelectedPlaylistView 
           playlist={selectedPlaylist} 
           tracks={tracks} 
-          isLoading={isLoading} 
+          isLoading={isLoadingTracks} 
         />
       );
     }
@@ -148,10 +109,9 @@ export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => {
             setSelectedPlaylist(null);
-            setTracks([]);
           }}
         />
-        {error && <div className="text-sm text-destructive">{error}</div>}
+        {playlistError && <div className="text-sm text-destructive">{playlistError instanceof Error ? playlistError.message : 'Failed to fetch playlists'}</div>}
       </div>
       {renderContent()}
     </div>

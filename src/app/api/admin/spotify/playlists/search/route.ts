@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 
 // Internal imports
 import { getSpotifyClient } from '@/app/api/lib/clients/spotify';
-import { handleError } from '@/app/api/lib/middleware/error';
+import { handleError } from '@/app/api/lib/utils/error-handler';
 import { schemas, validateSearchParam } from '@/app/api/lib/validation';
 
 // These types are used for type checking the response

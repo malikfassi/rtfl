@@ -91,6 +91,7 @@ export const artistNameSchema = z.string().trim()
 
 // Request schemas
 export const createGameRequestSchema = z.object({
+  date: dateSchema,
   spotifyId: spotifyIdSchema
 }).strict();
 

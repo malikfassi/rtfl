@@ -1,24 +1,35 @@
 import { useQuery } from '@tanstack/react-query';
+import type { SimplifiedPlaylist, Track } from '@spotify/web-api-ts-sdk';
 
 import { queryKeys } from '@/app/front/lib/query-client';
 
+interface PlaylistsResponse {
+  playlists: SimplifiedPlaylist[];
+}
+
+interface TracksResponse {
+  tracks: Track[];
+}
+
 const adminApi = {
-  searchPlaylists: async (query: string) => {
+  searchPlaylists: async (query: string): Promise<SimplifiedPlaylist[]> => {
     const res = await fetch(`/api/admin/spotify/playlists/search?q=${encodeURIComponent(query)}`);
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.message || 'Failed to fetch playlists');
     }
-    return res.json();
+    const data: PlaylistsResponse = await res.json();
+    return data.playlists;
   },
 
-  getPlaylistTracks: async (playlistId: string) => {
+  getPlaylistTracks: async (playlistId: string): Promise<Track[]> => {
     const res = await fetch(`/api/admin/spotify/playlists/${playlistId}/tracks`);
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.message || 'Failed to fetch playlist tracks');
     }
-    return res.json();
+    const data: TracksResponse = await res.json();
+    return data.tracks;
   }
 };
 

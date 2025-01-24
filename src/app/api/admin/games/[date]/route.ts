@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-
-import { handleError } from '@/app/api/lib/middleware/error';
+import { handleError } from '@/app/api/lib/utils/error-handler';
 import { createGameService, type GameWithSong } from '@/app/api/lib/services/game';
 import { createSongService } from '@/app/api/lib/services/song';
 import { schemas, validateSchema } from '@/app/api/lib/validation';
@@ -34,7 +33,7 @@ export async function POST(
     const { date } = await params;
     const validatedDate = validateSchema(schemas.date, date);
     const body = await request.json();
-    const { spotifyId } = validateSchema(schemas.createGame, body);
+    const spotifyId = validateSchema(schemas.spotifyId, body.spotifyId);
     
     const [gameService, songService] = await Promise.all([
       createGameService(),

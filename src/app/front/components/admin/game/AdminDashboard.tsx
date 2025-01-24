@@ -1,6 +1,6 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
 import { format, isSameDay } from 'date-fns';
-import React, { useCallback,useState } from 'react';
+import React, { useCallback,useState,useEffect } from 'react';
 
 import { useGames } from '@/app/front/hooks/useGames';
 import { getTrackArtist,getTrackTitle } from '@/app/front/lib/utils/spotify';
@@ -26,6 +26,11 @@ export function AdminDashboard({ onGameUpdate, selectedPlaylist, onPlaylistChang
   const [gameEditorMode, setGameEditorMode] = useState<GameEditorMode>('preview');
 
   const { data: games = [], isLoading } = useGames(currentMonth);
+
+  // Automatically switch modes based on number of selected dates
+  useEffect(() => {
+    setEditorMode(selectedDates.length > 1 ? 'batch' : 'single');
+  }, [selectedDates.length]);
 
   const assignRandomSongToDate = useCallback((date: Date) => {
     if (!selectedPlaylist?.tracks.length) return;
@@ -87,14 +92,16 @@ export function AdminDashboard({ onGameUpdate, selectedPlaylist, onPlaylistChang
 
   return (
     <div className="grid grid-cols-[1fr,400px] gap-4">
-      <Calendar
-        selectedDates={selectedDates}
-        onSelect={handleDateSelect}
-        games={games}
-        currentMonth={currentMonth}
-        onMonthChange={setCurrentMonth}
-        pendingChanges={pendingChanges}
-      />
+      <div className="space-y-4">
+        <Calendar
+          selectedDates={selectedDates}
+          onSelect={handleDateSelect}
+          games={games}
+          currentMonth={currentMonth}
+          onMonthChange={setCurrentMonth}
+          pendingChanges={pendingChanges}
+        />
+      </div>
 
       {editorMode === 'single' && selectedDates.length === 1 && (
         <GameEditor
@@ -106,7 +113,7 @@ export function AdminDashboard({ onGameUpdate, selectedPlaylist, onPlaylistChang
         />
       )}
 
-      {editorMode === 'batch' && selectedDates.length > 0 && (
+      {editorMode === 'batch' && selectedDates.length > 1 && (
         <BatchGameEditor
           selectedDates={selectedDates}
           games={games.map(game => ({

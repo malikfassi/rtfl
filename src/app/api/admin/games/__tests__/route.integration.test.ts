@@ -10,7 +10,7 @@ import { validators } from '@/app/api/lib/test/fixtures/core/validators';
 import { prisma } from '@/app/api/lib/test/test-env/db';
 import { createGameService } from '@/app/api/lib/services/game';
 
-import { DELETE, GET, POST } from '../route';
+import { DELETE, GET, POST } from '../[date]/route';
 
 const date = '2024-01-01';
 

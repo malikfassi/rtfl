@@ -37,17 +37,12 @@ export const GET: Handler<GetResponse> = async (request) => {
   }
 };
 
-export const POST: Handler<PostResponse> = async (request) => {
+export const POST: Handler<PostResponse> = async (request, { params }) => {
   try {
-    const { searchParams } = new URL(request.url);
-    const date = searchParams.get('date');
-    if (!date) {
-      throw new ValidationError('Date is required');
-    }
+    const { date } = await params;
     const validatedDate = validateSchema(schemas.date, date);
-    
     const body = await request.json();
-    const { spotifyId } = validateSchema(schemas.createGame, body);
+    const spotifyId = validateSchema(schemas.spotifyId, body.spotifyId);
     
     const result = await gameService.createOrUpdate(validatedDate, spotifyId);
     return NextResponse.json(result);
@@ -56,15 +51,10 @@ export const POST: Handler<PostResponse> = async (request) => {
   }
 };
 
-export const DELETE: Handler<DeleteResponse> = async (request) => {
+export const DELETE: Handler<DeleteResponse> = async (request, { params }) => {
   try {
-    const { searchParams } = new URL(request.url);
-    const date = searchParams.get('date');
-    if (!date) {
-      throw new ValidationError('Date is required');
-    }
+    const { date } = await params;
     const validatedDate = validateSchema(schemas.date, date);
-    
     await gameService.delete(validatedDate);
     return NextResponse.json({ success: true });
   } catch (error) {
