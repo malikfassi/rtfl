@@ -2,7 +2,6 @@ import { NextRequest } from 'next/server';
 
 import { cleanupIntegrationTest, setupIntegrationTest } from '@/app/api/lib/test';
 import { TEST_CASES } from '@/app/api/lib/test/fixtures/core/test_cases';
-import { PLAYLIST_IDS } from '@/app/api/lib/test/fixtures/spotify_ids';
 
 import { GET } from '../route';
 

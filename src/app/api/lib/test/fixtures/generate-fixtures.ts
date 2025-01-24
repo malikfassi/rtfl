@@ -1,10 +1,10 @@
 import type { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
+import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { writeFileSync } from 'fs';
 import { dirname,join } from 'path';
 import { fileURLToPath } from 'url';
 
 import { GeniusClientImpl } from '@/app/api/lib/clients/genius';
-import { SpotifyClientImpl } from '@/app/api/lib/clients/spotify';
 import { env } from '@/app/api/lib/env';
 import type { GeniusSearchResponse } from '@/app/types/genius';
 
@@ -23,7 +23,7 @@ import { PLAYLIST_IDS, type PlaylistId,SONG_IDS, type SpotifyId } from './spotif
 
 // Initialize clients
 console.log('Initializing API clients...');
-const spotify = new SpotifyClientImpl(env.SPOTIFY_CLIENT_ID, env.SPOTIFY_CLIENT_SECRET);
+const spotify = SpotifyApi.withClientCredentials(env.SPOTIFY_CLIENT_ID, env.SPOTIFY_CLIENT_SECRET);
 const genius = new GeniusClientImpl(env.GENIUS_ACCESS_TOKEN);
 console.log('API clients initialized');
 
@@ -57,7 +57,7 @@ async function generateSongData(id: SpotifyId): Promise<{
   try {
     // Fetch data from APIs
     console.log('- Fetching Spotify track data...');
-    const track = await spotify.getTrack(id);
+    const track = await spotify.tracks.get(id);
     console.log('- Spotify track data fetched');
 
     console.log('- Searching Genius...');
@@ -97,12 +97,17 @@ async function generatePlaylistData(id: PlaylistId): Promise<{
   try {
     // Get playlist metadata
     console.log('- Fetching playlist metadata...');
-    const playlist = await spotify.client.playlists.get(id);
+    const playlist = await spotify.playlists.getPlaylist(id);
     console.log('- Playlist metadata fetched');
 
     // Get playlist tracks
     console.log('- Fetching playlist tracks...');
-    const tracks = await spotify.getPlaylistTracks(id);
+    const playlistItems = await spotify.playlists.getPlaylistItems(id);
+    const tracks = playlistItems.items
+      .map(item => item.track)
+      .filter((track): track is Track => 
+        track !== null && 'id' in track && track.type === 'track'
+      );
     console.log(`- Found ${tracks.length} tracks`);
     
     if (!tracks.length) {

@@ -73,7 +73,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "full": "pnpm eslint src && pnpm type-check && pnpm build && pnpm jest",
+    "full": "pnpm run generate-fixtures && pnpm eslint src && pnpm type-check && pnpm build && pnpm jest",
     "generate-fixtures": "tsx src/app/api/lib/test/fixtures/generate-fixtures.ts",
     "generate-fixtures:watch": "nodemon --watch src/app/api/lib/test/fixtures/generate-fixtures.ts --watch src/app/api/lib/test/fixtures/spotify_ids.ts --ext ts --exec 'pnpm generate-fixtures'",
     "lint": "next lint",
