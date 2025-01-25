@@ -10,7 +10,13 @@ import { SONG_IDS } from '../spotify_ids';
 
 // Helper types
 type SpotifyFixtures = { tracks: Record<string, any> };
-type GeniusFixtures = { byId: Record<string, any> };
+type GeniusFixtures = {
+  byId: Record<string, {
+    url: string;
+    title: string;
+    artist: string;
+  }>;
+};
 type LyricsFixtures = Record<string, string>;
 
 interface SpotifyArtist {
@@ -50,9 +56,9 @@ function createSongData(id: string) {
       preview_url: track.preview_url
     })),
     geniusData: JSON.parse(JSON.stringify({
-      url: geniusData.response.hits[0]?.result.url,
-      title: geniusData.response.hits[0]?.result.title,
-      artist: geniusData.response.hits[0]?.result.primary_artist.name
+      url: geniusData.url,
+      title: geniusData.title,
+      artist: geniusData.artist
     })),
     lyrics,
     maskedLyrics: JSON.parse(JSON.stringify({

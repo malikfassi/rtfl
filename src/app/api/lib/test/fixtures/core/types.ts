@@ -18,10 +18,14 @@ export type SpotifyFixtures = {
   };
 };
 
-export type GeniusFixtures = {
-  byId: Record<string, GeniusSearchResponse>;
-  byQuery: Record<string, GeniusSearchResponse>;
-};
+export interface GeniusFixtures {
+  byId: Record<string, {
+    url: string;
+    title: string;
+    artist: string;
+    search: GeniusSearchResponse;
+  }>;
+}
 
 export type LyricsFixtures = Record<string, string>;
 
@@ -52,9 +56,7 @@ export const isGeniusFixtures = (data: unknown): data is GeniusFixtures => {
   const d = data as GeniusFixtures;
   return (
     'byId' in d &&
-    'byQuery' in d &&
-    typeof d.byId === 'object' &&
-    typeof d.byQuery === 'object'
+    typeof d.byId === 'object'
   );
 };
 

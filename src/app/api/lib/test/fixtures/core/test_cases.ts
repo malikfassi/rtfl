@@ -208,12 +208,15 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
           : undefined
       },
       genius: {
-        getSearch: () => typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId],
-        getBestMatch: () => ({
-          url: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.url,
-          title: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.title,
-          artist: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.primary_artist.name
-        })
+        getSearch: () => typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].search,
+        getBestMatch: () => {
+          const data = typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId];
+          return {
+            url: data.url,
+            title: data.title,
+            artist: data.artist
+          };
+        }
       },
       lyrics: {
         get: () => typedLyricsJson[id as keyof typeof typedLyricsJson],
@@ -242,9 +245,9 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
                   preview_url: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].preview_url
                 })),
                 geniusData: JSON.parse(JSON.stringify({
-                  url: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.url,
-                  title: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.title,
-                  artist: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].response.hits[0]?.result.primary_artist.name
+                  url: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].url,
+                  title: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].title,
+                  artist: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].artist
                 })),
                 lyrics: typedLyricsJson[id as keyof typeof typedLyricsJson],
                 maskedLyrics: JSON.parse(JSON.stringify({
@@ -258,7 +261,7 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
               id: mockId,
               spotifyId: id,
               spotifyData: JSON.parse(JSON.stringify(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks])) as JsonValue,
-              geniusData: testCase.genius.getBestMatch() as JsonValue,
+              geniusData: JSON.parse(JSON.stringify(testCase.genius.getBestMatch())) as JsonValue,
               lyrics: typedLyricsJson[id as keyof typeof typedLyricsJson],
               maskedLyrics: testCase.lyrics.getMasked() as JsonValue,
               createdAt: new Date(),
@@ -288,7 +291,7 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
                 id: mockId,
                 spotifyId: id,
                 spotifyData: JSON.parse(JSON.stringify(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks])) as JsonValue,
-                geniusData: JSON.parse(JSON.stringify(typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId])) as JsonValue,
+                geniusData: JSON.parse(JSON.stringify(testCase.genius.getBestMatch())) as JsonValue,
                 lyrics: typedLyricsJson[id as keyof typeof typedLyricsJson],
                 maskedLyrics: testCase.lyrics.getMasked() as JsonValue,
                 createdAt: new Date(),
@@ -307,7 +310,7 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
                 id: mockId,
                 spotifyId: id,
                 spotifyData: JSON.parse(JSON.stringify(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks])) as JsonValue,
-                geniusData: JSON.parse(JSON.stringify(typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId])) as JsonValue,
+                geniusData: JSON.parse(JSON.stringify(testCase.genius.getBestMatch())) as JsonValue,
                 lyrics: typedLyricsJson[id as keyof typeof typedLyricsJson],
                 maskedLyrics: testCase.lyrics.getMasked() as JsonValue,
                 createdAt: new Date(),

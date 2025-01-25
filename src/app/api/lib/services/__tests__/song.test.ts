@@ -116,13 +116,14 @@ describe('Song Service', () => {
       await expect(service.create(testCase.id)).rejects.toThrow(NoMatchingLyricsError);
     });
 
-    test('handles lyrics extraction errors', async () => {
+    test('handles lyrics extraction error', async () => {
       const testCase = validSongCase;
-
+      
+      // Mock API responses
       context.mockSpotifyClient.getTrack.mockResolvedValueOnce(testCase.spotify.getTrack());
       context.mockGeniusClient.search.mockResolvedValueOnce(testCase.genius.getSearch());
       context.mockGeniusClient.getLyrics.mockRejectedValueOnce(new LyricsExtractionError(new Error('Failed to extract lyrics')));
-
+      
       await expect(service.create(testCase.id)).rejects.toThrow(LyricsExtractionError);
     });
   });

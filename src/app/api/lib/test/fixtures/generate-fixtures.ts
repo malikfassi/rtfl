@@ -61,8 +61,8 @@ interface GeniusData {
     url: string;
     title: string;
     artist: string;
+    search: GeniusSearchResponse;
   }>>;
-  byQuery: Record<string, GeniusSearchResponse>;
 }
 
 type LyricsData = Partial<Record<SpotifyId, string>>;
@@ -225,8 +225,7 @@ async function generateFixtures() {
     }
   };
   const geniusData: GeniusData = {
-    byId: {},
-    byQuery: {}
+    byId: {}
   };
   const lyricsData: LyricsData = {};
 
@@ -252,12 +251,12 @@ async function generateFixtures() {
       
       if (data.track && data.geniusSearch && data.lyrics) {
         spotifyData.tracks[id] = data.track;
-        // Store only the best match from Genius search
-        const bestMatch = data.geniusSearch.response.hits[0];
+        const bestMatch = data.geniusSearch.response.hits[0].result;
         geniusData.byId[id] = {
-          url: bestMatch.result.url,
-          title: bestMatch.result.title,
-          artist: bestMatch.result.primary_artist.name
+          url: bestMatch.url,
+          title: bestMatch.title,
+          artist: bestMatch.primary_artist.name,
+          search: data.geniusSearch
         };
         lyricsData[id] = data.lyrics;
         successfulSongs++;
@@ -319,8 +318,7 @@ async function generateFixtures() {
 
     // Save Genius data
     const geniusStats = {
-      byId: Object.keys(geniusData.byId).length,
-      byQuery: Object.keys(geniusData.byQuery).length
+      byId: Object.keys(geniusData.byId).length
     };
     
     writeFileSync(
