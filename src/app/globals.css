@@ -51,7 +51,9 @@
     --input: 240 3.7% 15.9%;
     --ring: 346 75% 62%;
   }
+}
 
+@layer base {
   * {
     @apply border-border;
   }
@@ -83,7 +85,7 @@
   }
 
   .game-word-revealed {
-    @apply mx-[2px] animate-enter;
+    @apply mx-[2px];
   }
 
   .game-header {

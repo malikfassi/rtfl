@@ -1,9 +1,9 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
 import { format } from 'date-fns';
-import React, { useCallback,useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { Button } from '@/app/front/components/ui/Button';
-import { useGameMutations } from '@/app/front/hooks/use-game-mutations';
+import { useAdminGameMutations } from '@/app/front/hooks/useAdmin';
 import { GameStatus, GameStatusInfo } from '@/app/types/admin';
 
 import { PlaylistBrowser } from './PlaylistBrowser';
@@ -34,7 +34,7 @@ export function BatchGameEditor({
   onReshuffle
 }: BatchGameEditorProps) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const { createOrUpdateGame } = useGameMutations();
+  const { createGame } = useAdminGameMutations();
 
   const handlePlaylistSelect = useCallback((playlist: { tracks: Track[] }) => {
     console.log('BatchGameEditor: Selected playlist with tracks:', playlist.tracks.length);
@@ -43,21 +43,22 @@ export function BatchGameEditor({
 
   const handleCreate = useCallback(async () => {
     setIsUpdating(true);
+    let hasErrors = false;
+
     try {
       // Process each date independently
-      for (const date of selectedDates) {
+      await Promise.all(selectedDates.map(async (date) => {
         const dateStr = format(date, 'yyyy-MM-dd');
         
         try {
           // Set loading state for this date
-          onPendingChanges(prev => {
-            const newState = { ...prev };
-            newState[dateStr] = {
-              ...newState[dateStr],
+          onPendingChanges(prev => ({
+            ...prev,
+            [dateStr]: {
+              ...prev[dateStr],
               status: 'loading' as GameStatus
-            };
-            return newState;
-          });
+            }
+          }));
 
           // Get the song assigned to this date
           const status = pendingChanges[dateStr];
@@ -66,38 +67,39 @@ export function BatchGameEditor({
           }
 
           // Process update
-          await createOrUpdateGame({
+          await createGame.mutateAsync({
             date: dateStr,
             spotifyId: status.newSong.id
           });
 
           // Set success state for this date
-          onPendingChanges(prev => {
-            const newState = { ...prev };
-            newState[dateStr] = {
-              ...newState[dateStr],
+          onPendingChanges(prev => ({
+            ...prev,
+            [dateStr]: {
+              ...prev[dateStr],
               status: 'success' as GameStatus
-            };
-            return newState;
-          });
+            }
+          }));
         } catch (error) {
+          hasErrors = true;
           // Set error state for this date only
-          onPendingChanges(prev => {
-            const newState = { ...prev };
-            newState[dateStr] = {
+          onPendingChanges(prev => ({
+            ...prev,
+            [dateStr]: {
               ...prev[dateStr],
               status: 'error' as GameStatus,
               error: error instanceof Error ? error.message : 'Unknown error'
-            };
-            return newState;
-          });
+            }
+          }));
         }
-      }
+      }));
     } finally {
       setIsUpdating(false);
-      onComplete();
+      if (!hasErrors) {
+        onComplete();
+      }
     }
-  }, [selectedDates, pendingChanges, onPendingChanges, onComplete, createOrUpdateGame]);
+  }, [selectedDates, pendingChanges, onPendingChanges, onComplete, createGame]);
 
   return (
     <div className="p-4">
@@ -110,6 +112,7 @@ export function BatchGameEditor({
           onClick={onReshuffle}
           variant="secondary"
           className="w-full"
+          disabled={isUpdating}
         >
           Reshuffle Songs
         </Button>
@@ -118,6 +121,7 @@ export function BatchGameEditor({
           onClick={handleCreate}
           variant="primary"
           className="w-full"
+          disabled={isUpdating}
           isLoading={isUpdating}
         >
           Apply Changes

@@ -1,11 +1,10 @@
 'use client';
 
 import type { Track } from '@spotify/web-api-ts-sdk';
-import { format } from 'date-fns';
-import React from 'react';
-import { useCallback,useState } from 'react';
+import React, { useState } from 'react';
 
 import { AdminDashboard } from '@/app/front/components/admin/game/AdminDashboard';
+import { useAdminGames, useAdminGameMutations } from '@/app/front/hooks/useAdmin';
 
 interface Playlist {
   tracks: Track[];
@@ -13,23 +12,25 @@ interface Playlist {
 
 export default function AdminPage() {
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | undefined>();
+  const { data: games, isLoading } = useAdminGames();
+  const { createGame, deleteGame } = useAdminGameMutations();
 
-  const handleGameUpdate = useCallback(async () => {
-    try {
-      const monthParam = format(new Date(), 'yyyy-MM');
-      const response = await fetch(`/api/admin/games?month=${monthParam}`);
-      if (!response.ok) throw new Error('Failed to fetch games');
-      await response.json();
-    } catch (error) {
-      console.error('Failed to fetch games:', error);
-    }
-  }, []);
+  if (isLoading) {
+    return (
+      <div className="p-4">
+        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="p-4">
       <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
       <AdminDashboard 
-        onGameUpdate={handleGameUpdate}
+        games={games || []}
+        onCreateGame={createGame.mutate}
+        onDeleteGame={deleteGame.mutate}
         selectedPlaylist={selectedPlaylist}
         onPlaylistChange={setSelectedPlaylist}
       />

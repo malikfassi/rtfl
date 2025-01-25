@@ -1,28 +1,78 @@
 import type { Config } from 'tailwindcss';
 
-const config: Config = {
+export default {
+  darkMode: ["class"],
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
   ],
-  darkMode: 'class',
+  prefix: "",
   theme: {
-    extend: {
-      colors: {
-        background: '#FFFFFF',
-        foreground: '#000000',
-        primary: '#FF719A',
-        muted: '#666666',
-        'input-bg': '#F5F5F5',
-        'border-color': '#EEEEEE',
-      },
-      fontFamily: {
-        mono: ['var(--font-jetbrains-mono)', 'monospace'],
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
       },
     },
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "#9333EA",
+          foreground: "#FFFFFF",
+        },
+        secondary: {
+          DEFAULT: "#E5DEFF",
+          foreground: "#222222",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+      fontFamily: {
+        mono: ["JetBrains Mono", "monospace"],
+        sans: ["Inter", "sans-serif"],
+      },
+      keyframes: {
+        enter: {
+          '0%': { 
+            opacity: '0',
+            transform: 'translateY(-20px)'
+          },
+          '100%': { 
+            opacity: '1',
+            transform: 'translateY(0)'
+          }
+        }
+      },
+      animation: {
+        enter: 'enter 0.5s ease-out'
+      }
+    },
   },
-  plugins: [],
-};
-
-export default config;
+  plugins: [require("tailwindcss-animate")],
+} satisfies Config;
