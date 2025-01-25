@@ -37,23 +37,37 @@ export const GET: Handler<GetResponse> = async (request) => {
   }
 };
 
-export const POST: Handler<PostResponse> = async (request, { params }) => {
+export const POST: Handler<PostResponse> = async (request) => {
   try {
-    const { date } = await params;
-    const validatedDate = validateSchema(schemas.date, date);
     const body = await request.json();
-    const spotifyId = validateSchema(schemas.spotifyId, body.spotifyId);
+    const { date, spotifyId } = body;
     
-    const result = await gameService.createOrUpdate(validatedDate, spotifyId);
+    if (!date) {
+      throw new ValidationError('Date is required');
+    }
+    if (!spotifyId) {
+      throw new ValidationError('Spotify ID is required');
+    }
+
+    const validatedDate = validateSchema(schemas.date, date);
+    const validatedSpotifyId = validateSchema(schemas.spotifyId, spotifyId);
+    
+    const result = await gameService.createOrUpdate(validatedDate, validatedSpotifyId);
     return NextResponse.json(result);
   } catch (error) {
     return handleError(error);
   }
 };
 
-export const DELETE: Handler<DeleteResponse> = async (request, { params }) => {
+export const DELETE: Handler<DeleteResponse> = async (request) => {
   try {
-    const { date } = await params;
+    const body = await request.json();
+    const { date } = body;
+    
+    if (!date) {
+      throw new ValidationError('Date is required');
+    }
+
     const validatedDate = validateSchema(schemas.date, date);
     await gameService.delete(validatedDate);
     return NextResponse.json({ success: true });
