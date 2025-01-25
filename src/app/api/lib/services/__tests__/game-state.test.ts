@@ -44,15 +44,16 @@ describe('GameStateService', () => {
     it('shows different states for different players', async () => {
       const service = new GameStateService(context.mockPrisma);
       
-      // Create mock game state
-      const mockState = createMockGameState(testCase, testDate, ['party', 'in'], TEST_IDS.PLAYER);
+      // Create mock game state with no initial guesses
+      const mockState = createMockGameState(testCase, testDate);
       
       // Mock game lookup
       context.mockPrisma.game.findUnique.mockResolvedValue(mockState);
       
-      // Mock guesses lookup for player 2
-      const player2Guesses = testCase.helpers.createGuesses(['usa', 'the'], TEST_IDS.PLAYER_2, TEST_IDS.GAME);
-      context.mockPrisma.guess.findMany.mockResolvedValue(player2Guesses);
+      // Mock guesses lookup for player 1
+      context.mockPrisma.guess.findMany
+        .mockResolvedValueOnce(testCase.helpers.createGuesses(['party', 'in'], TEST_IDS.PLAYER, TEST_IDS.GAME))
+        .mockResolvedValueOnce(testCase.helpers.createGuesses(['usa', 'the'], TEST_IDS.PLAYER_2, TEST_IDS.GAME));
 
       // Get game states for both players
       const player1State = await service.getGameState(testDate, TEST_IDS.PLAYER) as unknown as GameState;

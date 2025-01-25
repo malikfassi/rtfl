@@ -1,6 +1,6 @@
 import { ValidationError } from '@/app/api/lib/errors/base';
 import { GameNotFoundError } from '@/app/api/lib/errors/game';
-import { TEST_IDS, TEST_SCENARIOS } from '@/app/api/lib/test/fixtures/core/test_cases';
+import { TEST_IDS, SONGS } from '@/app/api/lib/test/fixtures/core/test_cases';
 import { validators } from '@/app/api/lib/test/fixtures/core/validators';
 import {
   cleanupIntegrationTest,
@@ -8,6 +8,7 @@ import {
   setupIntegrationTest
 } from '@/app/api/lib/test/test-env/integration';
 import type { GameState } from '@/app/api/lib/types/game';
+import { seedDatabase, TEST_SCENARIOS } from '@/app/api/lib/test/fixtures/core/seed-scenarios';
 import { GameStateService } from '../game-state';
 
 describe('GameStateService Integration', () => {
@@ -15,16 +16,16 @@ describe('GameStateService Integration', () => {
   let service: GameStateService;
   let gameId: string;
   let testWords: string[];
-  const testCase = TEST_SCENARIOS.BASIC.songs[0]; // PARTY_IN_THE_USA
-  const testDate = TEST_SCENARIOS.BASIC.dates[0]; // 2025-01-25
+  const testCase = SONGS.PARTY_IN_THE_USA;
+  const testDate = TEST_SCENARIOS.BASIC_NO_GUESSES.dates[0]; // 2025-01-25
 
   beforeEach(async () => {
     // Setup integration test context with clean database
     context = await setupIntegrationTest();
     service = new GameStateService(context.prisma);
 
-    // Seed the BASIC scenario
-    await TEST_SCENARIOS.BASIC.seedDB(context.prisma);
+    // Seed the BASIC scenario without guesses
+    await seedDatabase(context.prisma, ['BASIC_NO_GUESSES']);
 
     // Get the game ID and words to guess
     const game = await context.prisma.game.findFirst({
@@ -82,8 +83,8 @@ describe('GameStateService Integration', () => {
       const player2State = await service.getGameState(testDate, TEST_IDS.PLAYER_2);
 
       // Validate both states using the validator
-      validators.unit.gameState(player1State as GameState, testCase, TEST_IDS.PLAYER);
-      validators.unit.gameState(player2State as GameState, testCase, TEST_IDS.PLAYER_2);
+      validators.integration.gameState(player1State as GameState, testCase, TEST_IDS.PLAYER);
+      validators.integration.gameState(player2State as GameState, testCase, TEST_IDS.PLAYER_2);
 
       // Verify that masked content is different for each player
       expect(player1State.masked).not.toEqual(player2State.masked);
@@ -93,7 +94,7 @@ describe('GameStateService Integration', () => {
       const state = await service.getGameState(testDate, TEST_IDS.PLAYER_2);
 
       // Validate state using the validator - this will check masking format
-      validators.unit.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
+      validators.integration.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
 
       // Verify no guesses exist
       expect(state.guesses).toHaveLength(0);
@@ -122,13 +123,9 @@ describe('GameStateService Integration', () => {
         const state = await service.getGameState(testDate, TEST_IDS.PLAYER_2);
 
         // Validate state and check song data is revealed
-        validators.unit.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
         expect(state.song).toBeDefined();
-        
-        // Verify that all content is unmasked
-        expect(state.masked.title).toBe(testCase.spotify.getTrack().name);
-        expect(state.masked.artist).toBe(testCase.spotify.getTrack().artists[0].name);
-        expect(state.masked.lyrics).toBe(testCase.lyrics.get());
+        validators.integration.song(state.song!, testCase);
+        validators.integration.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
       });
 
       test('reveals song data when player guesses 80% of lyrics words', async () => {
@@ -151,8 +148,9 @@ describe('GameStateService Integration', () => {
         const state = await service.getGameState(testDate, TEST_IDS.PLAYER_2);
 
         // Validate state and check song data is revealed
-        validators.unit.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
         expect(state.song).toBeDefined();
+        validators.integration.song(state.song!, testCase);
+        validators.integration.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
       });
 
       test('reveals song data when player guesses all title AND artist words', async () => {
@@ -166,7 +164,7 @@ describe('GameStateService Integration', () => {
             data: {
               gameId,
               playerId: TEST_IDS.PLAYER_2,
-              word
+              word: word.toLowerCase() // Ensure words are lowercase
             }
           });
         }
@@ -174,8 +172,9 @@ describe('GameStateService Integration', () => {
         const state = await service.getGameState(testDate, TEST_IDS.PLAYER_2);
 
         // Validate state and check song data is revealed
-        validators.unit.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
         expect(state.song).toBeDefined();
+        validators.integration.song(state.song!, testCase);
+        validators.integration.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
       });
 
       test('does not reveal song data with only title words', async () => {
@@ -195,7 +194,7 @@ describe('GameStateService Integration', () => {
         const state = await service.getGameState(testDate, TEST_IDS.PLAYER_2);
 
         // Validate state and check song data is not revealed
-        validators.unit.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
+        validators.integration.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
         expect(state.song).toBeUndefined();
       });
 
@@ -216,7 +215,7 @@ describe('GameStateService Integration', () => {
         const state = await service.getGameState(testDate, TEST_IDS.PLAYER_2);
 
         // Validate state and check song data is not revealed
-        validators.unit.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
+        validators.integration.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
         expect(state.song).toBeUndefined();
       });
 
@@ -230,16 +229,16 @@ describe('GameStateService Integration', () => {
           await context.prisma.guess.create({
             data: {
               gameId,
-              playerId: TEST_IDS.PLAYER_2,
+              playerId: TEST_IDS.PLAYER,
               word
             }
           });
         }
 
-        const state = await service.getGameState(testDate, TEST_IDS.PLAYER_2);
+        const state = await service.getGameState(testDate, TEST_IDS.PLAYER);
 
         // Validate state and check song data is not revealed
-        validators.unit.gameState(state as GameState, testCase, TEST_IDS.PLAYER_2);
+        validators.integration.gameState(state as GameState, testCase, TEST_IDS.PLAYER);
         expect(state.song).toBeUndefined();
       });
     });

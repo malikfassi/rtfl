@@ -1,5 +1,6 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
 import type { SpotifyId, PlaylistId } from '../spotify_ids';
+import { TEST_IDS } from './test_cases';
 
 import geniusJson from '../data/genius.json';
 import lyricsJson from '../data/lyrics.json';
@@ -84,20 +85,32 @@ function createGameData(date: string, songId: string) {
   };
 }
 
-// Helper function to create guesses
-function createGuesses(lyrics: string, gameId: string, playerId: string = 'clrqm6nkw0010uy08kg9h1p4x') {
-  const words = Array.from(new Set(
-    lyrics.toLowerCase()
-      .split(/\s+/)
-      .filter(word => word.length >= 4)
-      .slice(0, 5) // Take first 5 unique words
-  ));
+// Helper function to get words that can be guessed
+function getWordsToGuess(text: string): string[] {
+  const words = new Set<string>();
+  
+  // Use regex to match all letter/number sequences
+  const matches = text.toLowerCase().matchAll(/\p{L}+|\p{N}+/gu);
+  for (const match of matches) {
+    const word = match[0];
+    if (/^[a-z]+$/.test(word)) {
+      words.add(word);
+    }
+  }
+  
+  return Array.from(words);
+}
 
-  return words.map(word => ({
+// Helper function to create guesses
+function createGuesses(lyrics: string, gameId: string, playerId: string = TEST_IDS.PLAYER_2) {
+  const words = getWordsToGuess(lyrics).slice(0, 5); // Take first 5 words
+  const baseDate = new Date('2025-01-25T12:00:00Z');
+
+  return words.map((word, index) => ({
     gameId,
     playerId,
     word,
-    createdAt: new Date()
+    createdAt: new Date(baseDate.getTime() + index * 60000) // Add one minute per guess
   }));
 }
 

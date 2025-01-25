@@ -7,6 +7,11 @@ export const TEST_SCENARIOS = {
     songs: ['PARTY_IN_THE_USA', 'BILLIE_JEAN', 'LIKE_A_PRAYER'] as const,
     dates: ['2025-01-25', '2025-01-26', '2025-01-27']
   },
+  BASIC_NO_GUESSES: {
+    songs: ['PARTY_IN_THE_USA', 'BILLIE_JEAN', 'LIKE_A_PRAYER'] as const,
+    dates: ['2025-01-25', '2025-01-26', '2025-01-27'],
+    skipGuesses: true
+  },
   MIXED_LANGUAGES: {
     songs: ['LA_VIE_EN_ROSE', 'SWEET_CHILD_O_MINE'] as const,
     dates: ['2025-01-28', '2025-01-29']
@@ -50,51 +55,45 @@ async function seedTestScenario(prisma: PrismaClient, scenarioKey: TestScenario)
     const song = await prisma.song.create({
       data: songData
     });
-
+    
     console.log(`Created song with ID: ${song.id}`);
   }
 
-  // Create games for the scenario dates
-  for (let i = 0; i < scenario.dates.length; i++) {
+  // Create games for this scenario
+  for (let i = 0; i < scenario.songs.length; i++) {
     const date = scenario.dates[i];
-    const songKey = scenario.songs[i % scenario.songs.length];
-    const id = seedHelpers.SONG_IDS[songKey];
+    const songKey = scenario.songs[i];
+    const songId = seedHelpers.SONG_IDS[songKey];
     
-    // Get the created song
+    // Get song ID from database
     const song = await prisma.song.findFirst({
-      where: { spotifyId: id }
+      where: { spotifyId: songId }
     });
 
     if (!song) {
-      console.error(`Song not found for key ${songKey}`);
-      continue;
+      throw new Error(`Failed to find song: ${songId}`);
     }
-    
+
     console.log(`Creating game for date: ${date} with song: ${songKey}`);
-    
-    // Use the helper to create game data
-    const gameInput = seedHelpers.createGameData(date, song.id);
-    const game = await prisma.game.upsert(gameInput);
 
-    // Create some example guesses using the helper
-    const songInput = seedHelpers.createSongData(id);
-    const guesses = seedHelpers.createGuesses(songInput.lyrics, game.id);
+    const game = await prisma.game.upsert({
+      where: { date },
+      create: {
+        date,
+        songId: song.id
+      },
+      update: {
+        songId: song.id
+      }
+    });
 
-    console.log(`Adding ${guesses.length} guesses for game on ${date}`);
-
-    // Create guesses with upsert to handle duplicates
-    for (const guess of guesses) {
-      await prisma.guess.upsert({
-        where: {
-          gameId_playerId_word: {
-            gameId: guess.gameId,
-            playerId: guess.playerId,
-            word: guess.word
-          }
-        },
-        create: guess,
-        update: {} // No update needed if it exists
-      });
+    // Add guesses unless explicitly skipped
+    if (!('skipGuesses' in scenario && scenario.skipGuesses)) {
+      console.log(`Adding 5 guesses for game on ${date}`);
+      const guesses = seedHelpers.createGuesses(song.lyrics, game.id);
+      for (const guess of guesses) {
+        await prisma.guess.create({ data: guess });
+      }
     }
   }
 }

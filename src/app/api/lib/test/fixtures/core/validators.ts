@@ -111,17 +111,17 @@ export const validators = {
         gameId: expect.any(String),
         playerId: expect.any(String),
         word: expect.any(String),
-        createdAt: expect.any(Date)
+        createdAt: expect.any(String)
       });
+      // Validate that createdAt is a valid ISO date string
+      expect(new Date(actual.createdAt as string).toISOString()).toBe(actual.createdAt);
     },
     gameState: (actual: GameState, testCase: SongTestCase, playerId: string) => {
       // Validate structure
-      expect(actual).toMatchObject({
-        id: expect.any(String),
-        date: expect.any(String),
-        masked: expect.any(Object),
-        guesses: expect.any(Array)
-      });
+      expect(actual.id).toEqual(expect.any(String));
+      expect(actual.date).toEqual(expect.any(String));
+      expect(actual.masked).toBeDefined();
+      expect(Array.isArray(actual.guesses)).toBe(true);
 
       // Get guessed words for this specific player
       const guessedWords = new Set(
@@ -141,26 +141,56 @@ export const validators = {
             gameId: expect.any(String),
             playerId: expect.any(String),
             word: expect.any(String),
-            createdAt: expect.any(Date)
+            createdAt: expect.any(String)
           });
+          // Validate that createdAt is a valid ISO date string
+          expect(new Date(guess.createdAt).toISOString()).toBe(guess.createdAt);
         });
       }
 
       // Validate song data presence based on win condition
       if (actual.song) {
         const track = testCase.spotify.getTrack();
-        expect(actual.song).toMatchObject({
-          name: track.name,
-          artists: track.artists.map(artist => ({
-            id: artist.id,
-            name: artist.name
-          })),
-          album: {
-            name: track.album.name,
-            images: track.album.images
+        const maskedLyrics = testCase.lyrics.getMasked();
+        const song = actual.song as unknown as { 
+          id: string; 
+          createdAt: string; 
+          updatedAt: string;
+          spotifyId: string;
+          spotifyData: Track;
+          lyrics: string;
+          maskedLyrics: typeof maskedLyrics;
+          geniusData: { url: string; title: string; artist: string };
+        };
+        
+        expect(song).toMatchObject({
+          id: expect.any(String),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+          spotifyId: testCase.id,
+          spotifyData: {
+            name: track.name,
+            artists: track.artists.map(artist => ({
+              id: artist.id,
+              name: artist.name
+            })),
+            album: {
+              name: track.album.name,
+              images: track.album.images
+            },
+            preview_url: track.preview_url
           },
-          preview_url: track.preview_url
+          lyrics: testCase.lyrics.get(),
+          maskedLyrics: {
+            title: maskedLyrics.title,
+            artist: maskedLyrics.artist,
+            lyrics: maskedLyrics.lyrics
+          },
+          geniusData: testCase.genius.getBestMatch()
         });
+        // Validate that dates are valid ISO strings
+        expect(new Date(song.createdAt).toISOString()).toBe(song.createdAt);
+        expect(new Date(song.updatedAt).toISOString()).toBe(song.updatedAt);
       }
     }
   },
@@ -245,6 +275,76 @@ export const validators = {
         },
         preview_url: expected.preview_url
       });
+    },
+    guess: (actual: Record<string, unknown>) => {
+      expect(actual).toMatchObject({
+        id: expect.any(String),
+        gameId: expect.any(String),
+        playerId: expect.any(String),
+        word: expect.any(String),
+        createdAt: expect.any(Date)
+      });
+    },
+    gameState: (actual: GameState, testCase: SongTestCase, playerId: string) => {
+      // Validate structure
+      expect(actual.id).toEqual(expect.any(String));
+      expect(actual.date).toEqual(expect.any(String));
+      expect(actual.masked).toBeDefined();
+      expect(Array.isArray(actual.guesses)).toBe(true);
+
+      // Get guessed words for this specific player
+      const guessedWords = new Set(
+        actual.guesses
+          .filter(guess => guess.playerId === playerId)
+          .map(guess => guess.word)
+      );
+
+      // Validate masked state matches the player's guesses
+      expect(actual.masked).toEqual(testCase.helpers.getMaskedState(guessedWords));
+
+      // If there are guesses, validate their structure
+      if (actual.guesses.length > 0) {
+        actual.guesses.forEach(guess => {
+          expect(guess).toMatchObject({
+            id: expect.any(String),
+            gameId: expect.any(String),
+            playerId: expect.any(String),
+            word: expect.any(String),
+            createdAt: expect.any(Date)
+          });
+        });
+      }
+
+      // Validate song data presence based on win condition
+      if (actual.song) {
+        const track = testCase.spotify.getTrack();
+        const maskedLyrics = testCase.lyrics.getMasked();
+        expect(actual.song).toMatchObject({
+          id: expect.any(String),
+          createdAt: expect.any(Date),
+          updatedAt: expect.any(Date),
+          spotifyId: testCase.id,
+          spotifyData: {
+            name: track.name,
+            artists: track.artists.map(artist => ({
+              id: artist.id,
+              name: artist.name
+            })),
+            album: {
+              name: track.album.name,
+              images: track.album.images
+            },
+            preview_url: track.preview_url
+          },
+          lyrics: testCase.lyrics.get(),
+          maskedLyrics: {
+            title: maskedLyrics.title,
+            artist: maskedLyrics.artist,
+            lyrics: maskedLyrics.lyrics
+          },
+          geniusData: testCase.genius.getBestMatch()
+        });
+      }
     }
   }
 }; 

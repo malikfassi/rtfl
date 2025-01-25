@@ -13,7 +13,7 @@ export class InvalidWordError extends AppError {
 }
 
 export class GameNotFoundForGuessError extends NotFoundError {
-  constructor() {
-    super('Game or song not found');
+  constructor(date: string) {
+    super(`Game not found for date: ${date}`);
   }
 } 

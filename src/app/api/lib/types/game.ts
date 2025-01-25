@@ -1,4 +1,4 @@
-import type { Track } from '@spotify/web-api-ts-sdk';
+import type { Guess, Song } from '@prisma/client';
 
 export interface GameState {
   id: string;
@@ -8,12 +8,6 @@ export interface GameState {
     artist: string;
     lyrics: string;
   };
-  guesses: Array<{
-    id: string;
-    gameId: string;
-    playerId: string;
-    word: string;
-    createdAt: Date;
-  }>;
-  song?: Track;
+  guesses: Guess[];
+  song?: Song;
 } 

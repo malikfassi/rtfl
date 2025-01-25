@@ -5,7 +5,7 @@ import { type SimplifiedPlaylist, Track } from '@spotify/web-api-ts-sdk';
 
 import type { GeniusSearchResponse } from '@/app/types/genius';
 import type { GameState } from '@/app/api/lib/types/game';
-import { seedDatabase } from '@/app/api/lib/test/fixtures/core/seed-scenarios';
+import { seedDatabase, TEST_SCENARIOS as SEED_SCENARIOS } from '@/app/api/lib/test/fixtures/core/seed-scenarios';
 
 import geniusJson from '../data/genius.json';
 import lyricsJson from '../data/lyrics.json';
@@ -28,6 +28,7 @@ export const TEST_IDS = {
 
 export type TestSongKey = keyof typeof SONG_IDS;
 export type GameWithSong = Game & { song: Song };
+export type TestScenarioKey = keyof typeof SEED_SCENARIOS;
 
 // Helper function for masking text
 function maskText(text: string): string {
@@ -198,9 +199,11 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
          * Get all scenarios this song appears in
          */
         getAll: () => {
-          return Object.entries(TEST_SCENARIOS)
+          const songKey = Object.keys(SONG_IDS).find(key => SONG_IDS[key as keyof typeof SONG_IDS] === id);
+          if (!songKey) return [];
+          return Object.entries(SEED_SCENARIOS)
             .filter(([, testScenario]) => 
-              testScenario.songs.some(songCase => songCase.id === id))
+              (testScenario.songs as readonly string[]).includes(songKey))
             .map(([scenarioKey]) => scenarioKey as TestScenarioKey);
         },
         /**
@@ -208,9 +211,11 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
          * Returns undefined if the song is not in the scenario
          */
         getDateInScenario: (scenario: TestScenarioKey) => {
-          const songIndex = TEST_SCENARIOS[scenario].songs
-            .findIndex(songCase => songCase.id === id);
-          return songIndex >= 0 ? TEST_SCENARIOS[scenario].dates[songIndex] : undefined;
+          const songKey = Object.keys(SONG_IDS).find(key => SONG_IDS[key as keyof typeof SONG_IDS] === id);
+          if (!songKey) return undefined;
+          const songIndex = (SEED_SCENARIOS[scenario].songs as readonly string[])
+            .findIndex(s => s === songKey);
+          return songIndex >= 0 ? SEED_SCENARIOS[scenario].dates[songIndex] : undefined;
         }
       },
       helpers: {
@@ -309,8 +314,6 @@ export const TEST_SCENARIOS = {
     }
   }
 } as const;
-
-export type TestScenarioKey = keyof typeof TEST_SCENARIOS;
 
 /**
  * Test case for a song

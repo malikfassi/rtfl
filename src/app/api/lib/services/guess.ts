@@ -6,7 +6,9 @@ import {
   GameNotFoundForGuessError,
   InvalidWordError} from '@/app/api/lib/errors/guess';
 import { validateSchema } from '@/app/api/lib/validation';
-import { gameIdSchema, playerIdSchema, submitGuessSchema } from '@/app/api/lib/validation';
+import { dateSchema, gameIdSchema, playerIdSchema, wordSchema } from '@/app/api/lib/validation';
+import { gameStateService } from '@/app/api/lib/services/game-state';
+import type { GameState } from '@/app/api/lib/types/game';
 
 interface SpotifyTrack {
   name: string;
@@ -50,22 +52,26 @@ export class GuessService {
     return lyrics.some(lyricWord => this.isExactWordMatch(normalizedWord, lyricWord));
   }
 
-  async submitGuess(gameId: string, playerId: string, word: string): Promise<Guess> {
-    // Validate all inputs using the schema
-    const validatedData = validateSchema(submitGuessSchema, { gameId, playerId, word });
+  async submitGuess({ date, userId, guess }: { date: string; userId: string; guess: string }): Promise<GameState> {
+    // Validate date first
+    validateSchema(dateSchema, date);
 
-    // Check if game exists and get song lyrics
-    const game = await this.prisma.game.findFirst({
-      where: { id: validatedData.gameId },
+    // Get game by date
+    const game = await this.prisma.game.findUnique({
+      where: { date },
       include: { song: true }
     });
 
     if (!game?.song) {
-      throw new GameNotFoundForGuessError();
+      throw new GameNotFoundForGuessError(date);
     }
 
+    // Then validate other inputs
+    validateSchema(playerIdSchema, userId);
+    validateSchema(wordSchema, guess);
+
     // Check if word exists in lyrics
-    const isValidWord = await this.validateWord(validatedData.word, game.song);
+    const isValidWord = await this.validateWord(guess, game.song);
     if (!isValidWord) {
       throw new InvalidWordError();
     }
@@ -73,9 +79,9 @@ export class GuessService {
     // Check for duplicate guess
     const existingGuess = await this.prisma.guess.findFirst({
       where: {
-        gameId: validatedData.gameId,
-        playerId: validatedData.playerId,
-        word: { equals: validatedData.word.toLowerCase() }
+        gameId: game.id,
+        playerId: userId,
+        word: { equals: guess.toLowerCase() }
       }
     });
 
@@ -84,38 +90,40 @@ export class GuessService {
     }
 
     // Create guess
-    return await this.prisma.guess.create({
+    await this.prisma.guess.create({
       data: {
-        gameId: validatedData.gameId,
-        playerId: validatedData.playerId,
-        word: validatedData.word.trim(),
-      },
+        gameId: game.id,
+        playerId: userId,
+        word: guess.toLowerCase().trim(),
+      }
     });
+
+    // Return updated game state
+    return gameStateService.getGameState(date, userId);
   }
 
   async getPlayerGuesses(gameId: string, playerId: string): Promise<Guess[]> {
     // Validate inputs
-    const validatedGameId = validateSchema(gameIdSchema, gameId);
-    const validatedPlayerId = validateSchema(playerIdSchema, playerId);
+    validateSchema(gameIdSchema, gameId);
+    validateSchema(playerIdSchema, playerId);
 
     // Check if game exists
-    const game = await this.prisma.game.findFirst({
-      where: { id: validatedGameId },
-      include: { song: true }
+    const game = await this.prisma.game.findUnique({
+      where: { id: gameId }
     });
 
-    if (!game?.song) {
-      throw new GameNotFoundForGuessError();
+    if (!game) {
+      throw new GameNotFoundForGuessError('unknown');
     }
 
     // Get guesses
-    return await this.prisma.guess.findMany({
+    return this.prisma.guess.findMany({
       where: {
-        gameId: validatedGameId,
-        playerId: validatedPlayerId
+        gameId,
+        playerId
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'asc'
       }
     });
   }
@@ -124,4 +132,7 @@ export class GuessService {
 // Export factory function
 export function createGuessService(client: PrismaClient = prisma) {
   return new GuessService(client);
-} 
+}
+
+// Export default instance
+export const guessService = new GuessService(prisma); 

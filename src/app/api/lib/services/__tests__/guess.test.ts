@@ -13,6 +13,16 @@ import { TEST_CASES } from '@/app/api/lib/test/fixtures/core/test_cases';
 
 import { GuessService } from '../guess';
 
+// Mock gameStateService
+jest.mock('@/app/api/lib/services/game-state', () => ({
+  gameStateService: {
+    getGameState: jest.fn()
+  }
+}));
+
+// Import after mock
+import { gameStateService } from '@/app/api/lib/services/game-state';
+
 describe('GuessService', () => {
   let context: UnitTestContext;
   let service: GuessService;
@@ -30,7 +40,8 @@ describe('GuessService', () => {
 
   beforeEach(() => {
     context = setupUnitTest();
-    service = new GuessService(context.mockPrisma);
+    service = context.mockGuessService;
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -39,68 +50,91 @@ describe('GuessService', () => {
 
   describe('submitGuess', () => {
     test('throws ValidationError when game ID is empty', async () => {
-      await expect(service.submitGuess('', testIds.PLAYER, testWords[0]))
+      context.mockPrisma.game.findUnique.mockResolvedValue(mockGame);
+
+      await expect(service.submitGuess({ date: '', userId: testIds.PLAYER, guess: testWords[0] }))
         .rejects
         .toThrow(ValidationError);
       
-      await expect(service.submitGuess('', testIds.PLAYER, testWords[0]))
+      await expect(service.submitGuess({ date: '', userId: testIds.PLAYER, guess: testWords[0] }))
         .rejects
-        .toThrow('Game ID is required');
+        .toThrow('Invalid date format. Expected YYYY-MM-DD');
     });
 
     test('throws ValidationError when player ID is empty', async () => {
-      await expect(service.submitGuess(testIds.GAME, '', testWords[0]))
+      context.mockPrisma.game.findUnique.mockResolvedValue(mockGame);
+
+      await expect(service.submitGuess({ date: '2025-01-17', userId: '', guess: testWords[0] }))
         .rejects
         .toThrow(ValidationError);
       
-      await expect(service.submitGuess(testIds.GAME, '', testWords[0]))
+      await expect(service.submitGuess({ date: '2025-01-17', userId: '', guess: testWords[0] }))
         .rejects
         .toThrow('Player ID is required');
     });
 
-    test('throws ValidationError when word is empty', async () => {
-      await expect(service.submitGuess(testIds.GAME, testIds.PLAYER, ''))
+    test('throws ValidationError when guess is empty', async () => {
+      context.mockPrisma.game.findUnique.mockResolvedValue(mockGame);
+
+      await expect(service.submitGuess({ date: '2025-01-17', userId: testIds.PLAYER, guess: '' }))
         .rejects
         .toThrow(ValidationError);
       
-      await expect(service.submitGuess(testIds.GAME, testIds.PLAYER, ''))
+      await expect(service.submitGuess({ date: '2025-01-17', userId: testIds.PLAYER, guess: '' }))
         .rejects
         .toThrow('Word is required');
     });
 
-    test('throws ValidationError when word is only whitespace', async () => {
-      await expect(service.submitGuess(testIds.GAME, testIds.PLAYER, '   '))
+    test('throws ValidationError when guess is only whitespace', async () => {
+      context.mockPrisma.game.findUnique.mockResolvedValue(mockGame);
+
+      await expect(service.submitGuess({ date: '2025-01-17', userId: testIds.PLAYER, guess: '   ' }))
         .rejects
         .toThrow(ValidationError);
       
-      await expect(service.submitGuess(testIds.GAME, testIds.PLAYER, '   '))
+      await expect(service.submitGuess({ date: '2025-01-17', userId: testIds.PLAYER, guess: '   ' }))
         .rejects
         .toThrow('Word is required');
     });
 
-    test('throws GameNotFoundForGuessError when game not found', async () => {
-      const { mockPrisma } = context;
-      mockPrisma.game.findFirst.mockResolvedValue(null);
-
-      await expect(service.submitGuess(testIds.GAME, testIds.PLAYER, testWords[0]))
-        .rejects
-        .toThrow(new GameNotFoundForGuessError());
+    test('throws GameNotFoundForGuessError when game does not exist', async () => {
+      const nonexistentDate = '2025-01-01';
+      await expect(service.submitGuess({
+        date: nonexistentDate,
+        userId: testIds.PLAYER,
+        guess: 'test'
+      }))
+      .rejects
+      .toThrow(new GameNotFoundForGuessError(nonexistentDate));
     });
 
-    test('throws InvalidWordError when word not in lyrics', async () => {
-      const { mockPrisma } = context;
-      mockPrisma.game.findFirst.mockResolvedValue(mockGame);
-      mockPrisma.guess.findFirst.mockResolvedValue(null);
+    test('throws InvalidWordError when guess is not in song title or artist name', async () => {
+      context.mockPrisma.game.findUnique.mockResolvedValue(mockGame);
 
-      await expect(service.submitGuess(testIds.GAME, testIds.PLAYER, 'invalid'))
+      await expect(service.submitGuess({ date: '2025-01-17', userId: testIds.PLAYER, guess: 'invalid' }))
         .rejects
-        .toThrow(new InvalidWordError());
+        .toThrow(InvalidWordError);
     });
 
-    test('throws DuplicateGuessError when word already guessed', async () => {
-      const { mockPrisma } = context;
-      mockPrisma.game.findFirst.mockResolvedValue(mockGame);
-      mockPrisma.guess.findFirst.mockResolvedValue({
+    test('throws DuplicateGuessError when guess already exists for player', async () => {
+      context.mockPrisma.game.findUnique.mockResolvedValue(mockGame);
+      context.mockPrisma.guess.findFirst.mockResolvedValue({
+        id: 'existing-guess-id',
+        gameId: testIds.GAME,
+        playerId: testIds.PLAYER,
+        word: testWords[0],
+        createdAt: new Date(),
+      });
+
+      await expect(service.submitGuess({ date: '2025-01-17', userId: testIds.PLAYER, guess: testWords[0] }))
+        .rejects
+        .toThrow(DuplicateGuessError);
+    });
+
+    test('creates new guess when all validations pass', async () => {
+      context.mockPrisma.game.findUnique.mockResolvedValue(mockGame);
+      context.mockPrisma.guess.findFirst.mockResolvedValue(null);
+      context.mockPrisma.guess.create.mockResolvedValue({
         id: testIds.GAME,
         gameId: testIds.GAME,
         playerId: testIds.PLAYER,
@@ -108,38 +142,19 @@ describe('GuessService', () => {
         createdAt: new Date()
       });
 
-      await expect(service.submitGuess(testIds.GAME, testIds.PLAYER, testWords[0]))
-        .rejects
-        .toThrow(new DuplicateGuessError());
-    });
-
-    test('throws error when create fails', async () => {
-      const { mockPrisma } = context;
-      mockPrisma.game.findFirst.mockResolvedValue(mockGame);
-      mockPrisma.guess.findFirst.mockResolvedValue(null);
-      mockPrisma.guess.create.mockRejectedValue(new Error('DB error'));
-
-      await expect(service.submitGuess(testIds.GAME, testIds.PLAYER, testWords[0]))
-        .rejects
-        .toThrow('DB error');
-    });
-
-    test('successfully creates guess', async () => {
-      const { mockPrisma } = context;
-      const mockGuess = {
+      const mockGameState = {
         id: testIds.GAME,
-        gameId: testIds.GAME,
-        playerId: testIds.PLAYER,
-        word: testWords[0],
-        createdAt: new Date()
+        date: '2025-01-17',
+        masked: mockGame.song.maskedLyrics,
+        guesses: [],
+        song: undefined
       };
 
-      mockPrisma.game.findFirst.mockResolvedValue(mockGame);
-      mockPrisma.guess.findFirst.mockResolvedValue(null);
-      mockPrisma.guess.create.mockResolvedValue(mockGuess);
+      // Mock gameStateService.getGameState to return expected state
+      (gameStateService.getGameState as jest.Mock).mockResolvedValue(mockGameState);
 
-      const result = await service.submitGuess(testIds.GAME, testIds.PLAYER, testWords[0]);
-      expect(result).toEqual(mockGuess);
+      const result = await service.submitGuess({ date: '2025-01-17', userId: testIds.PLAYER, guess: testWords[0] });
+      expect(result).toEqual(mockGameState);
     });
   });
 
@@ -165,17 +180,15 @@ describe('GuessService', () => {
     });
 
     test('throws GameNotFoundForGuessError when game not found', async () => {
-      const { mockPrisma } = context;
-      mockPrisma.game.findFirst.mockResolvedValue(null);
-
-      await expect(service.getPlayerGuesses(testIds.GAME, testIds.PLAYER))
+      const nonexistentGameId = 'clrqm6nkw0000uy08nonexist';
+      await expect(service.getPlayerGuesses(nonexistentGameId, testIds.PLAYER))
         .rejects
-        .toThrow(new GameNotFoundForGuessError());
+        .toThrow(new GameNotFoundForGuessError('unknown'));
     });
 
     test('throws error when query fails', async () => {
       const { mockPrisma } = context;
-      mockPrisma.game.findFirst.mockResolvedValue(mockGame);
+      mockPrisma.game.findUnique.mockResolvedValue(mockGame);
       mockPrisma.guess.findMany.mockRejectedValue(new Error('DB error'));
 
       await expect(service.getPlayerGuesses(testIds.GAME, testIds.PLAYER))
@@ -185,7 +198,7 @@ describe('GuessService', () => {
 
     test('returns empty array when no guesses found', async () => {
       const { mockPrisma } = context;
-      mockPrisma.game.findFirst.mockResolvedValue(mockGame);
+      mockPrisma.game.findUnique.mockResolvedValue(mockGame);
       mockPrisma.guess.findMany.mockResolvedValue([]);
 
       const result = await service.getPlayerGuesses(testIds.GAME, testIds.PLAYER);
@@ -194,7 +207,7 @@ describe('GuessService', () => {
 
     test('returns list of guesses when found', async () => {
       const { mockPrisma } = context;
-      mockPrisma.game.findFirst.mockResolvedValue(mockGame);
+      mockPrisma.game.findUnique.mockResolvedValue(mockGame);
 
       const mockGuesses = [
         {

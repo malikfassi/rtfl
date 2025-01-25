@@ -72,6 +72,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "clean:db": "rm -f prisma/test-*.db prisma/test-*.db-journal",
     "dev": "next dev",
     "full": "pnpm run generate-fixtures && pnpm eslint src && pnpm type-check && pnpm build && pnpm jest",
     "generate-fixtures": "tsx src/app/api/lib/test/fixtures/generate-fixtures.ts",
@@ -83,6 +84,7 @@
     "prisma:studio": "prisma studio",
     "start": "next start",
     "test": "jest",
+    "test:clean": "npm run clean:db && jest",
     "test:integration": "jest --selectProjects integration",
     "test:unit": "jest --selectProjects unit",
     "test:watch": "jest --watch",

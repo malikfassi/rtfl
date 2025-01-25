@@ -3,12 +3,13 @@ import {
   DuplicateGuessError,
   GameNotFoundForGuessError,
   InvalidWordError} from '@/app/api/lib/errors/guess';
-import { TEST_IDS, TEST_SCENARIOS } from '@/app/api/lib/test/fixtures/core/test_cases';
+import { TEST_IDS, SONGS } from '@/app/api/lib/test/fixtures/core/test_cases';
 import { validators } from '@/app/api/lib/test/fixtures/core/validators';
 import {
   cleanupIntegrationTest,
   type IntegrationTestContext,
   setupIntegrationTest} from '@/app/api/lib/test/test-env/integration';
+import { seedDatabase, TEST_SCENARIOS } from '@/app/api/lib/test/fixtures/core/seed-scenarios';
 
 import { GuessService } from '../guess';
 
@@ -17,7 +18,7 @@ describe('GuessService Integration', () => {
   let service: GuessService;
   let testWords: string[];
   let gameId: string;
-  const testCase = TEST_SCENARIOS.BASIC.songs[0]; // PARTY_IN_THE_USA
+  const testCase = SONGS.PARTY_IN_THE_USA; // Get test case for helper functions
   const testDate = TEST_SCENARIOS.BASIC.dates[0]; // 2025-01-25
   const NONEXISTENT_ID = 'clrqm6nkw0000uy08kg9h0000'; // Valid CUID format but doesn't exist
 
@@ -26,10 +27,10 @@ describe('GuessService Integration', () => {
     context = await setupIntegrationTest();
     service = new GuessService(context.prisma);
 
-    // Seed the BASIC scenario
-    await TEST_SCENARIOS.BASIC.seedDB(context.prisma);
+    // Seed the BASIC scenario without guesses
+    await seedDatabase(context.prisma, ['BASIC_NO_GUESSES']);
 
-    // Get the first game from our BASIC scenario (PARTY_IN_THE_USA on 2025-01-25)
+    // Get the first game from our BASIC scenario without guesses (PARTY_IN_THE_USA on 2025-01-25)
     const game = await context.prisma.game.findFirst({
       where: { date: testDate },
       include: { song: true }
@@ -48,90 +49,98 @@ describe('GuessService Integration', () => {
 
   describe('submitGuess', () => {
     test('throws ValidationError when game ID is empty', async () => {
-      await expect(service.submitGuess('', TEST_IDS.PLAYER_2, testWords[0]))
+      await expect(service.submitGuess({ date: '', userId: TEST_IDS.PLAYER_2, guess: testWords[0] }))
         .rejects
         .toThrow(ValidationError);
       
-      await expect(service.submitGuess('', TEST_IDS.PLAYER_2, testWords[0]))
+      await expect(service.submitGuess({ date: '', userId: TEST_IDS.PLAYER_2, guess: testWords[0] }))
         .rejects
-        .toThrow('Game ID is required');
+        .toThrow('Invalid date format. Expected YYYY-MM-DD');
     });
 
     test('throws ValidationError when player ID is empty', async () => {
-      await expect(service.submitGuess(gameId, '', testWords[0]))
+      await expect(service.submitGuess({ date: testDate, userId: '', guess: testWords[0] }))
         .rejects
         .toThrow(ValidationError);
       
-      await expect(service.submitGuess(gameId, '', testWords[0]))
+      await expect(service.submitGuess({ date: testDate, userId: '', guess: testWords[0] }))
         .rejects
         .toThrow('Player ID is required');
     });
 
     test('throws ValidationError when word is empty', async () => {
-      await expect(service.submitGuess(gameId, TEST_IDS.PLAYER_2, ''))
+      await expect(service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: '' }))
         .rejects
         .toThrow(ValidationError);
       
-      await expect(service.submitGuess(gameId, TEST_IDS.PLAYER_2, ''))
+      await expect(service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: '' }))
         .rejects
         .toThrow('Word is required');
     });
 
     test('throws GameNotFoundForGuessError when game not found', async () => {
-      await expect(service.submitGuess(NONEXISTENT_ID, TEST_IDS.PLAYER_2, testWords[0]))
-        .rejects
-        .toThrow(new GameNotFoundForGuessError());
+      const nonexistentDate = '2025-01-01';
+      await expect(service.submitGuess({
+        date: nonexistentDate,
+        userId: TEST_IDS.PLAYER,
+        guess: 'test'
+      }))
+      .rejects
+      .toThrow(new GameNotFoundForGuessError(nonexistentDate));
     });
 
     test('throws InvalidWordError when word not in lyrics', async () => {
-      await expect(service.submitGuess(gameId, TEST_IDS.PLAYER_2, 'nonexistent'))
+      await expect(service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: 'nonexistent' }))
         .rejects
         .toThrow(new InvalidWordError());
     });
 
     test('throws DuplicateGuessError when word already guessed', async () => {
       // Submit a guess first
-      await service.submitGuess(gameId, TEST_IDS.PLAYER_2, testWords[0]);
+      await service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: testWords[0] });
 
       // Try to submit the same guess again
-      await expect(service.submitGuess(gameId, TEST_IDS.PLAYER_2, testWords[0]))
+      await expect(service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: testWords[0] }))
         .rejects
         .toThrow(new DuplicateGuessError());
     });
 
     test('successfully submits valid guess from lyrics', async () => {
       const lyricsWord = testCase.helpers.getLyricsWords()[0];
-      const guess = await service.submitGuess(gameId, TEST_IDS.PLAYER_2, lyricsWord);
+      const guess = await service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: lyricsWord });
 
-      validators.unit.guess(guess);
+      // Validate game state
       expect(guess).toEqual(expect.objectContaining({
-        gameId,
-        playerId: TEST_IDS.PLAYER_2,
-        word: lyricsWord
+        id: expect.any(String),
+        date: testDate,
+        masked: expect.any(Object),
+        guesses: expect.any(Array)
       }));
     });
 
     test('successfully submits valid guess from title', async () => {
       const titleWord = testCase.helpers.getTitleWords()[0];
-      const guess = await service.submitGuess(gameId, TEST_IDS.PLAYER_2, titleWord);
+      const guess = await service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: titleWord });
 
-      validators.unit.guess(guess);
+      // Validate game state
       expect(guess).toEqual(expect.objectContaining({
-        gameId,
-        playerId: TEST_IDS.PLAYER_2,
-        word: titleWord
+        id: expect.any(String),
+        date: testDate,
+        masked: expect.any(Object),
+        guesses: expect.any(Array)
       }));
     });
 
     test('successfully submits valid guess from artist', async () => {
       const artistWord = testCase.helpers.getArtistWords()[0];
-      const guess = await service.submitGuess(gameId, TEST_IDS.PLAYER_2, artistWord);
+      const guess = await service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: artistWord });
 
-      validators.unit.guess(guess);
+      // Validate game state
       expect(guess).toEqual(expect.objectContaining({
-        gameId,
-        playerId: TEST_IDS.PLAYER_2,
-        word: artistWord
+        id: expect.any(String),
+        date: testDate,
+        masked: expect.any(Object),
+        guesses: expect.any(Array)
       }));
     });
   });
@@ -158,34 +167,47 @@ describe('GuessService Integration', () => {
     });
 
     test('throws GameNotFoundForGuessError when game not found', async () => {
-      await expect(service.getPlayerGuesses(NONEXISTENT_ID, TEST_IDS.PLAYER_2))
+      await expect(service.getPlayerGuesses(NONEXISTENT_ID, TEST_IDS.PLAYER))
         .rejects
-        .toThrow(new GameNotFoundForGuessError());
+        .toThrow(new GameNotFoundForGuessError('unknown'));
     });
 
     test('returns empty array when no guesses found', async () => {
-      const guesses = await service.getPlayerGuesses(gameId, TEST_IDS.PLAYER_2);
+      const guesses = await service.getPlayerGuesses(gameId, TEST_IDS.PLAYER);
       expect(guesses).toEqual([]);
     });
 
     test('returns list of guesses when found', async () => {
-      // Submit test guesses with unique words for PLAYER_2 (avoid seeded guesses)
-      const uniqueWords = Array.from(new Set([
-        ...testCase.helpers.getLyricsWords().slice(0, 2),
-        ...testCase.helpers.getTitleWords().slice(0, 2),
-        testCase.helpers.getArtistWords()[0]
-      ]));
+      // Clear any existing guesses for this game and player
+      await context.prisma.guess.deleteMany({
+        where: {
+          gameId,
+          playerId: TEST_IDS.PLAYER_2
+        }
+      });
+
+      // Get unique normalized words from different sources
+      const allWords = [
+        ...testCase.helpers.getLyricsWords(),
+        ...testCase.helpers.getTitleWords(),
+        ...testCase.helpers.getArtistWords()
+      ];
+      
+      // Normalize words and ensure uniqueness
+      const uniqueWords = Array.from(new Set(
+        allWords.map(word => word.toLowerCase().trim())
+      )).slice(0, 3); // Take just 3 unique words to avoid conflicts with seeded guesses
       
       // Submit each word one by one
       for (const word of uniqueWords) {
-        await service.submitGuess(gameId, TEST_IDS.PLAYER_2, word);
+        await service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: word });
       }
 
       const guesses = await service.getPlayerGuesses(gameId, TEST_IDS.PLAYER_2);
 
       expect(guesses).toHaveLength(uniqueWords.length);
       guesses.forEach(guess => {
-        validators.unit.guess(guess);
+        validators.integration.guess(guess);
         expect(guess).toEqual(expect.objectContaining({
           gameId,
           playerId: TEST_IDS.PLAYER_2

@@ -1,24 +1,29 @@
 import { Guess, PrismaClient, Song } from '@prisma/client';
+import { Track } from '@spotify/web-api-ts-sdk';
 import { GameNotFoundError } from '@/app/api/lib/errors/game';
 import { validateSchema, dateSchema, playerIdSchema } from '@/app/api/lib/validation';
 import { prisma } from '@/app/api/lib/db';
-import { lyricsService } from '@/app/api/lib/services/lyrics';
-import type { SpotifyTrack } from '@/app/api/lib/types/spotify';
+import type { MaskedLyrics } from '@/app/api/lib/types/lyrics';
 
-interface GameState {
+interface SpotifyData {
+  name: string;
+  artists: Array<{ name: string }>;
+}
+
+interface InternalGameState {
   id: string;
   date: string;
-  masked: {
-    title: string;    // Masked title with revealed correct guesses
-    artist: string;   // Masked artist with revealed correct guesses
-    lyrics: string;   // Masked lyrics with revealed correct guesses
-  };
+  masked: MaskedLyrics;
   guesses: Guess[];
-  song?: SpotifyTrack;  // Only included if game is won
+  song?: Song;  // Only included if game is won
 }
 
 export class GameStateService {
   constructor(private prisma: PrismaClient) {}
+
+  private extractWords(text: string): string[] {
+    return Array.from(text.toLowerCase().matchAll(/\p{L}+|\p{N}+/gu), m => m[0]);
+  }
 
   private isGameWon(song: Song, guesses: Guess[], playerId: string): boolean {
     // Filter guesses to only include those from this player
@@ -26,11 +31,11 @@ export class GameStateService {
     const guessedWords = new Set(playerGuesses.map(g => g.word.toLowerCase()));
     
     // Get all words from title and artist
-    const spotifyData = song.spotifyData as unknown as SpotifyTrack;
+    const spotifyData = song.spotifyData as unknown as SpotifyData;
     // Split on word boundaries using same regex as lyricsService
-    const titleWords = Array.from(spotifyData.name.toLowerCase().matchAll(/\p{L}+|\p{N}+/gu)).map(m => m[0]);
-    const artistWords = Array.from(spotifyData.artists[0].name.toLowerCase().matchAll(/\p{L}+|\p{N}+/gu)).map(m => m[0]);
-    const lyricsWords = Array.from(song.lyrics.toLowerCase().matchAll(/\p{L}+|\p{N}+/gu)).map(m => m[0]);
+    const titleWords = this.extractWords(spotifyData.name);
+    const artistWords = this.extractWords(spotifyData.artists[0].name);
+    const lyricsWords = this.extractWords(song.lyrics);
 
     // Calculate percentage of lyrics guessed
     const lyricsGuessed = lyricsWords.filter(word => guessedWords.has(word)).length;
@@ -45,56 +50,118 @@ export class GameStateService {
     return lyricsPercentage >= 0.8 || (allTitleWordsGuessed && allArtistWordsGuessed);
   }
 
-  async getGameState(date: string, playerId: string): Promise<GameState> {
-    const validatedDate = validateSchema(dateSchema, date);
+  async getGameState(date: string, userId: string): Promise<InternalGameState> {
+    // Validate date first
+    validateSchema(dateSchema, date);
 
-    // Get game with song and guesses
     const game = await this.prisma.game.findUnique({
-      where: { date: validatedDate },
-      include: { 
+      where: { date },
+      include: {
         song: true,
         guesses: {
-          orderBy: { createdAt: 'desc' }
+          where: { playerId: userId },
+          orderBy: { createdAt: 'asc' }
         }
       }
     });
 
-    if (!game) {
-      throw new GameNotFoundError(validatedDate);
+    if (!game?.song) {
+      throw new GameNotFoundError(date);
     }
 
     // Validate player ID after confirming game exists
-    const validatedPlayerId = validateSchema(playerIdSchema, playerId);
-    const spotifyData = game.song.spotifyData as unknown as SpotifyTrack;
+    validateSchema(playerIdSchema, userId);
 
-    // Filter guesses for this player
-    const playerGuesses = game.guesses.filter(g => g.playerId === validatedPlayerId);
-    const guessedWords = new Set(playerGuesses.map(g => g.word));
+    const isWon = this.isGameWon(game.song, game.guesses, userId);
+    const maskedData = game.song.maskedLyrics as unknown as MaskedLyrics;
+    if (!maskedData || typeof maskedData !== 'object' || !('title' in maskedData)) {
+      throw new Error('Invalid masked lyrics data');
+    }
 
-    // Check if game is won by this player
-    const isWon = this.isGameWon(game.song, game.guesses, validatedPlayerId);
+    // Get guessed words for this player
+    const guessedWords = new Set(game.guesses.map(g => g.word.toLowerCase()));
 
-    // Get partially revealed lyrics based on player's guesses
+    // Create masked state based on guessed words
+    const spotifyData = game.song.spotifyData as unknown as SpotifyData;
     const masked = {
-      title: lyricsService.partial_mask(spotifyData.name, guessedWords),
-      artist: lyricsService.partial_mask(spotifyData.artists[0].name, guessedWords),
-      lyrics: lyricsService.partial_mask(game.song.lyrics, guessedWords)
+      title: this.maskTextWithGuesses(spotifyData.name, guessedWords),
+      artist: this.maskTextWithGuesses(spotifyData.artists[0].name, guessedWords),
+      lyrics: this.maskTextWithGuesses(game.song.lyrics, guessedWords)
     };
 
     return {
       id: game.id,
       date: game.date,
       masked,
-      guesses: playerGuesses, // Only return guesses for this player
-      song: isWon ? spotifyData : undefined
+      guesses: game.guesses,
+      song: isWon ? game.song : undefined
     };
+  }
+
+  private maskTextWithGuesses(text: string, guessedWords: Set<string>): string {
+    // Normalize guessedWords for case-insensitive matching
+    const normalizedGuessedWords = new Set(
+      Array.from(guessedWords).map(word => word.toLowerCase())
+    );
+
+    // Mask all letters and numbers, but preserve guessed words
+    return text.replace(/\p{L}+|\p{N}+/gu, (word) => {
+      const normalizedWord = word.toLowerCase();
+      return normalizedGuessedWords.has(normalizedWord) ? word : '_'.repeat(word.length);
+    });
+  }
+
+  async getGameStatesByMonth(month: string, userId: string): Promise<InternalGameState[]> {
+    const startDate = new Date(month + '-01');
+    const endDate = new Date(new Date(startDate).setMonth(startDate.getMonth() + 1));
+
+    const games = await this.prisma.game.findMany({
+      where: {
+        date: {
+          gte: startDate.toISOString().split('T')[0],
+          lt: endDate.toISOString().split('T')[0]
+        }
+      },
+      include: {
+        song: true,
+        guesses: {
+          where: { playerId: userId },
+          orderBy: { createdAt: 'asc' }
+        }
+      }
+    });
+
+    return games
+      .filter(game => game.song)
+      .map(game => {
+        const isWon = this.isGameWon(game.song!, game.guesses, userId);
+
+        // Get guessed words for this player
+        const guessedWords = new Set(game.guesses.map(g => g.word.toLowerCase()));
+
+        // Create masked state based on guessed words
+        const spotifyData = game.song!.spotifyData as unknown as SpotifyData;
+        const masked = {
+          title: this.maskTextWithGuesses(spotifyData.name, guessedWords),
+          artist: this.maskTextWithGuesses(spotifyData.artists[0].name, guessedWords),
+          lyrics: this.maskTextWithGuesses(game.song!.lyrics, guessedWords)
+        };
+
+        return {
+          id: game.id,
+          date: game.date,
+          masked,
+          guesses: game.guesses,
+          song: isWon ? game.song : undefined
+        };
+      });
   }
 }
 
-// Export default instance
-export const gameStateService = new GameStateService(prisma);
+// Export factory function
+export function createGameStateService(client: PrismaClient = prisma) {
+  return new GameStateService(client);
+}
 
-// Factory function for testing
-export const createGameStateService = (prismaClient: PrismaClient = prisma) => {
-  return new GameStateService(prismaClient);
-}; 
+// Export default instance
+export const gameStateService = new GameStateService(prisma); 
