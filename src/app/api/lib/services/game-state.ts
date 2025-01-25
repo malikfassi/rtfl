@@ -1,5 +1,4 @@
 import { Guess, PrismaClient, Song } from '@prisma/client';
-import { Track } from '@spotify/web-api-ts-sdk';
 import { GameNotFoundError } from '@/app/api/lib/errors/game';
 import { validateSchema, dateSchema, playerIdSchema } from '@/app/api/lib/validation';
 import { prisma } from '@/app/api/lib/db';

@@ -41,7 +41,7 @@
                   "unreviewed_annotations": 0,
                   "concurrents": 2,
                   "hot": false,
-                  "pageviews": 1144826
+                  "pageviews": 1144866
                 },
                 "title": "Party in the U.S.A.",
                 "title_with_featured": "Party in the U.S.A.",
@@ -328,76 +328,6 @@
               "type": "song",
               "result": {
                 "annotation_count": 0,
-                "api_path": "/songs/11330775",
-                "artist_names": "Donald Riebe (Ft. Miley Cyrus)",
-                "full_title": "Party In The U.S.A. (Remix) (Cover) by Donald Riebe (Ft. Miley Cyrus)",
-                "header_image_thumbnail_url": "https://images.genius.com/e59e340fd4da1324b446cc2bc8e6cd1e.300x300x1.jpg",
-                "header_image_url": "https://images.genius.com/e59e340fd4da1324b446cc2bc8e6cd1e.1000x1000x1.jpg",
-                "id": 11330775,
-                "lyrics_owner_id": 21826924,
-                "lyrics_state": "complete",
-                "path": "/Donald-riebe-party-in-the-usa-remix-cover-lyrics",
-                "primary_artist_names": "Donald Riebe",
-                "pyongs_count": null,
-                "relationships_index_url": "https://genius.com/Donald-riebe-party-in-the-usa-remix-cover-sample",
-                "release_date_components": {
-                  "year": 2024,
-                  "month": 10,
-                  "day": 28
-                },
-                "release_date_for_display": "October 28, 2024",
-                "release_date_with_abbreviated_month_for_display": "Oct. 28, 2024",
-                "song_art_image_thumbnail_url": "https://images.genius.com/e59e340fd4da1324b446cc2bc8e6cd1e.300x300x1.jpg",
-                "song_art_image_url": "https://images.genius.com/e59e340fd4da1324b446cc2bc8e6cd1e.1000x1000x1.jpg",
-                "stats": {
-                  "unreviewed_annotations": 0,
-                  "hot": false
-                },
-                "title": "Party In The U.S.A. (Remix) (Cover)",
-                "title_with_featured": "Party In The U.S.A. (Remix) (Cover) (Ft. Miley Cyrus)",
-                "url": "https://genius.com/Donald-riebe-party-in-the-usa-remix-cover-lyrics",
-                "featured_artists": [
-                  {
-                    "api_path": "/artists/805",
-                    "header_image_url": "https://images.genius.com/5386e6fdeab2158db2c04ed5ecfd8fee.1000x333x1.jpg",
-                    "id": 805,
-                    "image_url": "https://images.genius.com/6dedde375ee71261da1d8be8e6503795.400x400x1.jpg",
-                    "is_meme_verified": false,
-                    "is_verified": false,
-                    "name": "Miley Cyrus",
-                    "url": "https://genius.com/artists/Miley-cyrus"
-                  }
-                ],
-                "primary_artist": {
-                  "api_path": "/artists/3952142",
-                  "header_image_url": "https://images.genius.com/e1edb81e18cee7f57388e54db12e26ee.902x1000x1.jpg",
-                  "id": 3952142,
-                  "image_url": "https://images.genius.com/f849539aac27d5e6821d6c459dd65ad4.960x960x1.jpg",
-                  "is_meme_verified": false,
-                  "is_verified": false,
-                  "name": "Donald Riebe",
-                  "url": "https://genius.com/artists/Donald-riebe"
-                },
-                "primary_artists": [
-                  {
-                    "api_path": "/artists/3952142",
-                    "header_image_url": "https://images.genius.com/e1edb81e18cee7f57388e54db12e26ee.902x1000x1.jpg",
-                    "id": 3952142,
-                    "image_url": "https://images.genius.com/f849539aac27d5e6821d6c459dd65ad4.960x960x1.jpg",
-                    "is_meme_verified": false,
-                    "is_verified": false,
-                    "name": "Donald Riebe",
-                    "url": "https://genius.com/artists/Donald-riebe"
-                  }
-                ]
-              }
-            },
-            {
-              "highlights": [],
-              "index": "song",
-              "type": "song",
-              "result": {
-                "annotation_count": 0,
                 "api_path": "/songs/11138178",
                 "artist_names": "Miley Cyrus",
                 "full_title": "Party In The U.S.A. (Cahill Club Mix) by Miley Cyrus",
@@ -568,6 +498,145 @@
                   }
                 ]
               }
+            },
+            {
+              "highlights": [],
+              "index": "song",
+              "type": "song",
+              "result": {
+                "annotation_count": 1,
+                "api_path": "/songs/1833838",
+                "artist_names": "Tony Yayo (Ft. Cory Gunz & Danny Brown)",
+                "full_title": "Tables by Tony Yayo (Ft. Cory Gunz & Danny Brown)",
+                "header_image_thumbnail_url": "https://images.genius.com/f82368530d51afa5db41bb2b9c17f734.300x300x1.png",
+                "header_image_url": "https://images.genius.com/f82368530d51afa5db41bb2b9c17f734.600x600x1.png",
+                "id": 1833838,
+                "lyrics_owner_id": 2703119,
+                "lyrics_state": "complete",
+                "path": "/Tony-yayo-tables-lyrics",
+                "primary_artist_names": "Tony Yayo",
+                "pyongs_count": null,
+                "relationships_index_url": "https://genius.com/Tony-yayo-tables-sample",
+                "release_date_components": null,
+                "release_date_for_display": null,
+                "release_date_with_abbreviated_month_for_display": null,
+                "song_art_image_thumbnail_url": "https://images.genius.com/f82368530d51afa5db41bb2b9c17f734.300x300x1.png",
+                "song_art_image_url": "https://images.genius.com/f82368530d51afa5db41bb2b9c17f734.600x600x1.png",
+                "stats": {
+                  "unreviewed_annotations": 0,
+                  "hot": false
+                },
+                "title": "Tables",
+                "title_with_featured": "Tables (Ft. Cory Gunz & Danny Brown)",
+                "url": "https://genius.com/Tony-yayo-tables-lyrics",
+                "featured_artists": [
+                  {
+                    "api_path": "/artists/1422",
+                    "header_image_url": "https://images.genius.com/344ff4409d4b7fddb09f4bb7dde34987.965x579x1.jpg",
+                    "id": 1422,
+                    "image_url": "https://images.genius.com/c0563c9032200258584576466a5d6d53.395x395x1.jpg",
+                    "is_meme_verified": false,
+                    "is_verified": true,
+                    "name": "Danny Brown",
+                    "url": "https://genius.com/artists/Danny-brown",
+                    "iq": 12729
+                  },
+                  {
+                    "api_path": "/artists/349",
+                    "header_image_url": "https://images.genius.com/03d5998aefc6566ec69427ea4b060117.640x799x1.jpg",
+                    "id": 349,
+                    "image_url": "https://images.genius.com/03d5998aefc6566ec69427ea4b060117.640x799x1.jpg",
+                    "is_meme_verified": false,
+                    "is_verified": false,
+                    "name": "Cory Gunz",
+                    "url": "https://genius.com/artists/Cory-gunz"
+                  }
+                ],
+                "primary_artist": {
+                  "api_path": "/artists/556",
+                  "header_image_url": "https://images.genius.com/3596927b4f965a021b77bdce59700d88.237x237x1.jpg",
+                  "id": 556,
+                  "image_url": "https://images.genius.com/3596927b4f965a021b77bdce59700d88.237x237x1.jpg",
+                  "is_meme_verified": false,
+                  "is_verified": false,
+                  "name": "Tony Yayo",
+                  "url": "https://genius.com/artists/Tony-yayo"
+                },
+                "primary_artists": [
+                  {
+                    "api_path": "/artists/556",
+                    "header_image_url": "https://images.genius.com/3596927b4f965a021b77bdce59700d88.237x237x1.jpg",
+                    "id": 556,
+                    "image_url": "https://images.genius.com/3596927b4f965a021b77bdce59700d88.237x237x1.jpg",
+                    "is_meme_verified": false,
+                    "is_verified": false,
+                    "name": "Tony Yayo",
+                    "url": "https://genius.com/artists/Tony-yayo"
+                  }
+                ]
+              }
+            },
+            {
+              "highlights": [],
+              "index": "song",
+              "type": "song",
+              "result": {
+                "annotation_count": 7,
+                "api_path": "/songs/2469194",
+                "artist_names": "Mike Posner",
+                "full_title": "Miley Cyrus by Mike Posner",
+                "header_image_thumbnail_url": "https://images.genius.com/00713a83a66a097395319f83ab6cf66e.300x300x1.jpg",
+                "header_image_url": "https://images.genius.com/00713a83a66a097395319f83ab6cf66e.480x480x1.jpg",
+                "id": 2469194,
+                "lyrics_owner_id": 2353834,
+                "lyrics_state": "complete",
+                "path": "/Mike-posner-miley-cyrus-lyrics",
+                "primary_artist_names": "Mike Posner",
+                "pyongs_count": 1,
+                "relationships_index_url": "https://genius.com/Mike-posner-miley-cyrus-sample",
+                "release_date_components": {
+                  "year": 2016,
+                  "month": 5,
+                  "day": 6
+                },
+                "release_date_for_display": "May 6, 2016",
+                "release_date_with_abbreviated_month_for_display": "May 6, 2016",
+                "song_art_image_thumbnail_url": "https://images.genius.com/00713a83a66a097395319f83ab6cf66e.300x300x1.jpg",
+                "song_art_image_url": "https://images.genius.com/00713a83a66a097395319f83ab6cf66e.480x480x1.jpg",
+                "stats": {
+                  "unreviewed_annotations": 5,
+                  "hot": false,
+                  "pageviews": 6692
+                },
+                "title": "Miley Cyrus",
+                "title_with_featured": "Miley Cyrus",
+                "url": "https://genius.com/Mike-posner-miley-cyrus-lyrics",
+                "featured_artists": [],
+                "primary_artist": {
+                  "api_path": "/artists/654",
+                  "header_image_url": "https://images.genius.com/5d138a9d7ad89701e7a0183550dfe2e6.1000x333x1.jpg",
+                  "id": 654,
+                  "image_url": "https://images.genius.com/e135e6d5b9f53f5588706780e84be5f7.400x400x1.jpg",
+                  "is_meme_verified": true,
+                  "is_verified": true,
+                  "name": "Mike Posner",
+                  "url": "https://genius.com/artists/Mike-posner",
+                  "iq": 16818
+                },
+                "primary_artists": [
+                  {
+                    "api_path": "/artists/654",
+                    "header_image_url": "https://images.genius.com/5d138a9d7ad89701e7a0183550dfe2e6.1000x333x1.jpg",
+                    "id": 654,
+                    "image_url": "https://images.genius.com/e135e6d5b9f53f5588706780e84be5f7.400x400x1.jpg",
+                    "is_meme_verified": true,
+                    "is_verified": true,
+                    "name": "Mike Posner",
+                    "url": "https://genius.com/artists/Mike-posner",
+                    "iq": 16818
+                  }
+                ]
+              }
             }
           ]
         }
@@ -612,9 +681,9 @@
                 "song_art_image_url": "https://images.genius.com/260bc98fc4984e9f38c1e33f8c462922.1000x1000x1.jpg",
                 "stats": {
                   "unreviewed_annotations": 0,
-                  "concurrents": 3,
+                  "concurrents": 4,
                   "hot": false,
-                  "pageviews": 1864596
+                  "pageviews": 1864845
                 },
                 "title": "...Baby One More Time",
                 "title_with_featured": "...Baby One More Time",
@@ -1146,9 +1215,9 @@
                 "song_art_image_url": "https://images.genius.com/bf705f7b0a2cdf0c76588aae2256616d.1000x1000x1.png",
                 "stats": {
                   "unreviewed_annotations": 0,
-                  "concurrents": 2,
+                  "concurrents": 4,
                   "hot": false,
-                  "pageviews": 2079673
+                  "pageviews": 2079800
                 },
                 "title": "Billie Jean",
                 "title_with_featured": "Billie Jean",
@@ -1836,9 +1905,9 @@
                 "song_art_image_url": "https://images.genius.com/845536d96bc33538da1605318ab94cab.1000x1000x1.jpg",
                 "stats": {
                   "unreviewed_annotations": 5,
-                  "concurrents": 2,
+                  "concurrents": 6,
                   "hot": false,
-                  "pageviews": 653282
+                  "pageviews": 653845
                 },
                 "title": "Like a Prayer",
                 "title_with_featured": "Like a Prayer",
@@ -2195,7 +2264,7 @@
                 "stats": {
                   "unreviewed_annotations": 2,
                   "hot": false,
-                  "pageviews": 54211
+                  "pageviews": 54168
                 },
                 "title": "SLAYERR",
                 "title_with_featured": "SLAYERR",
@@ -2403,9 +2472,9 @@
                 "song_art_image_url": "https://images.genius.com/a8dbbb16d6f02f2d27b86e60d11b1476.1000x1000x1.jpg",
                 "stats": {
                   "unreviewed_annotations": 0,
-                  "concurrents": 10,
+                  "concurrents": 9,
                   "hot": false,
-                  "pageviews": 2039960
+                  "pageviews": 2040707
                 },
                 "title": "Sweet Child O’ Mine",
                 "title_with_featured": "Sweet Child O' Mine",
@@ -2941,9 +3010,8 @@
                 "song_art_image_url": "https://images.genius.com/4c5e95eb3b8c120730ee938f92bf49d0.1000x1000x1.png",
                 "stats": {
                   "unreviewed_annotations": 3,
-                  "concurrents": 2,
                   "hot": false,
-                  "pageviews": 780090
+                  "pageviews": 780138
                 },
                 "title": "Beat It",
                 "title_with_featured": "Beat It",
@@ -3183,7 +3251,7 @@
                 "stats": {
                   "unreviewed_annotations": 4,
                   "hot": false,
-                  "pageviews": 34550
+                  "pageviews": 34551
                 },
                 "title": "Big Dog",
                 "title_with_featured": "Big Dog",
@@ -3460,7 +3528,7 @@
                 "stats": {
                   "unreviewed_annotations": 0,
                   "hot": false,
-                  "pageviews": 5471
+                  "pageviews": 5474
                 },
                 "title": "No Action",
                 "title_with_featured": "No Action",
@@ -3595,7 +3663,7 @@
                 "stats": {
                   "unreviewed_annotations": 0,
                   "hot": false,
-                  "pageviews": 1248122
+                  "pageviews": 1248167
                 },
                 "title": "Thriller",
                 "title_with_featured": "Thriller",
@@ -3655,7 +3723,7 @@
                 "stats": {
                   "unreviewed_annotations": 4,
                   "hot": false,
-                  "pageviews": 24616
+                  "pageviews": 24617
                 },
                 "title": "Voice-Over Intro/Voice-Over Session From Thriller",
                 "title_with_featured": "Voice-Over Intro/Voice-Over Session From Thriller (Ft. Vincent Price)",
@@ -3842,7 +3910,7 @@
                 "stats": {
                   "unreviewed_annotations": 41,
                   "hot": false,
-                  "pageviews": 75838
+                  "pageviews": 75839
                 },
                 "title": "Headshot",
                 "title_with_featured": "Headshot",
@@ -4041,7 +4109,7 @@
                 "stats": {
                   "unreviewed_annotations": 4,
                   "hot": false,
-                  "pageviews": 1198894
+                  "pageviews": 1198927
                 },
                 "title": "La Vie En Rose",
                 "title_with_featured": "La Vie En Rose",
@@ -4657,7 +4725,7 @@
                 "stats": {
                   "unreviewed_annotations": 0,
                   "hot": false,
-                  "pageviews": 7750
+                  "pageviews": 7752
                 },
                 "title": "Laat me niet alleen (Ne me quitte pas)",
                 "title_with_featured": "Laat me niet alleen (Ne me quitte pas)",
@@ -5234,7 +5302,7 @@
                   "unreviewed_annotations": 10,
                   "concurrents": 2,
                   "hot": false,
-                  "pageviews": 230024
+                  "pageviews": 230138
                 },
                 "title": "La bohème",
                 "title_with_featured": "La bohème",
@@ -5485,7 +5553,7 @@
                 "stats": {
                   "unreviewed_annotations": 0,
                   "hot": false,
-                  "pageviews": 76425
+                  "pageviews": 76458
                 },
                 "title": "La bohème (English version)",
                 "title_with_featured": "La bohème (English version) (Ft. Josh Groban)",
@@ -5819,7 +5887,7 @@
                 "stats": {
                   "unreviewed_annotations": 5,
                   "hot": false,
-                  "pageviews": 51206
+                  "pageviews": 51212
                 },
                 "title": "Non, je ne regrette rien",
                 "title_with_featured": "Non, je ne regrette rien",
@@ -6120,7 +6188,7 @@
                 "stats": {
                   "unreviewed_annotations": 0,
                   "hot": false,
-                  "pageviews": 7275
+                  "pageviews": 7273
                 },
                 "title": "Édith Piaf - Non, je ne regrette rien (English Translation)",
                 "title_with_featured": "Édith Piaf - Non, je ne regrette rien (English Translation)",
@@ -6446,7 +6514,7 @@
                 "stats": {
                   "unreviewed_annotations": 0,
                   "hot": false,
-                  "pageviews": 3595305
+                  "pageviews": 3595346
                 },
                 "title": "Butter",
                 "title_with_featured": "Butter",
