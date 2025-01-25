@@ -37,7 +37,7 @@ export function SongBrowser({ onSelect, onCancel, disabled }: SongBrowserProps) 
           throw new Error(data.error || 'Failed to search tracks');
         }
         const data = await response.json();
-        setTracks(data);
+        setTracks(data.tracks);
       } catch (error) {
         console.error('Failed to search tracks:', error);
         setError(error instanceof Error ? error.message : 'Failed to search tracks');
