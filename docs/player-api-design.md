@@ -31,7 +31,7 @@ Response {
     lyrics: string[]     // Masked lyrics words with revealed correct guesses
   },
   guesses: Guess[],
-  song: Song, // if game is won
+  song: spotifyData, // if game is won
 }
 ```
 

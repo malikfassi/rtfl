@@ -72,11 +72,11 @@ export async function validateJsonBody<T>(req: Request, schema: z.Schema<T>): Pr
 // Game schemas
 export const gameIdSchema = z.string().trim()
   .min(1, 'Game ID is required')
-  .regex(/^[0-9a-fA-F]{24}$/, 'Invalid game ID format');
+  .regex(/^[a-z0-9]{25}$/, 'Invalid game ID format');
 
 export const playerIdSchema = z.string().trim()
   .min(1, 'Player ID is required')
-  .regex(/^[0-9a-fA-F]{24}$/, 'Invalid player ID format');
+  .regex(/^[a-z0-9]{25}$/, 'Invalid player ID format');
 
 export const wordSchema = z.string().trim()
   .min(1, 'Word is required')

@@ -1,9 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import { seedDatabase } from '../src/app/api/lib/test/fixtures/core/seed-scenarios';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // No seed data needed for tests
+  // Seed both test scenarios
+  await seedDatabase(prisma, ['BASIC', 'MIXED_LANGUAGES']);
 }
 
 main()

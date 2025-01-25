@@ -10,6 +10,7 @@ import {
   TrackNotFoundError} from '@/app/api/lib/errors/spotify';
 import { searchQuerySchema,spotifyIdSchema } from '@/app/api/lib/validation';
 import { validateSchema } from '@/app/api/lib/validation';
+import { withRetry } from '@/app/api/lib/utils/retry';
 
 export interface SpotifyClient {
   getTrack(id: string): Promise<Track>;
@@ -37,7 +38,10 @@ export class SpotifyClientImpl implements SpotifyClient {
     const validatedQuery = validateSchema(searchQuerySchema, query);
 
     try {
-      const response = await this.client.search(validatedQuery, ['playlist'], undefined, 50);
+      const response = await withRetry(() => 
+        this.client.search(validatedQuery, ['playlist'], undefined, 50)
+      );
+      
       const playlists = response.playlists.items
         .filter(playlist => {
           if (!playlist || !playlist.name) return false;
@@ -68,7 +72,10 @@ export class SpotifyClientImpl implements SpotifyClient {
     const validatedId = validateSchema(spotifyIdSchema, playlistId);
 
     try {
-      const response = await this.client.playlists.getPlaylistItems(validatedId);
+      const response = await withRetry(() => 
+        this.client.playlists.getPlaylistItems(validatedId)
+      );
+      
       const tracks = response.items
         .map(item => item.track)
         .filter((track): track is Track => 
@@ -93,7 +100,9 @@ export class SpotifyClientImpl implements SpotifyClient {
     const validatedId = validateSchema(spotifyIdSchema, trackId.replace(/^spotify:track:/, ''));
 
     try {
-      return await this.client.tracks.get(validatedId);
+      return await withRetry(() => 
+        this.client.tracks.get(validatedId)
+      );
     } catch (error) {
       if (error instanceof Error && error.message.includes('404')) {
         throw new TrackNotFoundError();
@@ -106,7 +115,10 @@ export class SpotifyClientImpl implements SpotifyClient {
     const validatedQuery = validateSchema(searchQuerySchema, query);
 
     try {
-      const response = await this.client.search(validatedQuery, ['track'], undefined, 50);
+      const response = await withRetry(() => 
+        this.client.search(validatedQuery, ['track'], undefined, 50)
+      );
+      
       const tracks = response.tracks.items.filter(track => {
         const searchTerms = validatedQuery.toLowerCase().split(' ');
         const trackName = track.name.toLowerCase();

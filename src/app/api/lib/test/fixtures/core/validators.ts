@@ -3,7 +3,17 @@ import type { Game, Song } from '@prisma/client';
 import type { JsonValue } from '@prisma/client/runtime/library';
 import type { Track } from '@spotify/web-api-ts-sdk';
 
+import type { GameState } from '@/app/api/lib/types/game';
 import type { PlaylistTestCase,SongTestCase } from './test_cases';
+
+// Helper function to validate masked text format
+function validateMaskedText(text: string): void {
+  // Validate that masked characters are underscores and visible characters are preserved
+  expect(text).toMatch(/^[a-zA-Z0-9\s'",()._-]*$/);
+  // Ensure consecutive underscores are used for masked words
+  expect(text).not.toMatch(/^_$/);
+  expect(text).not.toMatch(/[^_]_[^_]/);
+}
 
 export const validators = {
   unit: {
@@ -29,10 +39,7 @@ export const validators = {
 
       // Check Genius data
       const actualGenius = actual.geniusData as { url: string; title: string; artist: string };
-      const expectedGenius = geniusData.response.hits[0].result;
-      expect(actualGenius.url).toBe(expectedGenius.url);
-      expect(actualGenius.title).toBe(expectedGenius.title);
-      expect(actualGenius.artist).toBe(expectedGenius.primary_artist.name);
+      expect(actualGenius).toEqual(testCase.genius.getBestMatch());
 
       // Check lyrics and masked lyrics
       expect(actual.lyrics).toBe(testCase.lyrics.get());
@@ -78,14 +85,84 @@ export const validators = {
       
       // Validate Genius data
       const geniusData = song.geniusData as { url: string; title: string; artist: string };
-      const expectedGeniusData = testCase.genius.getSearch().response.hits[0].result;
-      expect(geniusData.url).toBe(expectedGeniusData.url);
-      expect(geniusData.title).toBe(expectedGeniusData.title);
-      expect(geniusData.artist).toBe(expectedGeniusData.primary_artist.name);
+      expect(geniusData).toEqual(testCase.genius.getBestMatch());
 
       // Validate lyrics and masked lyrics
       expect(song.lyrics).toBe(testCase.lyrics.get());
       expect(song.maskedLyrics).toEqual(testCase.lyrics.getMasked());
+    },
+    maskedLyrics: (actual: { title: string; artist: string; lyrics: string }) => {
+      // Validate structure
+      expect(actual).toBeDefined();
+      expect(actual.title).toBeDefined();
+      expect(actual.artist).toBeDefined();
+      expect(actual.lyrics).toBeDefined();
+
+      // Validate format of each field
+      validateMaskedText(actual.title);
+      validateMaskedText(actual.artist);
+      
+      // Validate lyrics - split by lines and check each line
+      const lines = actual.lyrics.split('\n');
+      lines.forEach(line => validateMaskedText(line));
+    },
+    guess: (actual: Record<string, unknown>) => {
+      expect(actual).toMatchObject({
+        id: expect.any(String),
+        gameId: expect.any(String),
+        playerId: expect.any(String),
+        word: expect.any(String),
+        createdAt: expect.any(Date)
+      });
+    },
+    gameState: (actual: GameState, testCase: SongTestCase, playerId: string) => {
+      // Validate structure
+      expect(actual).toMatchObject({
+        id: expect.any(String),
+        date: expect.any(String),
+        masked: expect.any(Object),
+        guesses: expect.any(Array)
+      });
+
+      // Get guessed words for this specific player
+      const guessedWords = new Set(
+        actual.guesses
+          .filter(guess => guess.playerId === playerId)
+          .map(guess => guess.word)
+      );
+
+      // Validate masked state matches the player's guesses
+      expect(actual.masked).toEqual(testCase.helpers.getMaskedState(guessedWords));
+
+      // If there are guesses, validate their structure
+      if (actual.guesses.length > 0) {
+        actual.guesses.forEach(guess => {
+          expect(guess).toMatchObject({
+            id: expect.any(String),
+            gameId: expect.any(String),
+            playerId: expect.any(String),
+            word: expect.any(String),
+            createdAt: expect.any(Date)
+          });
+        });
+      }
+
+      // Validate song data presence based on win condition
+      if (actual.song) {
+        const track = testCase.spotify.getTrack();
+        expect(actual.song).toMatchObject({
+          name: track.name,
+          artists: track.artists.map(artist => ({
+            id: artist.id,
+            name: artist.name
+          })),
+          album: {
+            name: track.album.name,
+            images: track.album.images
+          },
+          preview_url: track.preview_url
+        });
+      }
     }
   },
   integration: {

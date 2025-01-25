@@ -16,6 +16,7 @@ import { lyricsService } from './lyrics';
 interface GeniusHit {
   result: {
     title: string;
+    url: string;
     primary_artist: {
       name: string;
     };
@@ -34,11 +35,11 @@ export class SongService {
 
     try {
       // First, fetch all external data
-      const [track, geniusSearchResult, lyrics] = await this.fetchExternalData(validatedId);
+      const [track, bestMatch, lyrics] = await this.fetchExternalData(validatedId);
 
       // Then, create the song in the database
       const prisma = tx || this.prisma;
-      return await this.createSongInDb(validatedId, track, geniusSearchResult, lyrics, prisma);
+      return await this.createSongInDb(validatedId, track, bestMatch, lyrics, prisma);
     } catch (error) {
       if (error instanceof NoMatchingTracksError) {
         throw new Error('Track not found');
@@ -57,7 +58,7 @@ export class SongService {
     return await this.spotifyClient.searchTracks(validatedQuery);
   }
 
-  private async fetchExternalData(spotifyId: string): Promise<[Track, GeniusSearchResponse, string]> {
+  private async fetchExternalData(spotifyId: string): Promise<[Track, GeniusHit, string]> {
     // 1. Get Spotify track data
     const track = await this.getTrack(spotifyId);
 
@@ -103,7 +104,7 @@ export class SongService {
       throw new NoMatchingLyricsError();
     }
 
-    return [track, geniusSearchResult, lyrics];
+    return [track, bestMatch, lyrics];
   }
 
   private findBestMatch(
@@ -174,7 +175,7 @@ export class SongService {
   private async createSongInDb(
     spotifyId: string, 
     track: Track, 
-    geniusSearchResult: GeniusSearchResponse,
+    bestMatch: GeniusHit,
     lyrics: string, 
     tx?: Prisma.TransactionClient
   ): Promise<Song> {
@@ -198,11 +199,11 @@ export class SongService {
       preview_url: track.preview_url
     })) as Prisma.InputJsonValue;
 
-    const geniusData = JSON.parse(JSON.stringify({
-      url: geniusSearchResult.response.hits[0]?.result.url,
-      title: geniusSearchResult.response.hits[0]?.result.title,
-      artist: geniusSearchResult.response.hits[0]?.result.primary_artist.name
-    })) as Prisma.InputJsonValue;
+    const geniusData = {
+      url: bestMatch.result.url,
+      title: bestMatch.result.title,
+      artist: bestMatch.result.primary_artist.name
+    } as Prisma.InputJsonValue;
 
     // 3. Create song record
     return await prisma.song.create({

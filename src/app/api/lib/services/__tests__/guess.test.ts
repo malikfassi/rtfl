@@ -19,13 +19,13 @@ describe('GuessService', () => {
 
   // Get test case and words from lyrics
   const validSongCase = TEST_CASES.SONGS.VALID;
-  const mockGame = validSongCase.prisma.game.upsert.output('2025-01-17', '507f1f77bcf86cd799439011');
+  const mockGame = validSongCase.prisma.game.upsert.output('2025-01-17', 'clrqm6nkw0009uy08kg9h1p3x');
   const testWords = validSongCase.lyrics.get().toLowerCase().split(/\s+/).filter((word: string) => word.length >= 4);
   
-  // Test IDs (24-character hex strings)
+  // Test IDs (cuid format)
   const testIds = {
-    GAME: '507f1f77bcf86cd799439011',
-    PLAYER: '507f1f77bcf86cd799439012'
+    GAME: 'clrqm6nkw0009uy08kg9h1p3x',
+    PLAYER: 'clrqm6nkw0010uy08kg9h1p4x'
   };
 
   beforeEach(() => {
