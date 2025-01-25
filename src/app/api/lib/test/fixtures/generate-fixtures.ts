@@ -83,7 +83,7 @@ async function generateSongData(id: SpotifyId): Promise<{
     // Fetch data from APIs with retry
     console.log('- Fetching Spotify track data...');
     const track = await withRetry(() => spotify.tracks.get(id), {
-      onRetry: (attempt, waitTime, error) => {
+      onRetry: (attempt) => {
         console.log(`- Retry ${attempt + 1}: Fetching Spotify track data...`);
       }
     });
@@ -96,7 +96,7 @@ async function generateSongData(id: SpotifyId): Promise<{
     const searchQuery = `${track.name} ${track.artists[0].name}`;
     console.log(`- Search query: "${searchQuery}"`);
     const searchResponse = await withRetry(() => genius.search(searchQuery), {
-      onRetry: (attempt, waitTime, error) => {
+      onRetry: (attempt) => {
         console.log(`- Retry ${attempt + 1}: Searching Genius...`);
       }
     });
@@ -108,7 +108,7 @@ async function generateSongData(id: SpotifyId): Promise<{
 
     console.log('- Fetching lyrics...');
     const lyrics = await withRetry(() => genius.getLyrics(searchResponse.response.hits[0].result.url), {
-      onRetry: (attempt, waitTime, error) => {
+      onRetry: (attempt) => {
         console.log(`- Retry ${attempt + 1}: Fetching lyrics...`);
       }
     });
@@ -144,7 +144,7 @@ async function generatePlaylistData(id: PlaylistId): Promise<{
     // Get playlist metadata with retry
     console.log('- Fetching playlist metadata...');
     const playlist = await withRetry(() => spotify.playlists.getPlaylist(id), {
-      onRetry: (attempt, waitTime, error) => {
+      onRetry: (attempt) => {
         console.log(`- Retry ${attempt + 1}: Fetching playlist metadata...`);
       }
     });
@@ -156,7 +156,7 @@ async function generatePlaylistData(id: PlaylistId): Promise<{
     // Get playlist tracks with retry
     console.log('- Fetching playlist tracks...');
     const playlistItems = await withRetry(() => spotify.playlists.getPlaylistItems(id), {
-      onRetry: (attempt, waitTime, error) => {
+      onRetry: (attempt) => {
         console.log(`- Retry ${attempt + 1}: Fetching playlist tracks...`);
       }
     });

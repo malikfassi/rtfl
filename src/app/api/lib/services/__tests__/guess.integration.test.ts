@@ -1,12 +1,9 @@
-import type { Prisma } from '@prisma/client';
-
 import { ValidationError } from '@/app/api/lib/errors/base';
 import {
   DuplicateGuessError,
   GameNotFoundForGuessError,
   InvalidWordError} from '@/app/api/lib/errors/guess';
 import { seedDatabase } from '@/app/api/lib/test/fixtures/core/seed-scenarios';
-import { seedHelpers } from '@/app/api/lib/test/fixtures/core/seed-helpers';
 import {
   cleanupIntegrationTest,
   type IntegrationTestContext,
@@ -19,7 +16,6 @@ describe('GuessService Integration', () => {
   let service: GuessService;
   let testWords: string[];
   let gameId: string;
-  let songId: string;
 
   // Test IDs
   const testIds = {
@@ -45,7 +41,6 @@ describe('GuessService Integration', () => {
     if (!game) throw new Error('Failed to find seeded game');
     
     gameId = game.id;
-    songId = game.songId;
     
     // Get test words from the song's lyrics
     testWords = game.song.lyrics

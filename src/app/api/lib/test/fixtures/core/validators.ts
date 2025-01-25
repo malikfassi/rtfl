@@ -19,7 +19,6 @@ export const validators = {
   unit: {
     song: (actual: Record<string, unknown>, testCase: SongTestCase) => {
       const track = testCase.spotify.getTrack();
-      const geniusData = testCase.genius.getSearch();
       const maskedLyrics = testCase.lyrics.getMasked();
 
       // Check Spotify data

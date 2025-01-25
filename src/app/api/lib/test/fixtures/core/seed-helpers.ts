@@ -1,7 +1,5 @@
-import type { JsonValue } from '@prisma/client/runtime/library';
-import type { SimplifiedPlaylist, Track } from '@spotify/web-api-ts-sdk';
-
-import type { GeniusSearchResponse } from '@/app/types/genius';
+import type { Track } from '@spotify/web-api-ts-sdk';
+import type { SpotifyId, PlaylistId } from '../spotify_ids';
 
 import geniusJson from '../data/genius.json';
 import lyricsJson from '../data/lyrics.json';
@@ -9,23 +7,26 @@ import spotifyJson from '../data/spotify.json';
 import { SONG_IDS } from '../spotify_ids';
 
 // Helper types
-type SpotifyFixtures = { tracks: Record<string, any> };
+interface SpotifyFixtures {
+  tracks: Partial<Record<SpotifyId, Track>>;
+  errors?: {
+    tracks: Partial<Record<SpotifyId, { status: number; message: string }>>;
+    playlists: Partial<Record<PlaylistId, { status: number; message: string }>>;
+  };
+}
+
 type GeniusFixtures = {
-  byId: Record<string, {
+  byId: Partial<Record<SpotifyId, {
     url: string;
     title: string;
     artist: string;
-  }>;
+  }>>;
 };
-type LyricsFixtures = Record<string, string>;
 
-interface SpotifyArtist {
-  id: string;
-  name: string;
-}
+type LyricsFixtures = Partial<Record<SpotifyId, string>>;
 
 // Type assertions with runtime validation
-const typedSpotifyJson = spotifyJson as SpotifyFixtures;
+const typedSpotifyJson = spotifyJson as unknown as SpotifyFixtures;
 const typedGeniusJson = geniusJson as GeniusFixtures;
 const typedLyricsJson = lyricsJson as LyricsFixtures;
 
@@ -35,7 +36,7 @@ function maskText(text: string): string {
 }
 
 // Helper function to create song data
-function createSongData(id: string) {
+function createSongData(id: SpotifyId) {
   const track = typedSpotifyJson.tracks[id];
   const geniusData = typedGeniusJson.byId[id];
   const lyrics = typedLyricsJson[id];
@@ -48,7 +49,7 @@ function createSongData(id: string) {
     spotifyId: id,
     spotifyData: JSON.parse(JSON.stringify({
       name: track.name,
-      artists: track.artists.map((a: SpotifyArtist) => ({ name: a.name, id: a.id })),
+      artists: track.artists.map((artist) => ({ name: artist.name, id: artist.id })),
       album: {
         name: track.album.name,
         images: track.album.images

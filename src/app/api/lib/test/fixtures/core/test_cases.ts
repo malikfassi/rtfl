@@ -244,11 +244,7 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
                   },
                   preview_url: typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].preview_url
                 })),
-                geniusData: JSON.parse(JSON.stringify({
-                  url: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].url,
-                  title: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].title,
-                  artist: typedGeniusJson.byId[id as keyof typeof typedGeniusJson.byId].artist
-                })),
+                geniusData: JSON.parse(JSON.stringify(testCase.genius.getBestMatch())) as JsonValue,
                 lyrics: typedLyricsJson[id as keyof typeof typedLyricsJson],
                 maskedLyrics: JSON.parse(JSON.stringify({
                   title: maskText(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].name),
@@ -348,8 +344,8 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
       scenarios: {
         getAll: () => {
           return Object.entries(TEST_SCENARIOS)
-            .filter(([_, scenario]) => 
-              (scenario.songs as readonly string[]).includes(key))
+            .filter(([, testScenario]) => 
+              (testScenario.songs as readonly string[]).includes(key))
             .map(([scenarioKey]) => scenarioKey as TestScenario);
         },
         getDateInScenario: (scenario: TestScenario) => {

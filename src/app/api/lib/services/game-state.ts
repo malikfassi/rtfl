@@ -1,11 +1,9 @@
-import { Game, Guess, PrismaClient, Song } from '@prisma/client';
+import { Guess, PrismaClient, Song } from '@prisma/client';
 import { GameNotFoundError } from '@/app/api/lib/errors/game';
 import { validateSchema, dateSchema, playerIdSchema } from '@/app/api/lib/validation';
 import { prisma } from '@/app/api/lib/db';
 import { lyricsService } from '@/app/api/lib/services/lyrics';
-import { ValidationError } from '@/app/api/lib/errors/base';
 import type { SpotifyTrack } from '@/app/api/lib/types/spotify';
-import type { MaskedLyrics } from '@/app/api/lib/types/lyrics';
 
 interface GameState {
   id: string;

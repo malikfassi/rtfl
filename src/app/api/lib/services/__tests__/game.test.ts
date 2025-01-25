@@ -1,5 +1,4 @@
 import { afterEach,beforeEach, describe, expect, test } from '@jest/globals';
-import { JsonValue } from '@prisma/client/runtime/library';
 
 import { ValidationError } from '@/app/api/lib/errors/base';
 import { GameNotFoundError } from '@/app/api/lib/errors/game';
@@ -10,7 +9,7 @@ import {
   setupUnitTest,
   type UnitTestContext
 } from '@/app/api/lib/test';
-import { TEST_CASES, TEST_IDS } from '@/app/api/lib/test/fixtures/core/test_cases';
+import { TEST_CASES } from '@/app/api/lib/test/fixtures/core/test_cases';
 import { validators } from '@/app/api/lib/test/fixtures/core/validators';
 
 const testCase = TEST_CASES.SONGS.PARTY_IN_THE_USA;
@@ -61,7 +60,6 @@ describe('Game Service', () => {
         const { mockGameService, mockPrisma, mockSongService } = context;
         const { id: songId } = testCase;
         const song = testCase.prisma.song.create.output();
-        const existingGame = testCase.prisma.game.findUnique.output(testDate, testCase.id);
 
         mockSongService.create.mockResolvedValueOnce(song);
         mockPrisma.game.upsert.mockResolvedValueOnce(testCase.prisma.game.upsert.output(testDate, testCase.id));
@@ -84,7 +82,6 @@ describe('Game Service', () => {
         const { mockGameService, mockPrisma, mockSongService } = context;
         const { id: songId } = testCase;
         const song = testCase.prisma.song.create.output();
-        const existingGame = testCase.prisma.game.findUnique.output(testDate, testCase.id);
 
         mockSongService.create.mockResolvedValueOnce(song);
         mockPrisma.game.upsert.mockResolvedValueOnce(testCase.prisma.game.upsert.output(testDate, testCase.id));
