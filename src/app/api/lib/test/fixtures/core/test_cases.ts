@@ -1,10 +1,11 @@
 import { expect } from '@jest/globals';
-import type { Game, Song } from '@prisma/client';
+import type { Game, PrismaClient, Song } from '@prisma/client';
 import type { JsonValue } from '@prisma/client/runtime/library';
 import { type SimplifiedPlaylist, Track } from '@spotify/web-api-ts-sdk';
 
 import type { GeniusSearchResponse } from '@/app/types/genius';
 import type { GameState } from '@/app/api/lib/types/game';
+import { seedDatabase } from '@/app/api/lib/test/fixtures/core/seed-scenarios';
 
 import geniusJson from '../data/genius.json';
 import lyricsJson from '../data/lyrics.json';
@@ -18,22 +19,6 @@ const typedSpotifyJson = spotifyJson as unknown as SpotifyFixtures;
 const typedGeniusJson = geniusJson as unknown as GeniusFixtures;
 const typedLyricsJson = lyricsJson as unknown as LyricsFixtures;
 
-// Define test scenarios
-export const TEST_SCENARIOS = {
-  BASIC: {
-    songs: ['PARTY_IN_THE_USA', 'BILLIE_JEAN', 'LIKE_A_PRAYER'] as const,
-    dates: ['2025-01-25', '2025-01-26', '2025-01-27']
-  },
-  MIXED_LANGUAGES: {
-    songs: ['LA_VIE_EN_ROSE', 'SWEET_CHILD_O_MINE'] as const,
-    dates: ['2025-01-28', '2025-01-29']
-  }
-} as const;
-
-export type TestScenario = keyof typeof TEST_SCENARIOS;
-export type TestSongKey = keyof typeof SONG_IDS;
-export type GameWithSong = Game & { song: Song };
-
 // Test IDs for consistent usage across tests
 export const TEST_IDS = {
   GAME: 'clrqm6nkw0009uy08kg9h1p3x',
@@ -41,141 +26,8 @@ export const TEST_IDS = {
   PLAYER_2: 'clrqm6nkw0013uy08kg9h1p7x'
 } as const;
 
-/**
- * Test case for a song
- * Provides data accessors and validators for testing
- */
-export interface SongTestCase {
-  id: string;
-  spotify: {
-    getTrack: () => Track;
-    getError?: () => { status: number; message: string };
-  };
-  genius: {
-    getSearch: () => GeniusSearchResponse;
-    getBestMatch: () => {
-      url: string;
-      title: string;
-      artist: string;
-    };
-  };
-  lyrics: {
-    get: () => string;
-    getMasked: () => {
-      title: string;
-      artist: string;
-      lyrics: string;
-    };
-  };
-  prisma: {
-    song: {
-      create: {
-        input: () => { 
-          data: {
-            spotifyId: string;
-            spotifyData: unknown;
-            geniusData: unknown;
-            lyrics: string;
-            maskedLyrics: {
-              title: string;
-              artist: string;
-              lyrics: string;
-            };
-          }
-        };
-        output: (id?: string) => Song;
-      };
-    };
-    game: {
-      upsert: {
-        input: (date: string) => {
-          where: {
-            date: string;
-          };
-          create: {
-            date: string;
-            songId: string;
-          };
-          update: {
-            songId: string;
-          };
-        };
-        output: (date: string, mockId: string) => GameWithSong;
-      };
-      findUnique: {
-        output: (date: string, mockId: string) => GameWithSong;
-      };
-    };
-  };
-  validators: {
-    unit: {
-      song: (actual: Song) => void;
-      maskedLyrics: (actual: string) => void;
-      game: (actual: GameWithSong) => void;
-      gameState: (actual: GameState, testCase: SongTestCase, playerId: string) => void;
-    };
-    integration: {
-      song: (actual: Song) => void;
-    };
-  };
-  scenarios: {
-    /**
-     * Get all scenarios this song appears in
-     */
-    getAll: () => TestScenario[];
-    /**
-     * Get the date this song appears on in a specific scenario
-     * Returns undefined if the song is not in the scenario
-     */
-    getDateInScenario: (scenario: TestScenario) => string | undefined;
-  };
-  helpers: {
-    createGuess: (word: string, playerId?: string, gameId?: string) => {
-      id: string;
-      gameId: string;
-      playerId: string;
-      word: string;
-      createdAt: Date;
-    };
-    createGuesses: (words: string[], playerId?: string, gameId?: string) => Array<{
-      id: string;
-      gameId: string;
-      playerId: string;
-      word: string;
-      createdAt: Date;
-    }>;
-    getMaskedState: (guessedWords: Set<string>) => {
-      title: string;
-      artist: string;
-      lyrics: string;
-    };
-  };
-}
-
-/**
- * Test case for a playlist
- * Provides data accessors and validators for testing
- */
-export interface PlaylistTestCase {
-  id: string;
-  spotify: {
-    getTracks: () => Track[];
-    getPlaylist: () => SimplifiedPlaylist;
-    getSearch: (query: string) => SimplifiedPlaylist[];
-    getError?: () => { status: number; message: string };
-  };
-  validators: {
-    unit: {
-      playlist: (actual: Record<string, unknown>) => void;
-      tracks: (actual: Track[]) => void;
-      search: (actual: SimplifiedPlaylist[]) => void;
-    };
-    integration: {
-      playlist: (actual: Record<string, unknown>) => void;
-      tracks: (actual: Track[]) => void;
-    };
-  };
-}
+export type TestSongKey = keyof typeof SONG_IDS;
+export type GameWithSong = Game & { song: Song };
 
 // Helper function for masking text
 function maskText(text: string): string {
@@ -342,19 +194,29 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
         }
       },
       scenarios: {
+        /**
+         * Get all scenarios this song appears in
+         */
         getAll: () => {
           return Object.entries(TEST_SCENARIOS)
             .filter(([, testScenario]) => 
-              (testScenario.songs as readonly string[]).includes(key))
-            .map(([scenarioKey]) => scenarioKey as TestScenario);
+              testScenario.songs.some(songCase => songCase.id === id))
+            .map(([scenarioKey]) => scenarioKey as TestScenarioKey);
         },
-        getDateInScenario: (scenario: TestScenario) => {
+        /**
+         * Get the date this song appears on in a specific scenario
+         * Returns undefined if the song is not in the scenario
+         */
+        getDateInScenario: (scenario: TestScenarioKey) => {
           const songIndex = TEST_SCENARIOS[scenario].songs
-            .findIndex(songKey => songKey === key);
+            .findIndex(songCase => songCase.id === id);
           return songIndex >= 0 ? TEST_SCENARIOS[scenario].dates[songIndex] : undefined;
         }
       },
       helpers: {
+        /**
+         * Create a single guess
+         */
         createGuess: (word: string, playerId?: string, gameId?: string) => ({
           id: '',
           gameId: gameId || '',
@@ -362,6 +224,9 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
           word: word,
           createdAt: new Date()
         }),
+        /**
+         * Create multiple guesses
+         */
         createGuesses: (words: string[], playerId?: string, gameId?: string) => words.map(word => ({
           id: '',
           gameId: gameId || '',
@@ -369,11 +234,48 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
           word: word,
           createdAt: new Date()
         })),
+        /**
+         * Get masked state based on guessed words
+         */
         getMaskedState: (guessedWords: Set<string>) => ({
           title: maskTextWithGuesses(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].name, guessedWords),
           artist: maskTextWithGuesses(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].artists[0].name, guessedWords),
           lyrics: maskTextWithGuesses(typedLyricsJson[id as keyof typeof typedLyricsJson], guessedWords)
-        })
+        }),
+        /**
+         * Get all valid words that can be guessed from the lyrics
+         */
+        getWordsToGuess: (text: string) => {
+          // Get all valid words from text that can be guessed
+          const words = new Set<string>();
+          
+          // Use regex to match all letter/number sequences
+          const matches = text.toLowerCase().matchAll(/\p{L}+|\p{N}+/gu);
+          for (const match of matches) {
+            const word = match[0];
+            if (/^[a-z]+$/.test(word)) {
+              words.add(word);
+            }
+          }
+          
+          return Array.from(words);
+        },
+        getLyricsWords: () => {
+          return testCase.helpers.getWordsToGuess(typedLyricsJson[id as keyof typeof typedLyricsJson]);
+        },
+        getTitleWords: () => {
+          return testCase.helpers.getWordsToGuess(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].name);
+        },
+        getArtistWords: () => {
+          return testCase.helpers.getWordsToGuess(typedSpotifyJson.tracks[id as keyof typeof typedSpotifyJson.tracks].artists[0].name);
+        },
+        getAllWords: () => {
+          const words = new Set<string>();
+          testCase.helpers.getLyricsWords().forEach(w => words.add(w));
+          testCase.helpers.getTitleWords().forEach(w => words.add(w));
+          testCase.helpers.getArtistWords().forEach(w => words.add(w));
+          return Array.from(words);
+        }
       }
     };
 
@@ -382,6 +284,186 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
   },
   {}
 );
+
+// Define test scenario interface
+export interface TestScenario {
+  songs: readonly SongTestCase[];
+  dates: readonly string[];
+  seedDB: (prisma: PrismaClient) => Promise<void>;
+}
+
+// Define test scenarios using the created song test cases
+export const TEST_SCENARIOS = {
+  BASIC: {
+    songs: [SONGS.PARTY_IN_THE_USA, SONGS.BILLIE_JEAN, SONGS.LIKE_A_PRAYER] as const,
+    dates: ['2025-01-25', '2025-01-26', '2025-01-27'] as const,
+    seedDB: async (prisma: PrismaClient) => {
+      await seedDatabase(prisma, ['BASIC']);
+    }
+  },
+  MIXED_LANGUAGES: {
+    songs: [SONGS.LA_VIE_EN_ROSE, SONGS.SWEET_CHILD_O_MINE] as const,
+    dates: ['2025-01-28', '2025-01-29'] as const,
+    seedDB: async (prisma: PrismaClient) => {
+      await seedDatabase(prisma, ['MIXED_LANGUAGES']);
+    }
+  }
+} as const;
+
+export type TestScenarioKey = keyof typeof TEST_SCENARIOS;
+
+/**
+ * Test case for a song
+ * Provides data accessors and validators for testing
+ */
+export interface SongTestCase {
+  id: string;
+  spotify: {
+    getTrack: () => Track;
+    getError?: () => { status: number; message: string };
+  };
+  genius: {
+    getSearch: () => GeniusSearchResponse;
+    getBestMatch: () => {
+      url: string;
+      title: string;
+      artist: string;
+    };
+  };
+  lyrics: {
+    get: () => string;
+    getMasked: () => {
+      title: string;
+      artist: string;
+      lyrics: string;
+    };
+  };
+  prisma: {
+    song: {
+      create: {
+        input: () => { 
+          data: {
+            spotifyId: string;
+            spotifyData: unknown;
+            geniusData: unknown;
+            lyrics: string;
+            maskedLyrics: {
+              title: string;
+              artist: string;
+              lyrics: string;
+            };
+          }
+        };
+        output: (id?: string) => Song;
+      };
+    };
+    game: {
+      upsert: {
+        input: (date: string) => {
+          where: {
+            date: string;
+          };
+          create: {
+            date: string;
+            songId: string;
+          };
+          update: {
+            songId: string;
+          };
+        };
+        output: (date: string, mockId: string) => GameWithSong;
+      };
+      findUnique: {
+        output: (date: string, mockId: string) => GameWithSong;
+      };
+    };
+  };
+  validators: {
+    unit: {
+      song: (actual: Song) => void;
+      maskedLyrics: (actual: string) => void;
+      game: (actual: GameWithSong) => void;
+      gameState: (actual: GameState, testCase: SongTestCase, playerId: string) => void;
+    };
+    integration: {
+      song: (actual: Song) => void;
+    };
+  };
+  scenarios: {
+    /**
+     * Get all scenarios this song appears in
+     */
+    getAll: () => TestScenarioKey[];
+    /**
+     * Get the date this song appears on in a specific scenario
+     * Returns undefined if the song is not in the scenario
+     */
+    getDateInScenario: (scenario: TestScenarioKey) => string | undefined;
+  };
+  helpers: {
+    /**
+     * Create a single guess
+     */
+    createGuess: (word: string, playerId?: string, gameId?: string) => {
+      id: string;
+      gameId: string;
+      playerId: string;
+      word: string;
+      createdAt: Date;
+    };
+    /**
+     * Create multiple guesses
+     */
+    createGuesses: (words: string[], playerId?: string, gameId?: string) => Array<{
+      id: string;
+      gameId: string;
+      playerId: string;
+      word: string;
+      createdAt: Date;
+    }>;
+    /**
+     * Get masked state based on guessed words
+     */
+    getMaskedState: (guessedWords: Set<string>) => {
+      title: string;
+      artist: string;
+      lyrics: string;
+    };
+    /**
+     * Get all valid words that can be guessed from the lyrics
+     */
+    getWordsToGuess: (text: string) => string[];
+    getLyricsWords: () => string[];
+    getTitleWords: () => string[];
+    getArtistWords: () => string[];
+    getAllWords: () => string[];
+  };
+}
+
+/**
+ * Test case for a playlist
+ * Provides data accessors and validators for testing
+ */
+export interface PlaylistTestCase {
+  id: string;
+  spotify: {
+    getTracks: () => Track[];
+    getPlaylist: () => SimplifiedPlaylist;
+    getSearch: (query: string) => SimplifiedPlaylist[];
+    getError?: () => { status: number; message: string };
+  };
+  validators: {
+    unit: {
+      playlist: (actual: Record<string, unknown>) => void;
+      tracks: (actual: Track[]) => void;
+      search: (actual: SimplifiedPlaylist[]) => void;
+    };
+    integration: {
+      playlist: (actual: Record<string, unknown>) => void;
+      tracks: (actual: Track[]) => void;
+    };
+  };
+}
 
 // Create playlist test cases with data accessors and validators
 export const PLAYLISTS = Object.entries(PLAYLIST_IDS).reduce<Record<string, PlaylistTestCase>>((acc, [key, id]: [string, typeof PLAYLIST_IDS[keyof typeof PLAYLIST_IDS]]) => {

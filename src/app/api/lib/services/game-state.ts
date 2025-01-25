@@ -27,21 +27,22 @@ export class GameStateService {
     
     // Get all words from title and artist
     const spotifyData = song.spotifyData as unknown as SpotifyTrack;
-    const titleWords = spotifyData.name.toLowerCase().split(/\s+/);
-    const artistWords = spotifyData.artists[0].name.toLowerCase().split(/\s+/);
-    const lyricsWords = song.lyrics.toLowerCase().split(/\s+/);
+    // Split on word boundaries using same regex as lyricsService
+    const titleWords = Array.from(spotifyData.name.toLowerCase().matchAll(/\p{L}+|\p{N}+/gu)).map(m => m[0]);
+    const artistWords = Array.from(spotifyData.artists[0].name.toLowerCase().matchAll(/\p{L}+|\p{N}+/gu)).map(m => m[0]);
+    const lyricsWords = Array.from(song.lyrics.toLowerCase().matchAll(/\p{L}+|\p{N}+/gu)).map(m => m[0]);
 
     // Calculate percentage of lyrics guessed
     const lyricsGuessed = lyricsWords.filter(word => guessedWords.has(word)).length;
     const lyricsPercentage = lyricsGuessed / lyricsWords.length;
 
-    // Calculate percentage of title and artist guessed
-    const titleAndArtistWords = [...titleWords, ...artistWords];
-    const titleAndArtistGuessed = titleAndArtistWords.filter(word => guessedWords.has(word)).length;
-    const titleAndArtistPercentage = titleAndArtistGuessed / titleAndArtistWords.length;
+    // Check if all title words are guessed
+    const allTitleWordsGuessed = titleWords.every(word => guessedWords.has(word));
+    // Check if all artist words are guessed
+    const allArtistWordsGuessed = artistWords.every(word => guessedWords.has(word));
 
-    // Game is won if 80% of lyrics are guessed OR 100% of title and artist are guessed
-    return lyricsPercentage >= 0.8 || titleAndArtistPercentage >= 1;
+    // Game is won if 80% of lyrics are guessed OR both title AND artist are fully guessed
+    return lyricsPercentage >= 0.8 || (allTitleWordsGuessed && allArtistWordsGuessed);
   }
 
   async getGameState(date: string, playerId: string): Promise<GameState> {
@@ -84,7 +85,7 @@ export class GameStateService {
       id: game.id,
       date: game.date,
       masked,
-      guesses: game.guesses, // Keep all guesses visible but mask based on player's guesses
+      guesses: playerGuesses, // Only return guesses for this player
       song: isWon ? spotifyData : undefined
     };
   }

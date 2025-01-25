@@ -3,7 +3,8 @@ import {
   DuplicateGuessError,
   GameNotFoundForGuessError,
   InvalidWordError} from '@/app/api/lib/errors/guess';
-import { seedDatabase } from '@/app/api/lib/test/fixtures/core/seed-scenarios';
+import { TEST_IDS, TEST_SCENARIOS } from '@/app/api/lib/test/fixtures/core/test_cases';
+import { validators } from '@/app/api/lib/test/fixtures/core/validators';
 import {
   cleanupIntegrationTest,
   type IntegrationTestContext,
@@ -16,13 +17,9 @@ describe('GuessService Integration', () => {
   let service: GuessService;
   let testWords: string[];
   let gameId: string;
-
-  // Test IDs
-  const testIds = {
-    GAME: 'clrqm6nkw0009uy08kg9h1p3x',
-    PLAYER: 'clrqm6nkw0010uy08kg9h1p4x',
-    NONEXISTENT: 'clrqm6nkw0011uy08kg9h1p5x'
-  } as const;
+  const testCase = TEST_SCENARIOS.BASIC.songs[0]; // PARTY_IN_THE_USA
+  const testDate = TEST_SCENARIOS.BASIC.dates[0]; // 2025-01-25
+  const NONEXISTENT_ID = 'clrqm6nkw0000uy08kg9h0000'; // Valid CUID format but doesn't exist
 
   beforeEach(async () => {
     // Setup integration test context with clean database
@@ -30,23 +27,19 @@ describe('GuessService Integration', () => {
     service = new GuessService(context.prisma);
 
     // Seed the BASIC scenario
-    await seedDatabase(context.prisma, ['BASIC']);
+    await TEST_SCENARIOS.BASIC.seedDB(context.prisma);
 
     // Get the first game from our BASIC scenario (PARTY_IN_THE_USA on 2025-01-25)
     const game = await context.prisma.game.findFirst({
-      where: { date: '2025-01-25' },
+      where: { date: testDate },
       include: { song: true }
     });
 
     if (!game) throw new Error('Failed to find seeded game');
-    
     gameId = game.id;
     
-    // Get test words from the song's lyrics
-    testWords = game.song.lyrics
-      .toLowerCase()
-      .split(/\s+/)
-      .filter(word => word.length > 3);
+    // Get test words from the test case helper
+    testWords = testCase.helpers.getAllWords();
   });
 
   afterEach(async () => {
@@ -55,11 +48,11 @@ describe('GuessService Integration', () => {
 
   describe('submitGuess', () => {
     test('throws ValidationError when game ID is empty', async () => {
-      await expect(service.submitGuess('', testIds.PLAYER, testWords[0]))
+      await expect(service.submitGuess('', TEST_IDS.PLAYER_2, testWords[0]))
         .rejects
         .toThrow(ValidationError);
       
-      await expect(service.submitGuess('', testIds.PLAYER, testWords[0]))
+      await expect(service.submitGuess('', TEST_IDS.PLAYER_2, testWords[0]))
         .rejects
         .toThrow('Game ID is required');
     });
@@ -75,71 +68,81 @@ describe('GuessService Integration', () => {
     });
 
     test('throws ValidationError when word is empty', async () => {
-      await expect(service.submitGuess(gameId, testIds.PLAYER, ''))
+      await expect(service.submitGuess(gameId, TEST_IDS.PLAYER_2, ''))
         .rejects
         .toThrow(ValidationError);
       
-      await expect(service.submitGuess(gameId, testIds.PLAYER, ''))
+      await expect(service.submitGuess(gameId, TEST_IDS.PLAYER_2, ''))
         .rejects
         .toThrow('Word is required');
     });
 
     test('throws GameNotFoundForGuessError when game not found', async () => {
-      await expect(service.submitGuess(testIds.NONEXISTENT, testIds.PLAYER, testWords[0]))
+      await expect(service.submitGuess(NONEXISTENT_ID, TEST_IDS.PLAYER_2, testWords[0]))
         .rejects
         .toThrow(new GameNotFoundForGuessError());
     });
 
     test('throws InvalidWordError when word not in lyrics', async () => {
-      await expect(service.submitGuess(gameId, testIds.PLAYER, 'nonexistent'))
+      await expect(service.submitGuess(gameId, TEST_IDS.PLAYER_2, 'nonexistent'))
         .rejects
         .toThrow(new InvalidWordError());
     });
 
     test('throws DuplicateGuessError when word already guessed', async () => {
-      // Get an existing guess from our seeded data
-      const existingGuess = await context.prisma.guess.findFirst({
-        where: { gameId }
-      });
+      // Submit a guess first
+      await service.submitGuess(gameId, TEST_IDS.PLAYER_2, testWords[0]);
 
-      if (!existingGuess) throw new Error('Failed to find seeded guess');
-
-      // Try to submit the same guess with the same player ID
-      await expect(service.submitGuess(gameId, existingGuess.playerId, existingGuess.word))
+      // Try to submit the same guess again
+      await expect(service.submitGuess(gameId, TEST_IDS.PLAYER_2, testWords[0]))
         .rejects
         .toThrow(new DuplicateGuessError());
     });
 
-    test('successfully submits valid guess', async () => {
-      // Find a word that hasn't been guessed yet
-      const existingGuesses = await context.prisma.guess.findMany({
-        where: { gameId }
-      });
-      const guessedWords = new Set(existingGuesses.map(g => g.word));
-      const newWord = testWords.find(word => !guessedWords.has(word));
+    test('successfully submits valid guess from lyrics', async () => {
+      const lyricsWord = testCase.helpers.getLyricsWords()[0];
+      const guess = await service.submitGuess(gameId, TEST_IDS.PLAYER_2, lyricsWord);
 
-      if (!newWord) throw new Error('No unguessed words available');
-
-      const guess = await service.submitGuess(gameId, testIds.PLAYER, newWord);
-
+      validators.unit.guess(guess);
       expect(guess).toEqual(expect.objectContaining({
         gameId,
-        playerId: testIds.PLAYER,
-        word: newWord,
+        playerId: TEST_IDS.PLAYER_2,
+        word: lyricsWord
       }));
+    });
 
-      expect(guess.id).toBeDefined();
-      expect(guess.createdAt).toBeInstanceOf(Date);
+    test('successfully submits valid guess from title', async () => {
+      const titleWord = testCase.helpers.getTitleWords()[0];
+      const guess = await service.submitGuess(gameId, TEST_IDS.PLAYER_2, titleWord);
+
+      validators.unit.guess(guess);
+      expect(guess).toEqual(expect.objectContaining({
+        gameId,
+        playerId: TEST_IDS.PLAYER_2,
+        word: titleWord
+      }));
+    });
+
+    test('successfully submits valid guess from artist', async () => {
+      const artistWord = testCase.helpers.getArtistWords()[0];
+      const guess = await service.submitGuess(gameId, TEST_IDS.PLAYER_2, artistWord);
+
+      validators.unit.guess(guess);
+      expect(guess).toEqual(expect.objectContaining({
+        gameId,
+        playerId: TEST_IDS.PLAYER_2,
+        word: artistWord
+      }));
     });
   });
 
   describe('getPlayerGuesses', () => {
     test('throws ValidationError when game ID is empty', async () => {
-      await expect(service.getPlayerGuesses('', testIds.PLAYER))
+      await expect(service.getPlayerGuesses('', TEST_IDS.PLAYER_2))
         .rejects
         .toThrow(ValidationError);
       
-      await expect(service.getPlayerGuesses('', testIds.PLAYER))
+      await expect(service.getPlayerGuesses('', TEST_IDS.PLAYER_2))
         .rejects
         .toThrow('Game ID is required');
     });
@@ -155,32 +158,39 @@ describe('GuessService Integration', () => {
     });
 
     test('throws GameNotFoundForGuessError when game not found', async () => {
-      await expect(service.getPlayerGuesses(testIds.NONEXISTENT, testIds.PLAYER))
+      await expect(service.getPlayerGuesses(NONEXISTENT_ID, TEST_IDS.PLAYER_2))
         .rejects
         .toThrow(new GameNotFoundForGuessError());
     });
 
     test('returns empty array when no guesses found', async () => {
-      // Use a new player ID that hasn't made any guesses
-      const newPlayerId = 'clrqm6nkw0012uy08kg9h1p6x';
-      const guesses = await service.getPlayerGuesses(gameId, newPlayerId);
+      const guesses = await service.getPlayerGuesses(gameId, TEST_IDS.PLAYER_2);
       expect(guesses).toEqual([]);
     });
 
     test('returns list of guesses when found', async () => {
-      const existingGuesses = await context.prisma.guess.findMany({
-        where: { gameId, playerId: testIds.PLAYER }
-      });
+      // Submit test guesses with unique words for PLAYER_2 (avoid seeded guesses)
+      const uniqueWords = Array.from(new Set([
+        ...testCase.helpers.getLyricsWords().slice(0, 2),
+        ...testCase.helpers.getTitleWords().slice(0, 2),
+        testCase.helpers.getArtistWords()[0]
+      ]));
+      
+      // Submit each word one by one
+      for (const word of uniqueWords) {
+        await service.submitGuess(gameId, TEST_IDS.PLAYER_2, word);
+      }
 
-      expect(existingGuesses).toHaveLength(5); // Update expectation to match seeded data
-      existingGuesses.forEach(guess => {
+      const guesses = await service.getPlayerGuesses(gameId, TEST_IDS.PLAYER_2);
+
+      expect(guesses).toHaveLength(uniqueWords.length);
+      guesses.forEach(guess => {
+        validators.unit.guess(guess);
         expect(guess).toEqual(expect.objectContaining({
           gameId,
-          playerId: testIds.PLAYER,
-          word: expect.any(String),
+          playerId: TEST_IDS.PLAYER_2
         }));
-        expect(guess.id).toBeDefined();
-        expect(guess.createdAt).toBeDefined();
+        expect(uniqueWords).toContain(guess.word);
       });
     });
   });
