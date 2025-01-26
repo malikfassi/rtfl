@@ -1,107 +1,68 @@
-# RTFL Game TODO List
+# Code Architecture
+- Add pure genius client (should only do requests to genius API)
+- Extract domain logic in LyricsService
+- Consolidate type definitions across tests, API, and front-end
+- Consolidate word matching logic
 
-## High Priority
+# Testing Infrastructure
+## Test Data Generation
 
-### Routing & Structure
-- [x] Update Next.js config to simplify routes
-- [x] Set up root route (`/`) to show today's game
-- [ ] Add "Never Gonna Give You Up" as default song for invalid dates
+- Generator should fetch all requests we do in our codebase:
+  - Spotify SDK calls
+  - Genius API calls
+  - Store raw JSON responses
 
-### Core Game Features
-- [x] Show games in calendar format in archive
-- [x] Game Date Display
-  - [x] Create DateDisplay component
-    - [x] Show formatted date for archived games
-    - [x] Show countdown to tomorrow for today's game
-    - [x] Handle timezone differences
-- [x] Maintain input focus after guess submission
-- [x] Track and display number of hits per guess
-- [x] Add game completion features
-  - [x] Integrate Spotify player when song is revealed
-  - [x] Add reveal lyrics button for won games
-    - [x] Smooth transition for revealing words
-    - [x] Different colors for revealed vs guessed words
+## Test Data Organization
+- Create fixtures object to read JSON files and return typed responses
+- Use fixtures to mock services responses and inputs
+- Use fixtures to validate service outputs:
+  - Unit tests: exact match validation
+  - Integration tests: validate critical fields only
+  - Example: compare lyrics from fixtures with service response
 
-## Visual Enhancements
+## Test Setup Helpers
+- Add helpers to set up test data:
+  - Create game before guess tests
+  - Use consistent player IDs across tests
+- Create DB seeding script for local tests using fixtures
 
-### Progress Bar
-- [x] Add glowing indicator at 80% mark
-- [x] Enhance progress bar visual feedback
+# API Features
+## Stats Endpoints
+### User Stats (`/user/:id/stats`)
+```typescript
+{
+  bestStreak: number,
+  totalGames: number,
+  totalGuesses: number,
+  totalHits: number,
+  totalMisses: number,
+  totalGamesWon: number
+}
+```
 
-### Animations
-- [x] Implement scramble title animation
-  - [x] Individual letter scrambling
-  - [x] 3-second pause between scrambles
-  - [x] Slot machine-like effect
-- [x] Add found word animations
-  - [x] Implement word diff tracking
-  - [x] Add landing animation
-  - [x] Add fade-in effect
+### Daily Game Stats (`/:date/stats`)
+```typescript
+{
+  totalPlayers: number,
+  totalGuesses: number,
+  totalGamesWon: number,
+  maskedWordStats: {
+    [word: string]: number  // percentage of people who guessed each word
+  }
+}
+```
 
-### Styling Updates
-- [x] Update guess list styling
-  - [x] Remove background colors
-  - [x] Use color-coded text based on validity and number of hits
-  - [x] Reduce player ID font size
-- [x] Add hover effects
-  - [x] Highlight corresponding lyrics on guess hover
-- [x] Update MaskedLyrics layout
-  - [x] Remove Title and Artist labels
-  - [x] Show as "MaskedTitle by Masked Artist"
+# Admin Features
+- Fix single and batch game editor
+- Add stats to admin page
 
-## Technical Debt
-- [x] Ensure proper color inheritance
-- [x] Review and update color palette implementation
+# Frontend Improvements
+- Fix progress bar
+- Fix archive page
+- Prevent accessing/playing future games
 
-## Word Count Fix
-- [ ] Fix percentage calculation to count words instead of characters
-- [ ] Update progress display to reflect accurate word count
+# Deployment
+- Setup deployment pipeline
+- prevent /admin admin from users
 
-## Guess History Improvements
-- [ ] Add hit marker (×1) even for single hits
-- [ ] Add background color on hover for guesses in list
-- [ ] Remove "All Guesses:" label
-- [ ] Add cursor-pointer to guesses
-- [ ] Enhance hover effect beyond just scaling
-- [ ] Apply consistent color scheme from ScrambleTitle
-
-## Input Focus & Error Handling
-- [ ] Fix input focus retention after submitting
-- [ ] Remove all toast mechanisms
-- [ ] Show error messages below input
-- [ ] Ensure error messages use our color system
-
-## Progress Bar Enhancements
-- [ ] Fix WIN! message positioning (make absolute)
-- [ ] Apply consistent color scheme from ScrambleTitle
-- [ ] Ensure 80% marker is clearly visible
-- [ ] Update progress bar colors to match our theme
-
-## Game Progress
-- [x] Fix percentage calculation (count unique words)
-- [x] Add glowing indicator at 80% mark
-- [ ] Add hover animation on progress bar
-- [ ] Remove duplicated Progress label and percentage
-
-## Guess History
-- [x] Add hit marker for single hits
-- [ ] Implement background color on hover for guesses
-- [ ] Order guesses with most recent first
-- [ ] Add toggle button to hide 0-hit guesses
-- [ ] On hover of a guess, highlight its contribution in the progress bar
-
-## Input Focus & Error Handling
-- [x] Keep focus on input after submitting
-- [x] Remove toast notifications
-- [x] Show error messages below input
-- [ ] Remove remaining popups for request responses
-
-## Progress Bar
-- [ ] Fix WIN! message positioning to be absolute
-
-## Color System
-- [x] Ensure proper color inheritance
-- [x] Review and update color palette implementation
-
-## Current Progress
-- Game completion at ~1% with a focus on fixing the word count calculation
+-> type games

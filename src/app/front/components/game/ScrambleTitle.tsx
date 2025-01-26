@@ -159,7 +159,7 @@ export function ScrambleTitle({ date }: ScrambleTitleProps) {
           <span className="text-xs font-normal text-foreground/70 group-hover:opacity-0 transition-all duration-300">
             {date}
           </span>
-          <span className="text-xs font-normal text-accent-success absolute top-0 left-0 opacity-0 group-hover:opacity-100 whitespace-nowrap transition-all duration-300">
+          <span className="text-xs font-normal text-accent-success opacity-0 group-hover:opacity-100 whitespace-nowrap transition-all duration-300">
             Go to archive →
           </span>
         </span>

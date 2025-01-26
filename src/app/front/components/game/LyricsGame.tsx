@@ -75,8 +75,8 @@ export function LyricsGame({ date }: LyricsGameProps) {
     }
   };
 
-  // Get total words from lyrics (not unique)
-  const totalWords = Array.from(gameState.masked.lyrics.matchAll(/\p{L}+|\p{N}+/gu), m => m[0]).length;
+  // Get total words to find (only masked words)
+  const totalWords = Array.from(gameState.masked.lyrics.matchAll(/_{2,}/g)).length;
   
   // Get total found word occurrences (not unique)
   const foundWordsCount = gameState.guesses
