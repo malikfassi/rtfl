@@ -76,9 +76,7 @@ export function LyricsGame({ date }: LyricsGameProps) {
   };
 
   // Get total words from lyrics (not unique)
-  const totalWords = gameState.masked.lyrics
-    .match(/\p{L}+|\p{N}+/gu)
-    ?.length || 0;
+  const totalWords = Array.from(gameState.masked.lyrics.matchAll(/\p{L}+|\p{N}+/gu), m => m[0]).length;
   
   // Get total found word occurrences (not unique)
   const foundWordsCount = gameState.guesses
@@ -234,6 +232,7 @@ export function LyricsGame({ date }: LyricsGameProps) {
                   selectedWord={selectedGuess?.word}
                   guesses={gameState.guesses}
                   colors={colors}
+                  song={gameState.song}
                 />
               </div>
             </div>

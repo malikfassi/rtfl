@@ -17,6 +17,7 @@ interface MaskedLyricsProps {
     valid: boolean;
   }>;
   colors: Array<{ bg: string; text: string; }>;
+  song?: { lyrics: string; } | null;
 }
 
 export function MaskedLyrics({ 
@@ -28,7 +29,8 @@ export function MaskedLyrics({
   hoveredWord = null,
   selectedWord = null,
   guesses,
-  colors
+  colors,
+  song
 }: MaskedLyricsProps) {
   const [showFullLyrics, setShowFullLyrics] = useState(false);
 
@@ -153,7 +155,7 @@ export function MaskedLyrics({
     <div className="space-y-6 pl-4 sm:pl-8">
       {renderTitleAndArtist()}
 
-      {isComplete && (
+      {song && (
         <div className="flex justify-center">
           <button
             onClick={() => setShowFullLyrics(prev => !prev)}
