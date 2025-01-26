@@ -4,6 +4,28 @@ const nextConfig = {
   serverExternalPackages: ['@prisma/client'],
   experimental: {
     typedRoutes: true
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/',
+          destination: '/front/game'
+        },
+        {
+          source: '/archive',
+          destination: '/front/archive'
+        },
+        {
+          source: '/archive/:month',
+          destination: '/front/archive/:month'
+        },
+        {
+          source: '/:date',
+          destination: '/front/game/:date'
+        }
+      ]
+    }
   }
 }
 

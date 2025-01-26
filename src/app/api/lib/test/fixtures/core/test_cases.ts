@@ -222,21 +222,23 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
         /**
          * Create a single guess
          */
-        createGuess: (word: string, playerId?: string, gameId?: string) => ({
+        createGuess: (word: string, playerId?: string, gameId?: string, valid: boolean = true) => ({
           id: '',
           gameId: gameId || '',
           playerId: playerId || '',
           word: word,
+          valid: valid,
           createdAt: new Date()
         }),
         /**
          * Create multiple guesses
          */
-        createGuesses: (words: string[], playerId?: string, gameId?: string) => words.map(word => ({
+        createGuesses: (words: string[], playerId?: string, gameId?: string, valid: boolean = true) => words.map(word => ({
           id: '',
           gameId: gameId || '',
           playerId: playerId || '',
           word: word,
+          valid: valid,
           createdAt: new Date()
         })),
         /**
@@ -254,14 +256,16 @@ export const SONGS = Object.entries(SONG_IDS).reduce<Record<string, SongTestCase
           // Get all valid words from text that can be guessed
           const words = new Set<string>();
           
-          // Use regex to match all letter/number sequences
-          const matches = text.toLowerCase().matchAll(/\p{L}+|\p{N}+/gu);
-          for (const match of matches) {
-            const word = match[0];
-            if (/^[a-z]+$/.test(word)) {
-              words.add(word);
-            }
-          }
+          // Split on spaces first
+          text.split(/\s+/).forEach(word => {
+            // Handle special cases like "P!nk" -> ["P", "nk"]
+            // and possessives like "Taylor's" -> ["Taylor", "s"]
+            const specialCharSplit = word.split(/([!@#$%^&*()\-_+=[\]{}|\\:;"'<>,.?/])/);
+            specialCharSplit
+              .map(part => part.trim().toLowerCase())
+              .filter(part => part.length > 0 && !/^[!@#$%^&*()\-_+=[\]{}|\\:;"'<>,.?/]$/.test(part))
+              .forEach(part => words.add(part));
+          });
           
           return Array.from(words);
         },
@@ -407,21 +411,23 @@ export interface SongTestCase {
     /**
      * Create a single guess
      */
-    createGuess: (word: string, playerId?: string, gameId?: string) => {
+    createGuess: (word: string, playerId?: string, gameId?: string, valid: boolean = true) => {
       id: string;
       gameId: string;
       playerId: string;
       word: string;
+      valid: boolean;
       createdAt: Date;
     };
     /**
      * Create multiple guesses
      */
-    createGuesses: (words: string[], playerId?: string, gameId?: string) => Array<{
+    createGuesses: (words: string[], playerId?: string, gameId?: string, valid: boolean = true) => Array<{
       id: string;
       gameId: string;
       playerId: string;
       word: string;
+      valid: boolean;
       createdAt: Date;
     }>;
     /**

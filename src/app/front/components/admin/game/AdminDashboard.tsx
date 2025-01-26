@@ -1,10 +1,12 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
 import { format, isSameDay } from 'date-fns';
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { getTrackArtist, getTrackTitle } from '@/app/front/lib/utils/spotify';
 import type { GameWithSong } from '@/app/api/lib/services/game';
 import type { GameStatusInfo, AdminGame } from '@/app/types/admin';
+import { LyricsGame } from '@/app/front/components/game/LyricsGame';
+import { Button } from '@/app/front/components/ui/Button';
 
 import { BatchGameEditor } from './BatchGameEditor';
 import { Calendar } from './Calendar';
@@ -29,6 +31,7 @@ interface AdminDashboardProps {
 }
 
 type EditorMode = 'single' | 'batch';
+type SingleViewMode = 'preview' | 'edit';
 
 export function AdminDashboard({ 
   games,
@@ -40,13 +43,7 @@ export function AdminDashboard({
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [pendingChanges, setPendingChanges] = useState<Record<string, GameStatusInfo>>({});
-  const [editorMode, setEditorMode] = useState<EditorMode>('single');
-  const [gameEditorMode, setGameEditorMode] = useState<GameEditorMode>('preview');
-
-  // Automatically switch modes based on number of selected dates
-  useEffect(() => {
-    setEditorMode(selectedDates.length > 1 ? 'batch' : 'single');
-  }, [selectedDates.length]);
+  const [singleViewMode, setSingleViewMode] = useState<SingleViewMode>('preview');
 
   const assignRandomSongToDate = useCallback((date: Date) => {
     if (!selectedPlaylist?.tracks.length) return;
@@ -76,6 +73,7 @@ export function AdminDashboard({
         const { [newGame.date]: _, ...rest } = prev;
         return rest;
       });
+      setSingleViewMode('preview');
     } catch (error) {
       console.error('Failed to update game:', error);
     }
@@ -88,6 +86,7 @@ export function AdminDashboard({
         const { [date]: _, ...rest } = prev;
         return rest;
       });
+      setSingleViewMode('preview');
     } catch (error) {
       console.error('Failed to delete game:', error);
     }
@@ -102,6 +101,12 @@ export function AdminDashboard({
       artist: getTrackArtist(game.song.spotifyData as unknown as Track)
     }
   }));
+
+  // Determine editor mode based on selection
+  const editorMode = selectedDates.length > 1 ? 'batch' : 'single';
+
+  // Get the currently selected game for single mode
+  const selectedGame = selectedDates[0] ? games.find(g => isSameDay(new Date(g.date), selectedDates[0])) : undefined;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -118,18 +123,48 @@ export function AdminDashboard({
 
       <div>
         {editorMode === 'single' ? (
-          <GameEditor
-            mode={gameEditorMode}
-            onModeChange={setGameEditorMode}
-            selectedDate={selectedDates[0]}
-            game={games.find(g => selectedDates[0] && isSameDay(new Date(g.date), selectedDates[0])) as AdminGame}
-            onGameUpdate={handleGameUpdate}
-            onGameDelete={handleGameDelete}
-            onRandomSongAssign={assignRandomSongToDate}
-            selectedPlaylist={selectedPlaylist}
-            onPlaylistChange={onPlaylistChange}
-            pendingChange={selectedDates[0] ? pendingChanges[format(selectedDates[0], 'yyyy-MM-dd')] : undefined}
-          />
+          selectedDates.length === 1 ? (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">
+                  {format(selectedDates[0], 'MMMM d, yyyy')}
+                </h2>
+                <Button
+                  variant="secondary"
+                  onClick={() => setSingleViewMode(singleViewMode === 'preview' ? 'edit' : 'preview')}
+                >
+                  {singleViewMode === 'preview' ? 'Edit' : 'Preview'}
+                </Button>
+              </div>
+
+              {singleViewMode === 'preview' ? (
+                selectedGame ? (
+                  <LyricsGame date={format(selectedDates[0], 'yyyy-MM-dd')} />
+                ) : (
+                  <div className="p-4 text-center text-muted">
+                    No game scheduled for this date
+                  </div>
+                )
+              ) : (
+                <GameEditor
+                  mode="preview"
+                  onModeChange={() => {}}
+                  selectedDate={selectedDates[0]}
+                  game={selectedGame as AdminGame}
+                  onGameUpdate={handleGameUpdate}
+                  onGameDelete={handleGameDelete}
+                  onRandomSongAssign={assignRandomSongToDate}
+                  selectedPlaylist={selectedPlaylist}
+                  onPlaylistChange={onPlaylistChange}
+                  pendingChange={pendingChanges[format(selectedDates[0], 'yyyy-MM-dd')]}
+                />
+              )}
+            </div>
+          ) : (
+            <div className="p-4 text-center text-muted">
+              Select a date to view or edit
+            </div>
+          )
         ) : (
           <BatchGameEditor
             selectedDates={selectedDates}
@@ -137,9 +172,9 @@ export function AdminDashboard({
             pendingChanges={pendingChanges}
             onPendingChanges={setPendingChanges}
             onComplete={() => {
-              setEditorMode('single');
               setSelectedDates([]);
               setPendingChanges({});
+              setSingleViewMode('preview');
             }}
             onPlaylistChange={onPlaylistChange}
             onReshuffle={() => selectedDates.forEach(assignRandomSongToDate)}

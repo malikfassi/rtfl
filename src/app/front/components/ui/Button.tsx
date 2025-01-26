@@ -18,9 +18,9 @@ export function Button({
   ...props 
 }: ButtonProps) {
   const variantClasses = {
-    primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
-    secondary: 'hover:bg-foreground/10',
-    danger: 'text-red-500 hover:bg-red-500/10'
+    primary: 'bg-primary text-primary-foreground hover:bg-primary-dark focus:ring-primary-light',
+    secondary: 'text-primary-dark hover:bg-primary-muted/10 focus:ring-primary-muted',
+    danger: 'text-accent-error hover:bg-accent-error/10 focus:ring-accent-error'
   };
 
   const sizeClasses = {
@@ -32,7 +32,8 @@ export function Button({
   return (
     <button
       className={cn(
-        'rounded-lg font-medium transition-colors duration-200',
+        'rounded-lg font-medium transition-all duration-200',
+        'focus:outline-none focus:ring-2 focus:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variantClasses[variant],
         sizeClasses[size],
@@ -43,7 +44,7 @@ export function Button({
     >
       {isLoading ? (
         <span className="inline-flex items-center gap-2">
-          <span className="animate-pulse">...</span>
+          <span className="animate-pulse text-primary-muted">...</span>
           Loading
         </span>
       ) : (

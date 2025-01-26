@@ -5,6 +5,7 @@ import React, { useCallback, useState } from 'react';
 import { Button } from '@/app/front/components/ui/Button';
 import { useAdminGameMutations } from '@/app/front/hooks/useAdmin';
 import { GameStatus, GameStatusInfo } from '@/app/types/admin';
+import { useToast } from '@/app/front/hooks/use-toast';
 
 import { PlaylistBrowser } from './PlaylistBrowser';
 
@@ -34,14 +35,26 @@ export function BatchGameEditor({
   onReshuffle
 }: BatchGameEditorProps) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<{ tracks: Track[] } | null>(null);
   const { createGame } = useAdminGameMutations();
+  const { toast } = useToast();
 
   const handlePlaylistSelect = useCallback((playlist: { tracks: Track[] }) => {
     console.log('BatchGameEditor: Selected playlist with tracks:', playlist.tracks.length);
+    setSelectedPlaylist(playlist);
     onPlaylistChange?.(playlist);
   }, [onPlaylistChange]);
 
   const handleCreate = useCallback(async () => {
+    if (!selectedPlaylist?.tracks.length) {
+      toast({
+        title: "Error",
+        description: "Please select a playlist first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUpdating(true);
     let hasErrors = false;
 
@@ -60,16 +73,24 @@ export function BatchGameEditor({
             }
           }));
 
-          // Get the song assigned to this date
+          // Get the song assigned to this date or pick a random one
           const status = pendingChanges[dateStr];
-          if (!status?.newSong) {
-            throw new Error('No song assigned to date');
+          let songToUse = status?.newSong;
+
+          if (!songToUse) {
+            // Pick a random song from the playlist
+            const randomIndex = Math.floor(Math.random() * selectedPlaylist.tracks.length);
+            songToUse = selectedPlaylist.tracks[randomIndex];
+          }
+
+          if (!songToUse) {
+            throw new Error('No song available to assign');
           }
 
           // Process update
           await createGame.mutateAsync({
             date: dateStr,
-            spotifyId: status.newSong.id
+            spotifyId: songToUse.id
           });
 
           // Set success state for this date
@@ -77,20 +98,34 @@ export function BatchGameEditor({
             ...prev,
             [dateStr]: {
               ...prev[dateStr],
-              status: 'success' as GameStatus
+              status: 'success' as GameStatus,
+              newSong: songToUse
             }
           }));
+
+          toast({
+            title: "Success",
+            description: `Game created for ${dateStr}`,
+          });
         } catch (error) {
           hasErrors = true;
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          
           // Set error state for this date only
           onPendingChanges(prev => ({
             ...prev,
             [dateStr]: {
               ...prev[dateStr],
               status: 'error' as GameStatus,
-              error: error instanceof Error ? error.message : 'Unknown error'
+              error: errorMessage
             }
           }));
+
+          toast({
+            title: "Error",
+            description: `Failed to create game for ${dateStr}: ${errorMessage}`,
+            variant: "destructive",
+          });
         }
       }));
     } finally {
@@ -99,7 +134,7 @@ export function BatchGameEditor({
         onComplete();
       }
     }
-  }, [selectedDates, pendingChanges, onPendingChanges, onComplete, createGame]);
+  }, [selectedDates, pendingChanges, onPendingChanges, onComplete, createGame, toast, selectedPlaylist]);
 
   return (
     <div className="p-4">
@@ -121,7 +156,7 @@ export function BatchGameEditor({
           onClick={handleCreate}
           variant="primary"
           className="w-full"
-          disabled={isUpdating}
+          disabled={isUpdating || !selectedPlaylist}
           isLoading={isUpdating}
         >
           Apply Changes

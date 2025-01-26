@@ -105,6 +105,99 @@ describe('GuessService Integration', () => {
         .toThrow(new DuplicateGuessError());
     });
 
+    test('stores invalid guess with valid=false flag', async () => {
+      const invalidWord = 'nonexistentword';
+      const result = await service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: invalidWord });
+
+      // Verify the guess was stored
+      const storedGuesses = await service.getPlayerGuesses(result.id, TEST_IDS.PLAYER_2);
+      expect(storedGuesses).toHaveLength(1);
+      expect(storedGuesses[0]).toMatchObject({
+        gameId: result.id,
+        playerId: TEST_IDS.PLAYER_2,
+        word: invalidWord.toLowerCase(),
+        valid: false
+      });
+
+      // Verify game state includes the invalid guess
+      expect(result.guesses).toHaveLength(1);
+      expect(result.guesses[0]).toMatchObject({
+        gameId: result.id,
+        playerId: TEST_IDS.PLAYER_2,
+        word: invalidWord.toLowerCase(),
+        valid: false
+      });
+    });
+
+    test('stores valid guess with valid=true flag', async () => {
+      // Get a valid word from the test case
+      const validWord = testCase.helpers.getLyricsWords()[0];
+      const result = await service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: validWord });
+
+      // Verify the guess was stored
+      const storedGuesses = await service.getPlayerGuesses(result.id, TEST_IDS.PLAYER_2);
+      expect(storedGuesses).toHaveLength(1);
+      expect(storedGuesses[0]).toMatchObject({
+        gameId: result.id,
+        playerId: TEST_IDS.PLAYER_2,
+        word: validWord.toLowerCase(),
+        valid: true
+      });
+
+      // Verify game state includes the valid guess
+      expect(result.guesses).toHaveLength(1);
+      expect(result.guesses[0]).toMatchObject({
+        gameId: result.id,
+        playerId: TEST_IDS.PLAYER_2,
+        word: validWord.toLowerCase(),
+        valid: true
+      });
+    });
+
+    test('stores both valid and invalid guesses in order', async () => {
+      // Submit guesses in sequence
+      const invalidWord = 'nonexistentword';
+      const validWord = testCase.helpers.getLyricsWords()[0];
+      
+      await service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: invalidWord });
+      const result = await service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: validWord });
+
+      // Verify both guesses were stored in order
+      const storedGuesses = await service.getPlayerGuesses(result.id, TEST_IDS.PLAYER_2);
+      expect(storedGuesses).toHaveLength(2);
+      
+      // First guess should be invalid
+      expect(storedGuesses[0]).toMatchObject({
+        gameId: result.id,
+        playerId: TEST_IDS.PLAYER_2,
+        word: invalidWord.toLowerCase(),
+        valid: false
+      });
+
+      // Second guess should be valid
+      expect(storedGuesses[1]).toMatchObject({
+        gameId: result.id,
+        playerId: TEST_IDS.PLAYER_2,
+        word: validWord.toLowerCase(),
+        valid: true
+      });
+
+      // Verify game state includes both guesses in order
+      expect(result.guesses).toHaveLength(2);
+      expect(result.guesses[0]).toMatchObject({
+        gameId: result.id,
+        playerId: TEST_IDS.PLAYER_2,
+        word: invalidWord.toLowerCase(),
+        valid: false
+      });
+      expect(result.guesses[1]).toMatchObject({
+        gameId: result.id,
+        playerId: TEST_IDS.PLAYER_2,
+        word: validWord.toLowerCase(),
+        valid: true
+      });
+    });
+
     test('successfully submits valid guess from lyrics', async () => {
       const lyricsWord = testCase.helpers.getLyricsWords()[0];
       const guess = await service.submitGuess({ date: testDate, userId: TEST_IDS.PLAYER_2, guess: lyricsWord });

@@ -131,29 +131,89 @@ describe('GuessService', () => {
         .toThrow(DuplicateGuessError);
     });
 
-    test('creates new guess when all validations pass', async () => {
+    test('stores invalid guess and returns updated game state', async () => {
       context.mockPrisma.game.findUnique.mockResolvedValue(mockGame);
       context.mockPrisma.guess.findFirst.mockResolvedValue(null);
-      context.mockPrisma.guess.create.mockResolvedValue({
+      
+      const invalidWord = 'nonexistentword';
+      const mockGuess = {
         id: testIds.GAME,
         gameId: testIds.GAME,
         playerId: testIds.PLAYER,
-        word: testWords[0],
+        word: invalidWord,
+        valid: false,
         createdAt: new Date()
-      });
+      };
+
+      context.mockPrisma.guess.create.mockResolvedValue(mockGuess);
 
       const mockGameState = {
         id: testIds.GAME,
         date: '2025-01-17',
         masked: mockGame.song.maskedLyrics,
-        guesses: [],
+        guesses: [mockGuess],
         song: undefined
       };
 
       // Mock gameStateService.getGameState to return expected state
       (gameStateService.getGameState as jest.Mock).mockResolvedValue(mockGameState);
 
-      const result = await service.submitGuess({ date: '2025-01-17', userId: testIds.PLAYER, guess: testWords[0] });
+      const result = await service.submitGuess({ date: '2025-01-17', userId: testIds.PLAYER, guess: invalidWord });
+      
+      // Verify the guess was stored with valid=false
+      expect(context.mockPrisma.guess.create).toHaveBeenCalledWith({
+        data: {
+          gameId: testIds.GAME,
+          playerId: testIds.PLAYER,
+          word: invalidWord.toLowerCase(),
+          valid: false
+        }
+      });
+
+      // Verify game state includes the invalid guess
+      expect(result).toEqual(mockGameState);
+    });
+
+    test('stores valid guess with valid=true flag', async () => {
+      context.mockPrisma.game.findUnique.mockResolvedValue(mockGame);
+      context.mockPrisma.guess.findFirst.mockResolvedValue(null);
+      
+      const validWord = testWords[0];
+      const mockGuess = {
+        id: testIds.GAME,
+        gameId: testIds.GAME,
+        playerId: testIds.PLAYER,
+        word: validWord,
+        valid: true,
+        createdAt: new Date()
+      };
+
+      context.mockPrisma.guess.create.mockResolvedValue(mockGuess);
+
+      const mockGameState = {
+        id: testIds.GAME,
+        date: '2025-01-17',
+        masked: mockGame.song.maskedLyrics,
+        guesses: [mockGuess],
+        song: undefined
+      };
+
+      // Mock gameStateService.getGameState to return expected state
+      (gameStateService.getGameState as jest.Mock).mockResolvedValue(mockGameState);
+
+      const result = await service.submitGuess({ date: '2025-01-17', userId: testIds.PLAYER, guess: validWord });
+      
+      // Verify the guess was stored with valid=true
+      expect(context.mockPrisma.guess.create).toHaveBeenCalledWith({
+        data: {
+          gameId: testIds.GAME,
+          playerId: testIds.PLAYER,
+          word: validWord.toLowerCase(),
+          valid: true
+        }
+      });
+
+      // Verify game state includes the valid guess
       expect(result).toEqual(mockGameState);
     });
   });

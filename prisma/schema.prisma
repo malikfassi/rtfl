@@ -46,6 +46,7 @@ model Guess {
   game      Game     @relation(fields: [gameId], references: [id])
   playerId  String   // We'll add proper Player relation later if needed
   word      String
+  valid     Boolean  @default(false)  // Track if the guess was valid
   createdAt DateTime @default(now())
 
   @@unique([gameId, playerId, word])

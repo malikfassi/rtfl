@@ -1,28 +1,40 @@
 "use client";
 
 import React, { useState } from "react";
-import { useToast } from "@/app/front/hooks/use-toast";
-import { cn } from "@/app/front/lib/utils";
-import { Input } from "@/app/front/components/ui/Input";
 import { useGameState, useGuess } from "@/app/front/hooks/usePlayer";
 import { getOrCreatePlayerId } from "@/app/front/lib/utils";
-import { format } from "date-fns";
+import { cn } from "@/app/front/lib/utils";
+import {
+  GameControls,
+  GameProgress,
+  MaskedLyrics,
+} from "./lyrics-game";
 import { ScrambleTitle } from "./ScrambleTitle";
+import { DateDisplay } from "./DateDisplay";
 
 interface LyricsGameProps {
   date: string;
 }
 
+const colors = [
+  { bg: "bg-accent-info", text: "text-accent-info" },
+  { bg: "bg-accent-success", text: "text-accent-success" },
+  { bg: "bg-accent-warning", text: "text-accent-warning" },
+  { bg: "bg-accent-error", text: "text-accent-error" },
+  { bg: "bg-primary-dark", text: "text-primary-dark" },
+];
+
 export function LyricsGame({ date }: LyricsGameProps) {
-  const [guess, setGuess] = useState("");
   const playerId = getOrCreatePlayerId();
+  const [hoveredWord, setHoveredWord] = useState<string | null>(null);
+  const [selectedGuess, setSelectedGuess] = useState<{ id: string; word: string } | null>(null);
+  const [guessError, setGuessError] = useState<string | null>(null);
   
   // Fetch current game state
   const { data: gameState, isLoading: isGameLoading, error: gameError } = useGameState(playerId, date);
   
   // Setup guess mutation
   const guessMutation = useGuess(playerId, date);
-  const { toast } = useToast();
 
   if (isGameLoading) {
     return (
@@ -37,7 +49,7 @@ export function LyricsGame({ date }: LyricsGameProps) {
   if (gameError) {
     return (
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-center items-center min-h-[50vh] text-red-500">
+        <div className="flex justify-center items-center min-h-[50vh] text-accent-error">
           {gameError instanceof Error ? gameError.message : 'An error occurred'}
         </div>
       </div>
@@ -47,124 +59,183 @@ export function LyricsGame({ date }: LyricsGameProps) {
   if (!gameState) {
     return (
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="flex justify-center items-center min-h-[50vh] text-primary-muted">
           No game state available
         </div>
       </div>
     );
   }
 
-  const handleGuess = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!guess.trim()) return;
-
-    const normalizedGuess = guess.toLowerCase().trim();
-
+  const handleGuess = async (guess: string) => {
     try {
-      await guessMutation.mutateAsync(normalizedGuess);
+      await guessMutation.mutateAsync(guess);
+      setGuessError(null);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to submit guess",
-        variant: "destructive",
-      });
+      setGuessError(error instanceof Error ? error.message : "Failed to submit guess");
     }
-    setGuess("");
   };
 
-  const words = gameState.masked.lyrics.split(" ");
-  const foundWords = gameState.guesses.map(g => g.word.toLowerCase());
-  const progress = `${foundWords.length}/${words.length}`;
-  const isGameComplete = foundWords.length === words.length;
+  // Get total words from lyrics (not unique)
+  const totalWords = gameState.masked.lyrics
+    .match(/\p{L}+|\p{N}+/gu)
+    ?.length || 0;
+  
+  // Get total found word occurrences (not unique)
+  const foundWordsCount = gameState.guesses
+    .filter(g => g.valid)
+    .reduce((count, guess) => {
+      const words = Array.from(gameState.masked.lyrics.matchAll(/\p{L}+|\p{N}+/gu), m => m[0]);
+      const hits = words.filter(word => 
+        word.toLowerCase() === guess.word.toLowerCase()
+      ).length;
+      return count + hits;
+    }, 0);
+  
+  const wordsFoundPercentage = Math.round((foundWordsCount / totalWords) * 100);
+  
+  // Calculate segments for each valid guess
+  const guessSegments = gameState.guesses
+    .filter(g => g.valid)
+    .map((guess) => {
+      const words = Array.from(gameState.masked.lyrics.matchAll(/\p{L}+|\p{N}+/gu), m => m[0]);
+      const hits = words.filter(word => 
+        word.toLowerCase() === guess.word.toLowerCase()
+      ).length;
+      return {
+        id: guess.id,
+        hits,
+        colorIndex: gameState.guesses.findIndex(g => g.id === guess.id) % colors.length
+      };
+    })
+    .filter(segment => segment.hits > 0);
+
+  // Calculate completion percentages
+  const artistWords = Array.from(new Set(
+    gameState.masked.artist
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+  ));
+  
+  const titleWords = Array.from(new Set(
+    gameState.masked.title
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+  ));
+
+  const foundWords = Array.from(new Set(
+    gameState.guesses
+      .filter(g => g.valid)
+      .map(g => g.word.toLowerCase())
+  ));
+
+  const foundArtistWords = artistWords.filter(word => 
+    foundWords.includes(word.toLowerCase())
+  ).length;
+  const foundTitleWords = titleWords.filter(word => 
+    foundWords.includes(word.toLowerCase())
+  ).length;
+
+  const artistCompleteGuess = gameState.guesses.find(g => {
+    const guessWord = g.word.toLowerCase();
+    return artistWords.some(word => word.toLowerCase() === guessWord) &&
+           foundArtistWords === artistWords.length;
+  })?.id;
+
+  const titleCompleteGuess = gameState.guesses.find(g => {
+    const guessWord = g.word.toLowerCase();
+    return titleWords.some(word => word.toLowerCase() === guessWord) &&
+           foundTitleWords === titleWords.length;
+  })?.id;
+
+  const lyricsProgress = foundWordsCount / totalWords;
+
+  const isGameComplete = gameState.song !== undefined || 
+    (!!artistCompleteGuess && !!titleCompleteGuess) || 
+    lyricsProgress >= 0.8;
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="grid grid-cols-12 gap-8">
-        {/* Left Column - Game Controls */}
-        <div className="col-span-4">
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <ScrambleTitle />
-            
-            <div className="text-sm text-purple-400 mt-6 mb-4">
-              Player #{playerId}
+    <div className="min-h-screen bg-gray-50">
+      {/* Main Layout Container */}
+      <div className="flex flex-col lg:flex-row min-h-screen">
+        {/* Center Content Container */}
+        <div className="flex-1 flex justify-center">
+          <div className="w-full max-w-6xl flex flex-col lg:flex-row">
+            {/* Left Panel / Top Header */}
+            <div className="w-full lg:w-[320px] lg:min-w-[320px]">
+              <div className="h-full flex flex-col p-4 lg:p-6">
+                {/* Header Information */}
+                <div className="space-y-6 pb-6">
+                  <ScrambleTitle date={date} />
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-medium text-accent-info">Player ID</div>
+                      <div className="text-xs font-mono text-accent-info/80">#{playerId}</div>
+                    </div>
+                    {isGameComplete && gameState.song?.spotifyId && (
+                      <div className="rounded-lg overflow-hidden bg-primary-muted/5">
+                        <iframe
+                          src={`https://open.spotify.com/embed/track/${gameState.song.spotifyId}?utm_source=generator`}
+                          width="100%"
+                          height="152"
+                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                          loading="lazy"
+                          className="border-0"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Game Controls */}
+                <div className="flex-1 flex flex-col min-h-0">
+                  <GameProgress 
+                    foundWords={foundWordsCount} 
+                    totalWords={totalWords} 
+                    className="mb-6"
+                    hoveredGuess={selectedGuess?.id}
+                    guessSegments={guessSegments}
+                    artistComplete={artistCompleteGuess}
+                    titleComplete={titleCompleteGuess}
+                    colors={colors}
+                    onSegmentHover={(guessId) => {
+                      const guess = gameState.guesses.find(g => g.id === guessId);
+                      setSelectedGuess(guess ? { id: guess.id, word: guess.word } : null);
+                    }}
+                  />
+                  <GameControls
+                    playerId={playerId}
+                    date={date}
+                    isGameComplete={false}
+                    guesses={gameState.guesses}
+                    maskedLyrics={gameState.masked.lyrics}
+                    onGuess={handleGuess}
+                    isSubmitting={guessMutation.isPending}
+                    onWordHover={setHoveredWord}
+                    selectedGuess={selectedGuess}
+                    onGuessSelect={setSelectedGuess}
+                    colors={colors}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="text-xl font-bold mb-6">
-              {format(new Date(date), 'MMMM d, yyyy')}
-            </div>
-
-            <div className="mb-6">
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-300"
-                  style={{
-                    width: `${(foundWords.length / words.length) * 100}%`,
-                  }}
+            {/* Main Content - Lyrics */}
+            <div className="flex-1 p-4 lg:p-8">
+              <div className="w-full">
+                <MaskedLyrics
+                  title={gameState.masked.title}
+                  artist={gameState.masked.artist}
+                  lyrics={isGameComplete && gameState.song ? gameState.song.lyrics : gameState.masked.lyrics}
+                  isComplete={isGameComplete}
+                  foundWords={foundWords}
+                  hoveredWord={hoveredWord}
+                  selectedWord={selectedGuess?.word}
+                  guesses={gameState.guesses}
+                  colors={colors}
                 />
               </div>
-              <div className="text-sm mt-2">{progress} words found</div>
-            </div>
-
-            {!isGameComplete && (
-              <form onSubmit={handleGuess} className="mb-4">
-                <Input
-                  type="text"
-                  value={guess}
-                  onChange={(e) => setGuess(e.target.value)}
-                  placeholder="Enter your guess..."
-                  className="w-full bg-gray-50 border-0 focus:ring-0 focus:border-0 hover:bg-gray-100 transition-colors"
-                  disabled={guessMutation.isPending}
-                />
-              </form>
-            )}
-
-            {isGameComplete && (
-              <div className="text-center p-4 bg-green-50 text-green-700 rounded-md mb-4">
-                Congratulations! You've completed today's game!
-              </div>
-            )}
-
-            <div className="text-sm text-gray-500 mb-4">
-              Total Guesses: {gameState.guesses.length}
-            </div>
-
-            <div className="border-t pt-4">
-              <h3 className="text-sm font-medium mb-2">All Guesses:</h3>
-              <div className="flex flex-wrap gap-2">
-                {gameState.guesses.map((g, i) => (
-                  <span
-                    key={i}
-                    className="text-xs px-2 py-1 rounded bg-green-100 text-green-800"
-                  >
-                    {g.word}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column - Lyrics Display */}
-        <div className="col-span-8">
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="space-y-2 mb-6">
-              <div className="flex items-center gap-2">
-                <span className="text-primary">Title</span>
-                <span>{gameState.masked.title}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-primary">Artist</span>
-                <span>{gameState.masked.artist}</span>
-              </div>
-            </div>
-
-            <div className="leading-loose text-lg">
-              {words.map((word, index) => (
-                <React.Fragment key={index}>
-                  <span className="text-gray-300">{word}</span>
-                  {index < words.length - 1 && " "}
-                </React.Fragment>
-              ))}
             </div>
           </div>
         </div>

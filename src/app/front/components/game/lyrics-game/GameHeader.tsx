@@ -1,0 +1,1 @@
+// Component removed as header is now handled in GameControls 

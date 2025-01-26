@@ -111,10 +111,9 @@ export const validators = {
         gameId: expect.any(String),
         playerId: expect.any(String),
         word: expect.any(String),
-        createdAt: expect.any(String)
+        valid: expect.any(Boolean),
+        createdAt: expect.any(Date)
       });
-      // Validate that createdAt is a valid ISO date string
-      expect(new Date(actual.createdAt as string).toISOString()).toBe(actual.createdAt);
     },
     gameState: (actual: GameState, testCase: SongTestCase, playerId: string) => {
       // Validate structure
@@ -282,6 +281,7 @@ export const validators = {
         gameId: expect.any(String),
         playerId: expect.any(String),
         word: expect.any(String),
+        valid: expect.any(Boolean),
         createdAt: expect.any(Date)
       });
     },

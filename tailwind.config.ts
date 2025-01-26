@@ -25,24 +25,35 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#9333EA",
-          foreground: "#FFFFFF",
+          DEFAULT: "#9b87f5", // Main text and interactive elements
+          light: "#D6BCFA", // Subtle backgrounds and borders
+          dark: "#6E59A5", // Emphasized text
+          muted: "#7E69AB", // Secondary text
+        },
+        accent: {
+          DEFAULT: "#abecd6", // Default accent (mint)
+          success: "#abecd6", // Success states (mint)
+          error: "#FF719A", // Error states (pink)
+          warning: "#FFE29F", // Warning states (yellow)
+          info: "#9b87f5", // Info states (primary)
+        },
+        state: {
+          hover: "#abecd6", // Hover state color (mint)
+          active: "#6E59A5", // Active state color (primary dark)
+          disabled: "#7E69AB", // Disabled state color (primary muted)
+          focus: "#9b87f5", // Focus state color (primary)
         },
         secondary: {
           DEFAULT: "#E5DEFF",
           foreground: "#222222",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "#FF719A",
+          foreground: "#FFFFFF",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",

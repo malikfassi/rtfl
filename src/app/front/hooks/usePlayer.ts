@@ -2,15 +2,13 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type { GameState } from '@/app/api/lib/types/game';
+import type { Guess, Song } from '@prisma/client';
 import { queryKeys } from '@/app/front/lib/query-client';
-import { useToast } from '@/app/front/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface GameInterfaceState {
   playerId: string;
-  totalWords: number;
-  foundWords: string[];
-  guesses: Array<{ word: string }>;
+  guesses: Array<Guess & { valid: boolean }>;
   _title: string;
   _artist: string;
   masked: {
@@ -18,6 +16,7 @@ interface GameInterfaceState {
     artist: string;
     lyrics: string;
   };
+  song?: Song;
 }
 
 const playerApi = {
@@ -61,46 +60,25 @@ const playerApi = {
 };
 
 export function useGameState(userId: string, date: string) {
-  return useQuery<GameState, Error, GameInterfaceState>({
+  return useQuery({
     queryKey: queryKeys.games.byDate(new Date(date)),
     queryFn: () => playerApi.getCurrentGame(userId, date),
-    select: (data) => ({
-      playerId: userId,
-      totalWords: data.masked.title.split(' ').length + data.masked.artist.split(' ').length,
-      foundWords: data.guesses.map(g => g.word),
-      guesses: data.guesses,
-      _title: data.masked.title,
-      _artist: data.masked.artist,
-      masked: data.masked
-    }),
   });
 }
 
 export function useGuess(userId: string, date: string) {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (guess: string) => playerApi.submitGuess(userId, date, guess),
-    onSuccess: (_, guess) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.games.byDate(new Date(date)) });
-      toast({
-        title: "Correct!",
-        description: `You found the word "${guess}"`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to submit guess",
-        variant: "destructive",
-      });
     },
   });
 }
 
-export function useGameMonth(userId: string, month: string) {
-  return useQuery<GameState[]>({
+export function useMonthGames(userId: string, month: string) {
+  return useQuery({
     queryKey: queryKeys.games.byMonth(new Date(month)),
     queryFn: () => playerApi.getGamesByMonth(userId, month),
   });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/app/front/lib/utils';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -14,7 +15,11 @@ export function LoadingSpinner({ size = 'md' }: LoadingSpinnerProps) {
   return (
     <div className="flex items-center justify-center">
       <div
-        className={`animate-spin border-2 border-foreground/20 border-t-foreground ${sizeClasses[size]}`}
+        className={cn(
+          "animate-spin rounded-full",
+          "border-2 border-primary-muted/20 border-t-primary-dark",
+          sizeClasses[size]
+        )}
         role="status"
         aria-label="Loading"
       />

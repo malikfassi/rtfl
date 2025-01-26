@@ -45,13 +45,14 @@ interface CalendarDayProps {
   onMouseEnter: () => void;
   onMouseDown: () => void;
   status?: GameStatusInfo;
+  currentMonth: Date;
 }
 
-function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDown, status }: CalendarDayProps) {
+function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDown, status, currentMonth }: CalendarDayProps) {
   const isToday = isSameDay(date, new Date());
   const hasGame = Boolean(game);
   const dayStatus = status || game?.status;
-  const isCurrentMonth = date.getMonth() === new Date().getMonth();
+  const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
   const isLoading = dayStatus?.status === 'loading';
 
   // Get background and border colors based on state
@@ -118,60 +119,59 @@ export function Calendar({
   onMonthChange,
   pendingChanges = {}
 }: CalendarProps) {
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [selectionStart, setSelectionStart] = useState<Date | null>(null);
-  const [hoverDate, setHoverDate] = useState<Date | null>(null);
+  const [dragStart, setDragStart] = useState<Date | null>(null);
 
   const days = getDaysInMonth(currentMonth);
+  const currentMonthDays = days.filter(date => date.getMonth() === currentMonth.getMonth());
 
   const handleDateClick = useCallback((date: Date) => {
-    if (selectedDates.some(d => isSameDay(d, date))) {
+    if (dragStart) return; // Ignore clicks during drag
+
+    const isDateSelected = selectedDates.some(d => isSameDay(d, date));
+    if (isDateSelected) {
       onSelect(selectedDates.filter(d => !isSameDay(d, date)));
     } else {
-      onSelect([...selectedDates, date]);
+      onSelect([date]);
     }
-  }, [selectedDates, onSelect]);
+  }, [selectedDates, onSelect, dragStart]);
 
   const handleMouseDown = useCallback((date: Date) => {
-    setIsSelecting(true);
-    setSelectionStart(date);
-    // Don't reset selection on mouse down, just add to it if not already selected
-    if (!selectedDates.some(d => isSameDay(d, date))) {
-      onSelect([...selectedDates, date]);
-    }
-  }, [selectedDates, onSelect]);
+    setDragStart(date);
+  }, []);
 
   const handleMouseEnter = useCallback((date: Date) => {
-    setHoverDate(date);
-    if (isSelecting && selectionStart) {
-      const start = selectionStart;
-      const end = date;
-      
-      // Get all dates between start and end
-      const startTime = Math.min(start.getTime(), end.getTime());
-      const endTime = Math.max(start.getTime(), end.getTime());
-      const dates = [];
-      
-      for (let time = startTime; time <= endTime; time += 24 * 60 * 60 * 1000) {
-        dates.push(new Date(time));
-      }
-      
-      // Merge with existing selection, removing duplicates
-      const newDates = [...selectedDates];
-      dates.forEach(date => {
-        if (!selectedDates.some(d => isSameDay(d, date))) {
-          newDates.push(date);
-        }
-      });
-      onSelect(newDates);
-    }
-  }, [isSelecting, selectionStart, selectedDates, onSelect]);
+    if (!dragStart) return;
 
-  const handleMouseUp = () => {
-    setIsSelecting(false);
-    setSelectionStart(null);
-    setHoverDate(null);
-  };
+    const startTime = Math.min(dragStart.getTime(), date.getTime());
+    const endTime = Math.max(dragStart.getTime(), date.getTime());
+    const dates = [];
+    
+    for (let time = startTime; time <= endTime; time += 24 * 60 * 60 * 1000) {
+      dates.push(new Date(time));
+    }
+    
+    onSelect(dates);
+  }, [dragStart, onSelect]);
+
+  const handleMouseUp = useCallback(() => {
+    setDragStart(null);
+  }, []);
+
+  const handleToggleAll = useCallback(() => {
+    // Check if all current month days are selected
+    const allSelected = currentMonthDays.every(date => 
+      selectedDates.some(selectedDate => isSameDay(selectedDate, date))
+    );
+
+    if (allSelected) {
+      // If all are selected, unselect current month days
+      onSelect(selectedDates.filter(date => date.getMonth() !== currentMonth.getMonth()));
+    } else {
+      // If not all are selected, select all current month days while keeping other selections
+      const otherDates = selectedDates.filter(date => date.getMonth() !== currentMonth.getMonth());
+      onSelect([...otherDates, ...currentMonthDays]);
+    }
+  }, [currentMonthDays, selectedDates, currentMonth, onSelect]);
 
   return (
     <div 
@@ -180,9 +180,20 @@ export function Calendar({
       onMouseLeave={handleMouseUp}
     >
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">
-          {format(currentMonth, 'MMMM yyyy')}
-        </h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold">
+            {format(currentMonth, 'MMMM yyyy')}
+          </h2>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleToggleAll}
+          >
+            {currentMonthDays.every(date => 
+              selectedDates.some(selectedDate => isSameDay(selectedDate, date))
+            ) ? 'Unselect All' : 'Select All'}
+          </Button>
+        </div>
         <div className="space-x-2">
           <Button
             variant="secondary"
@@ -224,10 +235,11 @@ export function Calendar({
               onMouseEnter={() => handleMouseEnter(date)}
               onMouseDown={() => handleMouseDown(date)}
               status={status}
+              currentMonth={currentMonth}
             />
           );
         })}
       </div>
     </div>
   );
-} 
+}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/app/front/lib/utils';
 
 interface ListProps<T> {
   items: T[];
@@ -18,7 +19,10 @@ export function List<T>({
   className = ''
 }: ListProps<T>) {
   return (
-    <ul className={`font-mono divide-y divide-foreground/10 ${className}`}>
+    <ul className={cn(
+      "font-mono divide-y divide-primary-muted/10",
+      className
+    )}>
       {items.map((item, index) => {
         const id = keyExtractor(item);
         const isSelected = selectedId === id;
@@ -27,13 +31,17 @@ export function List<T>({
           <li
             key={id}
             onClick={() => onSelect?.(item)}
-            className={`
-              group flex cursor-pointer items-center gap-2 px-4 py-2
-              hover:bg-input-bg
-              ${isSelected ? 'bg-input-bg' : ''}
-            `}
+            className={cn(
+              "group flex cursor-pointer items-center gap-2 px-4 py-2",
+              "hover:bg-primary-muted/5",
+              isSelected && "bg-primary-muted/10"
+            )}
           >
-            <span className="text-muted group-hover:text-foreground">
+            <span className={cn(
+              "text-primary-muted",
+              "group-hover:text-primary-dark",
+              isSelected && "text-primary-dark"
+            )}>
               {isSelected ? '>' : ' '}
             </span>
             {renderItem(item, index)}

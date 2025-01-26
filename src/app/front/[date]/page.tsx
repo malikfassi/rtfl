@@ -3,6 +3,7 @@
 import React from "react";
 import { useParams } from "next/navigation";
 import { LyricsGame } from "@/app/front/components/game/LyricsGame";
+import { Toaster } from "@/app/front/components/ui/toaster";
 
 export default function GamePage() {
   const params = useParams();
@@ -12,6 +13,7 @@ export default function GamePage() {
     <div className="min-h-screen bg-background font-mono">
       <div className="p-8">
         <LyricsGame date={date} />
+        <Toaster />
       </div>
     </div>
   );

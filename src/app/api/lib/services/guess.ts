@@ -20,36 +20,46 @@ export class GuessService {
 
   private isExactWordMatch(guess: string, target: string): boolean {
     // Convert both strings to lowercase and normalize whitespace
-    const wordPattern = /([a-zA-Z0-9]|[à-ü]|[À-Ü])+/g;
-    const normalizedGuess = guess.trim().match(wordPattern)?.[0] || '';
-    const normalizedTarget = target.trim().match(wordPattern)?.[0] || '';
+    const normalizedGuess = guess.trim().toLowerCase();
+    const normalizedTarget = target.trim().toLowerCase();
     
     // Check for exact match (case insensitive)
-    return normalizedGuess.toLowerCase() === normalizedTarget.toLowerCase();
+    return normalizedGuess === normalizedTarget;
+  }
+
+  private extractWords(text: string): string[] {
+    // Split on spaces first
+    return text.split(/\s+/).flatMap(word => {
+      // Handle special cases like "P!nk" -> ["P", "nk"]
+      // and possessives like "Taylor's" -> ["Taylor", "s"]
+      const specialCharSplit = word.split(/([!@#$%^&*()\-_+=[\]{}|\\:;"'<>,.?/])/);
+      return specialCharSplit
+        .map(part => part.trim())
+        .filter(part => part.length > 0 && !/^[!@#$%^&*()\-_+=[\]{}|\\:;"'<>,.?/]$/.test(part));
+    });
   }
 
   private async validateWord(word: string, song: Song): Promise<boolean> {
     const songData = song.spotifyData as unknown as SpotifyTrack;
-    const wordPattern = /([a-zA-Z0-9]|[à-ü]|[À-Ü])+/g;
-    const normalizedWord = word.trim().match(wordPattern)?.[0] || '';
+    const normalizedGuess = word.trim().toLowerCase();
     
-    // Check against song title
-    const titleWords = songData.name.split(/\s+/).map(w => w.match(wordPattern)?.[0] || '').filter(Boolean);
-    if (titleWords.some(titleWord => this.isExactWordMatch(normalizedWord, titleWord))) {
+    // Extract and check title words
+    const titleWords = this.extractWords(songData.name);
+    if (titleWords.some(titleWord => this.isExactWordMatch(normalizedGuess, titleWord))) {
       return true;
     }
 
-    // Check against artist name
+    // Extract and check artist words
     if (songData.artists && songData.artists.length > 0) {
-      const artistWords = songData.artists[0].name.split(/\s+/).map(w => w.match(wordPattern)?.[0] || '').filter(Boolean);
-      if (artistWords.some(artistWord => this.isExactWordMatch(normalizedWord, artistWord))) {
+      const artistWords = this.extractWords(songData.artists[0].name);
+      if (artistWords.some(artistWord => this.isExactWordMatch(normalizedGuess, artistWord))) {
         return true;
       }
     }
 
-    // Split lyrics into words and check each one
-    const lyrics = song.lyrics.split(/\s+/).map(w => w.match(wordPattern)?.[0] || '').filter(Boolean);
-    return lyrics.some(lyricWord => this.isExactWordMatch(normalizedWord, lyricWord));
+    // Extract and check lyrics words
+    const lyricsWords = this.extractWords(song.lyrics);
+    return lyricsWords.some(lyricWord => this.isExactWordMatch(normalizedGuess, lyricWord));
   }
 
   async submitGuess({ date, userId, guess }: { date: string; userId: string; guess: string }): Promise<GameState> {
@@ -70,12 +80,6 @@ export class GuessService {
     validateSchema(playerIdSchema, userId);
     validateSchema(wordSchema, guess);
 
-    // Check if word exists in lyrics
-    const isValidWord = await this.validateWord(guess, game.song);
-    if (!isValidWord) {
-      throw new InvalidWordError();
-    }
-
     // Check for duplicate guess
     const existingGuess = await this.prisma.guess.findFirst({
       where: {
@@ -89,12 +93,16 @@ export class GuessService {
       throw new DuplicateGuessError();
     }
 
-    // Create guess
+    // Check if word exists in lyrics/title/artist
+    const isValidWord = await this.validateWord(guess, game.song);
+
+    // Create guess with valid flag
     await this.prisma.guess.create({
       data: {
         gameId: game.id,
         playerId: userId,
         word: guess.toLowerCase().trim(),
+        valid: isValidWord
       }
     });
 
