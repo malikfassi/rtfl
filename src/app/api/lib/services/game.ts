@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import type { Game, Song, Prisma } from '@prisma/client';
 
-import { GameNotFoundError } from '@/app/api/lib/errors/game';
+import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
 import { schemas, validateSchema } from '@/app/api/lib/validation';
 
 import { prisma } from '../db';

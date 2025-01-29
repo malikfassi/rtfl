@@ -1,5 +1,5 @@
 import { ValidationError } from '@/app/api/lib/errors/base';
-import { GameNotFoundError } from '@/app/api/lib/errors/game';
+import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
 import { TEST_IDS, SONGS } from '@/app/api/lib/test/fixtures/core/test_cases';
 import { validators } from '@/app/api/lib/test/fixtures/core/validators';
 import {

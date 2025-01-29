@@ -1,6 +1,6 @@
 import { ValidationError } from '@/app/api/lib/errors/base';
-import { NoMatchingLyricsError } from '@/app/api/lib/errors/genius';
-import { TrackNotFoundError } from '@/app/api/lib/errors/spotify';
+import { NoMatchingLyricsError } from '@/app/api/lib/errors/clients/genius';
+import { TrackNotFoundError } from '@/app/api/lib/errors/clients/spotify';
 import { TEST_CASES } from '@/app/api/lib/test/fixtures/core/test_cases';
 import { SONG_IDS } from '@/app/api/lib/test/fixtures/spotify_ids';
 import {

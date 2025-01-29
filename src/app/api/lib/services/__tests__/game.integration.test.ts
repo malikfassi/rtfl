@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { GameNotFoundError } from '@/app/api/lib/errors/game';
+import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
 import { SONGS } from '@/app/api/lib/test/fixtures/core/test_cases';
 import { cleanupIntegrationTest,setupIntegrationTest } from '@/app/api/lib/test/test-env/integration';
 

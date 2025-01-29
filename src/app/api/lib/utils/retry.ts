@@ -1,4 +1,4 @@
-import { SpotifyApiError } from '../errors/spotify';
+import { SpotifyApiError } from '../errors/clients/spotify';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 

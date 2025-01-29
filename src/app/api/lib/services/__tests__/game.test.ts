@@ -1,8 +1,8 @@
 import { afterEach,beforeEach, describe, expect, test } from '@jest/globals';
 
 import { ValidationError } from '@/app/api/lib/errors/base';
-import { GameNotFoundError } from '@/app/api/lib/errors/game';
-import { SongNotFoundError } from '@/app/api/lib/errors/song';
+import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
+import { SongNotFoundError } from '@/app/api/lib/errors/services/song';
 import type { GameWithSong } from '@/app/api/lib/services/game';
 import { 
   cleanupUnitTest,

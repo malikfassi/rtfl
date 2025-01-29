@@ -3,7 +3,7 @@ import {
   DuplicateGuessError,
   GameNotFoundForGuessError,
   InvalidWordError,
-} from '@/app/api/lib/errors/guess';
+} from '@/app/api/lib/errors/services/guess';
 import { 
   cleanupUnitTest,
   setupUnitTest,

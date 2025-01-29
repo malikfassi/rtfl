@@ -1,5 +1,5 @@
 import { Guess, PrismaClient, Song } from '@prisma/client';
-import { GameNotFoundError } from '@/app/api/lib/errors/game';
+import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
 import { validateSchema, dateSchema, playerIdSchema } from '@/app/api/lib/validation';
 import { prisma } from '@/app/api/lib/db';
 import type { MaskedLyrics } from '@/app/api/lib/types/lyrics';

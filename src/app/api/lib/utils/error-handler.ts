@@ -1,23 +1,19 @@
 import { NextResponse } from 'next/server';
 import { AppError } from '@/app/api/lib/errors/base';
+import { ErrorCode } from '@/app/api/lib/errors/codes';
+import { ErrorMessage } from '@/app/api/lib/errors/messages';
 
 export async function handleError(error: unknown) {
   console.error('Route error:', error);
 
   if (error instanceof AppError) {
-    return NextResponse.json(
-      { 
-        error: error.code,
-        message: error.message
-      },
-      { status: error.status }
-    );
+    return NextResponse.json(error.toJSON(), { status: error.status });
   }
 
   return NextResponse.json(
     { 
-      error: 'INTERNAL_ERROR',
-      message: 'Internal server error'
+      error: ErrorCode.InternalError,
+      message: ErrorMessage[ErrorCode.InternalError] as string
     },
     { status: 500 }
   );

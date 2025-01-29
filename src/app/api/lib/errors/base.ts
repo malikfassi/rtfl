@@ -1,3 +1,6 @@
+import { ErrorCode } from './codes';
+import { ErrorMessage } from './messages';
+
 export class AppError extends Error {
   constructor(
     public readonly code: string,
@@ -18,20 +21,29 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string) {
-    super('VALIDATION_ERROR', message, 400);
+  static readonly code = 'VALIDATION_ERROR';
+  static readonly message = 'Validation error';
+
+  constructor(message: string = ValidationError.message) {
+    super(ValidationError.code, message, 400);
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(message: string) {
-    super('NOT_FOUND', message, 404);
+  static readonly code = 'NOT_FOUND';
+  static readonly message = 'Not found';
+
+  constructor(code: string = NotFoundError.code, message: string = NotFoundError.message) {
+    super(code, message, 404);
   }
 }
 
 export class InternalError extends AppError {
-  constructor(message: string) {
-    super('INTERNAL_ERROR', message, 500);
+  static readonly code = 'INTERNAL_ERROR';
+  static readonly message = 'Internal error';
+
+  constructor(message: string = InternalError.message) {
+    super(InternalError.code, message, 500);
   }
 }
 

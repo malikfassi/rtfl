@@ -1,25 +1,16 @@
-import type { SimplifiedPlaylist, Track, TrackReference } from '@spotify/web-api-ts-sdk';
+import type { Page, PlaylistBase, Track } from '@spotify/web-api-ts-sdk';
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 
-import { 
-  NoMatchingPlaylistsError,
-  NoMatchingTracksError,
-  NoTracksInPlaylistError,
-  PlaylistNotFoundError,
-  SpotifyApiError,
-  TrackNotFoundError} from '@/app/api/lib/errors/spotify';
-import { searchQuerySchema,spotifyIdSchema } from '@/app/api/lib/validation';
-import { validateSchema } from '@/app/api/lib/validation';
+import { SpotifyApiError, PlaylistNotFoundError, TrackNotFoundError } from '@/app/api/lib/errors/clients/spotify';
 import { withRetry } from '@/app/api/lib/utils/retry';
 
 export interface SpotifyClient {
   getTrack(id: string): Promise<Track>;
   searchTracks(query: string): Promise<Track[]>;
-  searchPlaylists(query: string): Promise<SimplifiedPlaylist[]>;
+  searchPlaylists(query: string): Promise<Page<PlaylistBase>>;
   getPlaylistTracks(playlistId: string): Promise<Track[]>;
 }
 
-// Real implementation
 export class SpotifyClientImpl implements SpotifyClient {
   private client: SpotifyApi;
 
@@ -28,67 +19,35 @@ export class SpotifyClientImpl implements SpotifyClient {
     private clientSecret: string
   ) {
     if (!clientId || !clientSecret) {
-      throw new SpotifyApiError(new Error('Spotify credentials not configured'));
+      throw SpotifyApiError.missingCredentials();
     }
 
     this.client = SpotifyApi.withClientCredentials(clientId, clientSecret);
   }
 
-  async searchPlaylists(query: string): Promise<SimplifiedPlaylist[]> {
-    const validatedQuery = validateSchema(searchQuerySchema, query);
-
+  async searchPlaylists(query: string): Promise<Page<PlaylistBase>> {
     try {
       const response = await withRetry(() => 
-        this.client.search(validatedQuery, ['playlist'], undefined, 50)
+        this.client.search(query, ['playlist'], undefined, 50)
       );
-      
-      const playlists = response.playlists.items
-        .filter(playlist => {
-          if (!playlist || !playlist.name) return false;
-          
-          const searchTerms = validatedQuery.toLowerCase().split(' ');
-          const playlistName = playlist.name.toLowerCase();
-          const ownerName = playlist.owner?.display_name?.toLowerCase() || '';
-          
-          return searchTerms.every(term => 
-            playlistName.includes(term) || ownerName.includes(term)
-          );
-        });
-
-      return playlists.map(playlist => ({
-        ...playlist,
-        tracks: {
-          href: '',
-          total: 0
-        } as TrackReference
-      }));
+      return response.playlists;
     } catch (error) {
-      if (error instanceof NoMatchingPlaylistsError) throw error;
       throw new SpotifyApiError(error as Error);
     }
   }
 
   async getPlaylistTracks(playlistId: string): Promise<Track[]> {
-    const validatedId = validateSchema(spotifyIdSchema, playlistId);
-
     try {
       const response = await withRetry(() => 
-        this.client.playlists.getPlaylistItems(validatedId)
+        this.client.playlists.getPlaylistItems(playlistId)
       );
       
-      const tracks = response.items
+      return response.items
         .map(item => item.track)
         .filter((track): track is Track => 
           track !== null && 'id' in track && track.type === 'track'
         );
-
-      if (tracks.length === 0) {
-        throw new NoTracksInPlaylistError();
-      }
-
-      return tracks;
     } catch (error) {
-      if (error instanceof NoTracksInPlaylistError) throw error;
       if (error instanceof Error && error.message.includes('404')) {
         throw new PlaylistNotFoundError(playlistId);
       }
@@ -97,11 +56,9 @@ export class SpotifyClientImpl implements SpotifyClient {
   }
 
   async getTrack(trackId: string): Promise<Track> {
-    const validatedId = validateSchema(spotifyIdSchema, trackId.replace(/^spotify:track:/, ''));
-
     try {
       return await withRetry(() => 
-        this.client.tracks.get(validatedId)
+        this.client.tracks.get(trackId.replace(/^spotify:track:/, ''))
       );
     } catch (error) {
       if (error instanceof Error && error.message.includes('404')) {
@@ -112,26 +69,12 @@ export class SpotifyClientImpl implements SpotifyClient {
   }
 
   async searchTracks(query: string): Promise<Track[]> {
-    const validatedQuery = validateSchema(searchQuerySchema, query);
-
     try {
       const response = await withRetry(() => 
-        this.client.search(validatedQuery, ['track'], undefined, 50)
+        this.client.search(query, ['track'], undefined, 50)
       );
-      
-      const tracks = response.tracks.items.filter(track => {
-        const searchTerms = validatedQuery.toLowerCase().split(' ');
-        const trackName = track.name.toLowerCase();
-        const artistNames = track.artists.map(artist => artist.name.toLowerCase());
-        
-        return searchTerms.every(term => 
-          trackName.includes(term) || artistNames.some(name => name.includes(term))
-        );
-      });
-
-      return tracks;
+      return response.tracks.items;
     } catch (error) {
-      if (error instanceof NoMatchingTracksError) return [];
       throw new SpotifyApiError(error as Error);
     }
   }
@@ -147,7 +90,7 @@ export function getSpotifyClient(): SpotifyClientImpl {
       const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
       
       if (!clientId || !clientSecret) {
-        throw new Error('Spotify credentials not configured. Please check SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET environment variables.');
+        throw SpotifyApiError.missingCredentials();
       }
 
       defaultClient = new SpotifyClientImpl(clientId, clientSecret);

@@ -2,7 +2,7 @@ import { ValidationError } from '@/app/api/lib/errors/base';
 import {
   DuplicateGuessError,
   GameNotFoundForGuessError,
-  InvalidWordError} from '@/app/api/lib/errors/guess';
+  InvalidWordError} from '@/app/api/lib/errors/services/guess';
 import { TEST_IDS, SONGS } from '@/app/api/lib/test/fixtures/core/test_cases';
 import { validators } from '@/app/api/lib/test/fixtures/core/validators';
 import {

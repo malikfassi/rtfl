@@ -4,7 +4,7 @@ import { prisma } from '@/app/api/lib/db';
 import {
   DuplicateGuessError,
   GameNotFoundForGuessError,
-  InvalidWordError} from '@/app/api/lib/errors/guess';
+  InvalidWordError} from '@/app/api/lib/errors/services/guess';
 import { validateSchema } from '@/app/api/lib/validation';
 import { dateSchema, gameIdSchema, playerIdSchema, wordSchema } from '@/app/api/lib/validation';
 import { gameStateService } from '@/app/api/lib/services/game-state';

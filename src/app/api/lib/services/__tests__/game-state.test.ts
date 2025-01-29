@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect } from '@jest/globals';
 import { ValidationError } from '@/app/api/lib/errors/base';
-import { GameNotFoundError } from '@/app/api/lib/errors/game';
+import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
 import { GameStateService } from '@/app/api/lib/services/game-state';
 import { TEST_CASES, TEST_IDS, createMockGameState } from '@/app/api/lib/test/fixtures/core/test_cases';
 import { validators } from '@/app/api/lib/test/fixtures/core/validators';
