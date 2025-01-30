@@ -1,16 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-import type { Game, Song, Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 
 import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
 import { schemas, validateSchema } from '@/app/api/lib/validation';
+import type { GameWithSong, GameWithSongAndGuesses } from '@/app/api/lib/types/game';
 
 import { prisma } from '../db';
 import { createSongService, SongService } from './song';
-
-// Type for Game with included song relation
-export type GameWithSong = Game & {
-  song: Song;
-};
 
 export class GameService {
   constructor(
@@ -89,6 +85,51 @@ export class GameService {
     await this.prisma.game.delete({
       where: { date: validatedDate }
     });
+  }
+
+  async getGameWithGuesses(date: string, playerId: string): Promise<GameWithSongAndGuesses> {
+    const validatedDate = validateSchema(schemas.date, date);
+    
+    const game = await this.prisma.game.findUnique({
+      where: { date: validatedDate },
+      include: {
+        song: true,
+        guesses: {
+          where: { playerId },
+          orderBy: { createdAt: 'asc' }
+        }
+      }
+    });
+
+    if (!game?.song) {
+      throw new GameNotFoundError(validatedDate);
+    }
+
+    return game as GameWithSongAndGuesses;
+  }
+
+  async getGamesWithGuesses(startDate: string, endDate: string, playerId: string): Promise<GameWithSongAndGuesses[]> {
+    const validatedStartDate = validateSchema(schemas.date, startDate);
+    const validatedEndDate = validateSchema(schemas.date, endDate);
+    
+    const games = await this.prisma.game.findMany({
+      where: {
+        date: {
+          gte: validatedStartDate,
+          lt: validatedEndDate
+        }
+      },
+      include: {
+        song: true,
+        guesses: {
+          where: { playerId },
+          orderBy: { createdAt: 'asc' }
+        }
+      },
+      orderBy: { date: 'asc' }
+    });
+
+    return games.filter(game => game.song) as GameWithSongAndGuesses[];
   }
 }
 

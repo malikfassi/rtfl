@@ -1,72 +1,25 @@
-import { Guess, PrismaClient, Song } from '@prisma/client';
+import { Guess, PrismaClient } from '@prisma/client';
 
 import { prisma } from '@/app/api/lib/db';
 import {
   DuplicateGuessError,
-  GameNotFoundForGuessError,
-  InvalidWordError} from '@/app/api/lib/errors/services/guess';
+  GameNotFoundForGuessError
+} from '@/app/api/lib/errors/services/guess';
 import { validateSchema } from '@/app/api/lib/validation';
 import { dateSchema, gameIdSchema, playerIdSchema, wordSchema } from '@/app/api/lib/validation';
-import { gameStateService } from '@/app/api/lib/services/game-state';
-import type { GameState } from '@/app/api/lib/types/game';
-
-interface SpotifyTrack {
-  name: string;
-  artists: Array<{ name: string }>;
-}
+import type { MaskedLyrics } from '@/app/api/lib/types/lyrics';
+import { maskedLyricsService } from './masked-lyrics';
 
 export class GuessService {
   constructor(private prisma: PrismaClient) {}
 
-  private isExactWordMatch(guess: string, target: string): boolean {
-    // Convert both strings to lowercase and normalize whitespace
-    const normalizedGuess = guess.trim().toLowerCase();
-    const normalizedTarget = target.trim().toLowerCase();
-    
-    // Check for exact match (case insensitive)
-    return normalizedGuess === normalizedTarget;
-  }
-
-  private extractWords(text: string): string[] {
-    // Split on spaces first
-    return text.split(/\s+/).flatMap(word => {
-      // Handle special cases like "P!nk" -> ["P", "nk"]
-      // and possessives like "Taylor's" -> ["Taylor", "s"]
-      const specialCharSplit = word.split(/([!@#$%^&*()\-_+=[\]{}|\\:;"'<>,.?/])/);
-      return specialCharSplit
-        .map(part => part.trim())
-        .filter(part => part.length > 0 && !/^[!@#$%^&*()\-_+=[\]{}|\\:;"'<>,.?/]$/.test(part));
-    });
-  }
-
-  private async validateWord(word: string, song: Song): Promise<boolean> {
-    const songData = song.spotifyData as unknown as SpotifyTrack;
-    const normalizedGuess = word.trim().toLowerCase();
-    
-    // Extract and check title words
-    const titleWords = this.extractWords(songData.name);
-    if (titleWords.some(titleWord => this.isExactWordMatch(normalizedGuess, titleWord))) {
-      return true;
-    }
-
-    // Extract and check artist words
-    if (songData.artists && songData.artists.length > 0) {
-      const artistWords = this.extractWords(songData.artists[0].name);
-      if (artistWords.some(artistWord => this.isExactWordMatch(normalizedGuess, artistWord))) {
-        return true;
-      }
-    }
-
-    // Extract and check lyrics words
-    const lyricsWords = this.extractWords(song.lyrics);
-    return lyricsWords.some(lyricWord => this.isExactWordMatch(normalizedGuess, lyricWord));
-  }
-
-  async submitGuess({ date, userId, guess }: { date: string; userId: string; guess: string }): Promise<GameState> {
-    // Validate date first
+  async submitGuess({ date, userId, guess }: { date: string; userId: string; guess: string }): Promise<Guess> {
+    // 1. Validate inputs
     validateSchema(dateSchema, date);
+    validateSchema(playerIdSchema, userId);
+    validateSchema(wordSchema, guess);
 
-    // Get game by date
+    // 2. Get game and validate it exists
     const game = await this.prisma.game.findUnique({
       where: { date },
       include: { song: true }
@@ -76,16 +29,13 @@ export class GuessService {
       throw new GameNotFoundForGuessError(date);
     }
 
-    // Then validate other inputs
-    validateSchema(playerIdSchema, userId);
-    validateSchema(wordSchema, guess);
-
-    // Check for duplicate guess
+    // 3. Check for duplicate guess
+    const normalizedGuess = guess.toLowerCase().trim();
     const existingGuess = await this.prisma.guess.findFirst({
       where: {
         gameId: game.id,
         playerId: userId,
-        word: { equals: guess.toLowerCase() }
+        word: { equals: normalizedGuess }
       }
     });
 
@@ -93,29 +43,27 @@ export class GuessService {
       throw new DuplicateGuessError();
     }
 
-    // Check if word exists in lyrics/title/artist
-    const isValidWord = await this.validateWord(guess, game.song);
+    // 4. Validate word against masked lyrics
+    const maskedLyrics = game.song.maskedLyrics as unknown as MaskedLyrics;
+    const isValidWord = maskedLyricsService.hasWord(normalizedGuess, maskedLyrics);
 
-    // Create guess with valid flag
-    await this.prisma.guess.create({
+    // 5. Create and return guess record
+    return await this.prisma.guess.create({
       data: {
         gameId: game.id,
         playerId: userId,
-        word: guess.toLowerCase().trim(),
+        word: normalizedGuess,
         valid: isValidWord
       }
     });
-
-    // Return updated game state
-    return gameStateService.getGameState(date, userId);
   }
 
   async getPlayerGuesses(gameId: string, playerId: string): Promise<Guess[]> {
-    // Validate inputs
+    // 1. Validate inputs
     validateSchema(gameIdSchema, gameId);
     validateSchema(playerIdSchema, playerId);
 
-    // Check if game exists
+    // 2. Check if game exists
     const game = await this.prisma.game.findUnique({
       where: { id: gameId }
     });
@@ -124,7 +72,7 @@ export class GuessService {
       throw new GameNotFoundForGuessError('unknown');
     }
 
-    // Get guesses
+    // 3. Get guesses
     return this.prisma.guess.findMany({
       where: {
         gameId,

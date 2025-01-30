@@ -1,3 +1,5 @@
+import { GeniusData, GeniusSearchResponse, GeniusHit } from '../types/genius';
+
 /**
  * Constructs a clean search query for Genius by removing special characters,
  * version/remaster information, and normalizing whitespace.
@@ -34,4 +36,15 @@ export function constructGeniusSearchQuery(title: string, artist: string): strin
 
   // Return the query with quotes around the title for exact matching
   return `"${cleanTitle}" ${cleanArtist}`;
-} 
+}
+
+/**
+ * Extracts clean GeniusData from a GeniusHit.
+ */
+export function extractGeniusData(hit: GeniusHit): GeniusData {
+  return {
+    title: hit.result.title,
+    url: hit.result.url,
+    artist: hit.result.primary_artist.name
+  };
+}

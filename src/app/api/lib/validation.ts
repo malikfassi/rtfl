@@ -89,6 +89,10 @@ export const songTitleSchema = z.string().trim()
 export const artistNameSchema = z.string().trim()
   .min(1, 'Artist name is required');
 
+// Lyrics schemas
+export const maskTextSchema = z.string()
+  .min(1, 'Text to mask is required');
+
 // Request schemas
 export const createGameRequestSchema = z.object({
   date: dateSchema,
@@ -106,6 +110,10 @@ export const searchSongSchema = z.object({
   artist: artistNameSchema
 }).strict();
 
+export const guessRequestSchema = z.object({
+  guess: z.string().trim().min(1, 'Guess is required')
+}).strict();
+
 // Export commonly used schemas
 export const schemas = {
   date: dateSchema,
@@ -115,5 +123,7 @@ export const schemas = {
   searchQuery: searchQuerySchema,
   createGame: createGameRequestSchema,
   submitGuess: submitGuessSchema,
-  searchSong: searchSongSchema
+  searchSong: searchSongSchema,
+  maskText: maskTextSchema,
+  guessRequest: guessRequestSchema
 } as const; 

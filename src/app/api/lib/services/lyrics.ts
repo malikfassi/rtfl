@@ -1,21 +1,41 @@
 import { decode } from 'html-entities';
-import { z } from 'zod';
 
-import { getGeniusClient } from '@/app/api/lib/clients/genius';
-import { 
-  LyricsExtractionError,
-  NoMatchingLyricsError 
-} from '@/app/api/lib/errors/clients/genius';
-import { validateSchema } from '@/app/api/lib/validation';
-import { searchQuerySchema } from '@/app/api/lib/validation';
-import type { GeniusSearchResponse } from '@/app/types/genius';
+import { LyricsExtractionError } from '@/app/api/lib/errors/services/lyrics';
 
-// Schema for text to be masked
-const maskTextSchema = z.string().min(1, 'Text to mask is required');
 
 export class LyricsService {
-  private geniusClient = getGeniusClient();
+  /**
+   * Extract lyrics from HTML content
+   */
+  public async getLyrics(url: string): Promise<string> {
+    const html = await this.fetchHtml(url);
+    const lyrics = this.extractLyricsFromHTML(html);
+    
+    if (!lyrics) {
+      throw new LyricsExtractionError(new Error('Failed to extract lyrics from HTML'));
+    }
 
+    return lyrics;
+  }
+
+  /**
+   * Fetch HTML content from a URL
+   */
+  private async fetchHtml(url: string): Promise<string> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch lyrics page: ${response.status} ${response.statusText}`);
+      }
+      return await response.text();
+    } catch (error) {
+      throw new LyricsExtractionError(error as Error);
+    }
+  }
+
+  /**
+   * Extract clean lyrics text from HTML content
+   */
   private extractLyricsFromHTML(html: string): string | null {
     // Try different selectors and patterns to find lyrics
     const patterns = [
@@ -67,62 +87,7 @@ export class LyricsService {
 
     return null;
   }
-
-  public async searchLyrics(query: string): Promise<GeniusSearchResponse> {
-    const validatedQuery = validateSchema(searchQuerySchema, query);
-
-    const response = await this.geniusClient.search(validatedQuery);
-    if (response.response.hits.length === 0) {
-      throw new NoMatchingLyricsError();
-    }
-    return response;
-  }
-
-  public async getLyrics(url: string): Promise<string> {
-    const html = await this.geniusClient.fetchLyricsPage(url);
-    const lyrics = this.extractLyricsFromHTML(html);
-    
-    if (!lyrics) {
-      throw new LyricsExtractionError(new Error('Failed to extract lyrics from HTML'));
-    }
-
-    return lyrics;
-  }
-
-  public mask(text: string): string {
-    console.log('Masking text:', { text });
-  
-    // Validate the input
-    const validatedText = validateSchema(maskTextSchema, text);
-  
-    // Mask only letters and numbers while preserving other characters
-    const result = validatedText.replace(/\p{L}+|\p{N}+/gu, word => '_'.repeat(word.length));
-  
-    console.log('Masked result:', { result });
-    return result;
-  }
-
-  public partial_mask(text: string, guessedWords: Set<string>): string {
-    console.log('Partial masking:', { text, guessedWords: Array.from(guessedWords) });
-  
-    // Validate the input
-    const validatedText = validateSchema(maskTextSchema, text);
-  
-    // Normalize guessedWords for case-insensitive matching
-    const normalizedGuessedWords = new Set(
-      Array.from(guessedWords).map(word => word.toLowerCase())
-    );
-
-    // Mask all letters and numbers, but preserve guessed words
-    const result = validatedText.replace(/\p{L}+|\p{N}+/gu, (word) => {
-      const normalizedWord = word.toLowerCase();
-      return normalizedGuessedWords.has(normalizedWord) ? word : '_'.repeat(word.length);
-    });
-  
-    console.log('Final result:', { result });
-    return result;
-  }
 }
 
 // Export singleton instance
-export const lyricsService = new LyricsService(); 
+export const lyricsService = new LyricsService();

@@ -1,26 +1,17 @@
-import type { PrismaClient, Song } from '@prisma/client';
+import type { PrismaClient, Song, Prisma } from '@prisma/client';
 import type { Track } from '@spotify/web-api-ts-sdk';
 
 import { prisma } from '@/app/api/lib/db';
-import { NoMatchingTracksError } from '@/app/api/lib/errors/services/spotify';
 import { validateSchema } from '@/app/api/lib/validation';
 import { spotifyIdSchema } from '@/app/api/lib/validation';
-import type { GeniusHit } from '@/app/types/genius';
+import type { GeniusHit, GeniusServiceInterface } from '@/app/api/lib/types/genius';
+import type { SpotifyServiceInterface } from '@/app/api/lib/types/spotify';
+import { extractTrackData } from '@/app/api/lib/utils/spotify';
+import { extractGeniusData } from '@/app/api/lib/utils/genius';
 import { geniusService } from './genius';
 import { lyricsService } from './lyrics';
+import { maskedLyricsService } from './masked-lyrics';
 import { spotifyService } from './spotify';
-
-type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
-
-export interface SpotifyServiceInterface {
-  getTrack(id: string): Promise<Track>;
-  searchTracks(query: string): Promise<Track[]>;
-}
-
-export interface GeniusServiceInterface {
-  findLyrics(title: string, artist: string): Promise<GeniusHit>;
-  getLyrics(url: string): Promise<string>;
-}
 
 export class SongService {
   constructor(
@@ -32,19 +23,12 @@ export class SongService {
   async create(spotifyId: string, tx?: PrismaClient): Promise<Song> {
     const validatedId = validateSchema(spotifyIdSchema, spotifyId);
 
-    try {
-      // First, fetch all external data
-      const [track, bestMatch, lyrics] = await this.fetchExternalData(validatedId);
+    // First, fetch all external data
+    const [track, bestMatch, lyrics] = await this.fetchExternalData(validatedId);
 
-      // Then, create the song in the database
-      const prisma = tx || this.prisma;
-      return await this.createSongInDb(validatedId, track, bestMatch, lyrics, prisma);
-    } catch (error) {
-      if (error instanceof NoMatchingTracksError) {
-        throw new Error('Track not found');
-      }
-      throw error;
-    }
+    // Then, create the song in the database
+    const prisma = tx || this.prisma;
+    return await this.createSongInDb(validatedId, track, bestMatch, lyrics, prisma);
   }
 
   private async fetchExternalData(spotifyId: string): Promise<[Track, GeniusHit, string]> {
@@ -57,7 +41,7 @@ export class SongService {
       artist: track.artists[0].name
     });
     
-    const bestMatch = await this.geniusService.findLyrics(track.name, track.artists[0].name);
+    const bestMatch = await this.geniusService.findMatch(track.name, track.artists[0].name);
 
     console.log('Found lyrics:', {
       title: bestMatch.result.title,
@@ -66,7 +50,7 @@ export class SongService {
     });
 
     // 3. Get lyrics from the best match URL
-    const lyrics = await this.geniusService.getLyrics(bestMatch.result.url);
+    const lyrics = await lyricsService.getLyrics(bestMatch.result.url);
 
     return [track, bestMatch, lyrics];
   }
@@ -79,37 +63,24 @@ export class SongService {
     tx: PrismaClient
   ): Promise<Song> {
     // 1. Prepare masked lyrics
-    const maskedLyrics = {
-      title: lyricsService.mask(track.name),
-      artist: lyricsService.mask(track.artists[0].name),
-      lyrics: lyricsService.mask(lyrics)
-    } as JsonValue;
+    const maskedLyrics = maskedLyricsService.create(
+      track.name,
+      track.artists[0].name,
+      lyrics
+    );
 
     // 2. Store only essential external data
-    const spotifyData = JSON.parse(JSON.stringify({
-      name: track.name,
-      artists: track.artists.map(a => ({ name: a.name, id: a.id })),
-      album: {
-        name: track.album.name,
-        images: track.album.images
-      },
-      preview_url: track.preview_url
-    })) as JsonValue;
-
-    const geniusData = {
-      url: bestMatch.result.url,
-      title: bestMatch.result.title,
-      artist: bestMatch.result.primary_artist.name
-    } as JsonValue;
+    const spotifyData = extractTrackData(track);
+    const geniusData = extractGeniusData(bestMatch);
 
     // 3. Create song record
     return await tx.song.create({
       data: {
         spotifyId,
-        spotifyData,
-        geniusData,
+        spotifyData: spotifyData as unknown as Prisma.InputJsonValue,
+        geniusData: geniusData as unknown as Prisma.InputJsonValue,
         lyrics,
-        maskedLyrics
+        maskedLyrics: maskedLyrics as unknown as Prisma.InputJsonValue
       }
     });
   }
