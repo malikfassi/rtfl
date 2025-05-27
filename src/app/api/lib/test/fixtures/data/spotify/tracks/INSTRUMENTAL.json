@@ -1,0 +1,77 @@
+{
+  "album": {
+    "album_type": "single",
+    "artists": [
+      {
+        "external_urls": {
+          "spotify": "https://open.spotify.com/artist/3Nrfpe0tUJi4K4DXYWgMUX"
+        },
+        "href": "https://api.spotify.com/v1/artists/3Nrfpe0tUJi4K4DXYWgMUX",
+        "id": "3Nrfpe0tUJi4K4DXYWgMUX",
+        "name": "BTS",
+        "type": "artist",
+        "uri": "spotify:artist:3Nrfpe0tUJi4K4DXYWgMUX"
+      }
+    ],
+    "available_markets": [],
+    "external_urls": {
+      "spotify": "https://open.spotify.com/album/1HnJKmB4P6Z8RBdLMWx18w"
+    },
+    "href": "https://api.spotify.com/v1/albums/1HnJKmB4P6Z8RBdLMWx18w",
+    "id": "1HnJKmB4P6Z8RBdLMWx18w",
+    "images": [
+      {
+        "url": "https://i.scdn.co/image/ab67616d0000b2736bb2b8231817c8d205d07fb2",
+        "width": 640,
+        "height": 640
+      },
+      {
+        "url": "https://i.scdn.co/image/ab67616d00001e026bb2b8231817c8d205d07fb2",
+        "width": 300,
+        "height": 300
+      },
+      {
+        "url": "https://i.scdn.co/image/ab67616d000048516bb2b8231817c8d205d07fb2",
+        "width": 64,
+        "height": 64
+      }
+    ],
+    "name": "Butter (Hotter, Sweeter, Cooler)",
+    "release_date": "2021-06-04",
+    "release_date_precision": "day",
+    "total_tracks": 5,
+    "type": "album",
+    "uri": "spotify:album:1HnJKmB4P6Z8RBdLMWx18w"
+  },
+  "artists": [
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/3Nrfpe0tUJi4K4DXYWgMUX"
+      },
+      "href": "https://api.spotify.com/v1/artists/3Nrfpe0tUJi4K4DXYWgMUX",
+      "id": "3Nrfpe0tUJi4K4DXYWgMUX",
+      "name": "BTS",
+      "type": "artist",
+      "uri": "spotify:artist:3Nrfpe0tUJi4K4DXYWgMUX"
+    }
+  ],
+  "available_markets": [],
+  "disc_number": 1,
+  "duration_ms": 164441,
+  "explicit": false,
+  "external_ids": {
+    "isrc": "QM6MZ2156864"
+  },
+  "external_urls": {
+    "spotify": "https://open.spotify.com/track/2bgTY4UwhfBYhGT4HUYStN"
+  },
+  "href": "https://api.spotify.com/v1/tracks/2bgTY4UwhfBYhGT4HUYStN",
+  "id": "2bgTY4UwhfBYhGT4HUYStN",
+  "is_local": false,
+  "name": "Butter",
+  "popularity": 4,
+  "preview_url": null,
+  "track_number": 1,
+  "type": "track",
+  "uri": "spotify:track:2bgTY4UwhfBYhGT4HUYStN"
+}

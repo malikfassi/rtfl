@@ -1,0 +1,647 @@
+{
+  "meta": {
+    "status": 200
+  },
+  "response": {
+    "hits": [
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 11,
+          "api_path": "/songs/67272",
+          "artist_names": "Michael Jackson",
+          "full_title": "Beat It by Michael Jackson",
+          "header_image_thumbnail_url": "https://images.genius.com/4c5e95eb3b8c120730ee938f92bf49d0.300x300x1.png",
+          "header_image_url": "https://images.genius.com/4c5e95eb3b8c120730ee938f92bf49d0.1000x1000x1.png",
+          "id": 67272,
+          "lyrics_owner_id": 36871,
+          "lyrics_state": "complete",
+          "path": "/Michael-jackson-beat-it-lyrics",
+          "primary_artist_names": "Michael Jackson",
+          "pyongs_count": 94,
+          "relationships_index_url": "https://genius.com/Michael-jackson-beat-it-sample",
+          "release_date_components": {
+            "year": 1983,
+            "month": 2,
+            "day": 18
+          },
+          "release_date_for_display": "February 18, 1983",
+          "release_date_with_abbreviated_month_for_display": "Feb. 18, 1983",
+          "song_art_image_thumbnail_url": "https://images.genius.com/4c5e95eb3b8c120730ee938f92bf49d0.300x300x1.png",
+          "song_art_image_url": "https://images.genius.com/4c5e95eb3b8c120730ee938f92bf49d0.1000x1000x1.png",
+          "stats": {
+            "unreviewed_annotations": 3,
+            "hot": false,
+            "pageviews": 805492
+          },
+          "title": "Beat It",
+          "title_with_featured": "Beat It",
+          "url": "https://genius.com/Michael-jackson-beat-it-lyrics",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/835",
+            "header_image_url": "https://images.genius.com/b5ade1416d2f3c989d65208f90f3905e.746x334x1.jpg",
+            "id": 835,
+            "image_url": "https://images.genius.com/00a04628053128dbb9188052b2a7d68b.320x320x1.jpg",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "Michael Jackson",
+            "url": "https://genius.com/artists/Michael-jackson"
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/835",
+              "header_image_url": "https://images.genius.com/b5ade1416d2f3c989d65208f90f3905e.746x334x1.jpg",
+              "id": 835,
+              "image_url": "https://images.genius.com/00a04628053128dbb9188052b2a7d68b.320x320x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Michael Jackson",
+              "url": "https://genius.com/artists/Michael-jackson"
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 0,
+          "api_path": "/songs/5784873",
+          "artist_names": "Michael Jackson",
+          "full_title": "Largate (Beat It) by Michael Jackson",
+          "header_image_thumbnail_url": "https://images.genius.com/fcf6f704de6251946aaa99e41a93efe6.300x300x1.png",
+          "header_image_url": "https://images.genius.com/fcf6f704de6251946aaa99e41a93efe6.1000x1000x1.png",
+          "id": 5784873,
+          "lyrics_owner_id": 1820877,
+          "lyrics_state": "complete",
+          "path": "/Michael-jackson-largate-beat-it-lyrics",
+          "primary_artist_names": "Michael Jackson",
+          "pyongs_count": null,
+          "relationships_index_url": "https://genius.com/Michael-jackson-largate-beat-it-sample",
+          "release_date_components": {
+            "year": 1983,
+            "month": 2,
+            "day": 18
+          },
+          "release_date_for_display": "February 18, 1983",
+          "release_date_with_abbreviated_month_for_display": "Feb. 18, 1983",
+          "song_art_image_thumbnail_url": "https://images.genius.com/fcf6f704de6251946aaa99e41a93efe6.300x300x1.png",
+          "song_art_image_url": "https://images.genius.com/fcf6f704de6251946aaa99e41a93efe6.1000x1000x1.png",
+          "stats": {
+            "unreviewed_annotations": 0,
+            "hot": false
+          },
+          "title": "Largate (Beat It)",
+          "title_with_featured": "Largate (Beat It)",
+          "url": "https://genius.com/Michael-jackson-largate-beat-it-lyrics",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/835",
+            "header_image_url": "https://images.genius.com/b5ade1416d2f3c989d65208f90f3905e.746x334x1.jpg",
+            "id": 835,
+            "image_url": "https://images.genius.com/00a04628053128dbb9188052b2a7d68b.320x320x1.jpg",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "Michael Jackson",
+            "url": "https://genius.com/artists/Michael-jackson"
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/835",
+              "header_image_url": "https://images.genius.com/b5ade1416d2f3c989d65208f90f3905e.746x334x1.jpg",
+              "id": 835,
+              "image_url": "https://images.genius.com/00a04628053128dbb9188052b2a7d68b.320x320x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Michael Jackson",
+              "url": "https://genius.com/artists/Michael-jackson"
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 0,
+          "api_path": "/songs/10221352",
+          "artist_names": "Sürrah",
+          "full_title": "Beat It (Michael Jackson Cover) by Sürrah",
+          "header_image_thumbnail_url": "https://images.genius.com/d9e954fdb66bc4f303da4b2002d47b2c.300x300x1.jpg",
+          "header_image_url": "https://images.genius.com/d9e954fdb66bc4f303da4b2002d47b2c.700x700x1.jpg",
+          "id": 10221352,
+          "lyrics_owner_id": 19574186,
+          "lyrics_state": "complete",
+          "path": "/Surrah-beat-it-michael-jackson-cover-lyrics",
+          "primary_artist_names": "Sürrah",
+          "pyongs_count": null,
+          "relationships_index_url": "https://genius.com/Surrah-beat-it-michael-jackson-cover-sample",
+          "release_date_components": null,
+          "release_date_for_display": null,
+          "release_date_with_abbreviated_month_for_display": null,
+          "song_art_image_thumbnail_url": "https://images.genius.com/d9e954fdb66bc4f303da4b2002d47b2c.300x300x1.jpg",
+          "song_art_image_url": "https://images.genius.com/d9e954fdb66bc4f303da4b2002d47b2c.700x700x1.jpg",
+          "stats": {
+            "unreviewed_annotations": 0,
+            "hot": false
+          },
+          "title": "Beat It (Michael Jackson Cover)",
+          "title_with_featured": "Beat It (Michael Jackson Cover)",
+          "url": "https://genius.com/Surrah-beat-it-michael-jackson-cover-lyrics",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/3895672",
+            "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1748011728",
+            "id": 3895672,
+            "image_url": "https://assets.genius.com/images/default_avatar_300.png?1748011728",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "Sürrah",
+            "url": "https://genius.com/artists/Surrah"
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/3895672",
+              "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1748011728",
+              "id": 3895672,
+              "image_url": "https://assets.genius.com/images/default_avatar_300.png?1748011728",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Sürrah",
+              "url": "https://genius.com/artists/Surrah"
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 1,
+          "api_path": "/songs/9004162",
+          "artist_names": "K-Z-O_Official_Muisic (Ft. Michael Jackson)",
+          "full_title": "What happened? (Beat it) by K-Z-O_Official_Muisic (Ft. Michael Jackson)",
+          "header_image_thumbnail_url": "https://images.genius.com/3a6fdb0aa6f727e986637096f3ab00d5.300x300x1.jpg",
+          "header_image_url": "https://images.genius.com/3a6fdb0aa6f727e986637096f3ab00d5.1000x1000x1.jpg",
+          "id": 9004162,
+          "lyrics_owner_id": 16262442,
+          "lyrics_state": "complete",
+          "path": "/K-z-o-official-muisic-what-happened-beat-it-lyrics",
+          "primary_artist_names": "K-Z-O_Official_Muisic",
+          "pyongs_count": null,
+          "relationships_index_url": "https://genius.com/K-z-o-official-muisic-what-happened-beat-it-sample",
+          "release_date_components": {
+            "year": 2022,
+            "month": 8,
+            "day": 23
+          },
+          "release_date_for_display": "August 23, 2022",
+          "release_date_with_abbreviated_month_for_display": "Aug. 23, 2022",
+          "song_art_image_thumbnail_url": "https://images.genius.com/3a6fdb0aa6f727e986637096f3ab00d5.300x300x1.jpg",
+          "song_art_image_url": "https://images.genius.com/3a6fdb0aa6f727e986637096f3ab00d5.1000x1000x1.jpg",
+          "stats": {
+            "unreviewed_annotations": 1,
+            "hot": false
+          },
+          "title": "What happened? (Beat it)",
+          "title_with_featured": "What happened? (Beat it) (Ft. Michael Jackson)",
+          "url": "https://genius.com/K-z-o-official-muisic-what-happened-beat-it-lyrics",
+          "featured_artists": [
+            {
+              "api_path": "/artists/835",
+              "header_image_url": "https://images.genius.com/b5ade1416d2f3c989d65208f90f3905e.746x334x1.jpg",
+              "id": 835,
+              "image_url": "https://images.genius.com/00a04628053128dbb9188052b2a7d68b.320x320x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Michael Jackson",
+              "url": "https://genius.com/artists/Michael-jackson"
+            }
+          ],
+          "primary_artist": {
+            "api_path": "/artists/3494777",
+            "header_image_url": "https://images.genius.com/21d4bef74f1debe1298efaf6b789dda8.194x259x1.jpg",
+            "id": 3494777,
+            "image_url": "https://images.genius.com/6b7961f6a98299a44dec6146b032387c.176x176x1.jpg",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "K-Z-O_Official_Muisic",
+            "url": "https://genius.com/artists/K-z-o-official-muisic"
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/3494777",
+              "header_image_url": "https://images.genius.com/21d4bef74f1debe1298efaf6b789dda8.194x259x1.jpg",
+              "id": 3494777,
+              "image_url": "https://images.genius.com/6b7961f6a98299a44dec6146b032387c.176x176x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "K-Z-O_Official_Muisic",
+              "url": "https://genius.com/artists/K-z-o-official-muisic"
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 16,
+          "api_path": "/songs/4325001",
+          "artist_names": "Juice WRLD",
+          "full_title": "Big Dog by Juice WRLD",
+          "header_image_thumbnail_url": "https://images.genius.com/42b0e9b115b685c8dd7e7f32e3f1ce9c.300x300x1.jpg",
+          "header_image_url": "https://images.genius.com/42b0e9b115b685c8dd7e7f32e3f1ce9c.999x999x1.jpg",
+          "id": 4325001,
+          "lyrics_owner_id": 3516660,
+          "lyrics_state": "complete",
+          "path": "/Juice-wrld-big-dog-lyrics",
+          "primary_artist_names": "Juice WRLD",
+          "pyongs_count": 8,
+          "relationships_index_url": "https://genius.com/Juice-wrld-big-dog-sample",
+          "release_date_components": null,
+          "release_date_for_display": null,
+          "release_date_with_abbreviated_month_for_display": null,
+          "song_art_image_thumbnail_url": "https://images.genius.com/42b0e9b115b685c8dd7e7f32e3f1ce9c.300x300x1.jpg",
+          "song_art_image_url": "https://images.genius.com/42b0e9b115b685c8dd7e7f32e3f1ce9c.999x999x1.jpg",
+          "stats": {
+            "unreviewed_annotations": 4,
+            "hot": false,
+            "pageviews": 36292
+          },
+          "title": "Big Dog",
+          "title_with_featured": "Big Dog",
+          "url": "https://genius.com/Juice-wrld-big-dog-lyrics",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/1237094",
+            "header_image_url": "https://images.genius.com/87c55e8a5b91902ea6686d98b5b3bb3d.1000x563x1.png",
+            "id": 1237094,
+            "image_url": "https://images.genius.com/42b0e9b115b685c8dd7e7f32e3f1ce9c.999x999x1.jpg",
+            "is_meme_verified": true,
+            "is_verified": true,
+            "name": "Juice WRLD",
+            "url": "https://genius.com/artists/Juice-wrld",
+            "iq": 18848
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/1237094",
+              "header_image_url": "https://images.genius.com/87c55e8a5b91902ea6686d98b5b3bb3d.1000x563x1.png",
+              "id": 1237094,
+              "image_url": "https://images.genius.com/42b0e9b115b685c8dd7e7f32e3f1ce9c.999x999x1.jpg",
+              "is_meme_verified": true,
+              "is_verified": true,
+              "name": "Juice WRLD",
+              "url": "https://genius.com/artists/Juice-wrld",
+              "iq": 18848
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 3,
+          "api_path": "/songs/2823268",
+          "artist_names": "Blac Youngsta (Ft. Rich Homie Quan)",
+          "full_title": "Beat It by Blac Youngsta (Ft. Rich Homie Quan)",
+          "header_image_thumbnail_url": "https://images.genius.com/542b8760d713ad2d7f7733cf816f0843.300x300x1.jpg",
+          "header_image_url": "https://images.genius.com/542b8760d713ad2d7f7733cf816f0843.1000x1000x1.jpg",
+          "id": 2823268,
+          "lyrics_owner_id": 282633,
+          "lyrics_state": "complete",
+          "path": "/Blac-youngsta-beat-it-lyrics",
+          "primary_artist_names": "Blac Youngsta",
+          "pyongs_count": 6,
+          "relationships_index_url": "https://genius.com/Blac-youngsta-beat-it-sample",
+          "release_date_components": {
+            "year": 2016,
+            "month": 7,
+            "day": 18
+          },
+          "release_date_for_display": "July 18, 2016",
+          "release_date_with_abbreviated_month_for_display": "Jul. 18, 2016",
+          "song_art_image_thumbnail_url": "https://images.genius.com/542b8760d713ad2d7f7733cf816f0843.300x300x1.jpg",
+          "song_art_image_url": "https://images.genius.com/542b8760d713ad2d7f7733cf816f0843.1000x1000x1.jpg",
+          "stats": {
+            "unreviewed_annotations": 3,
+            "hot": false,
+            "pageviews": 12748
+          },
+          "title": "Beat It",
+          "title_with_featured": "Beat It (Ft. Rich Homie Quan)",
+          "url": "https://genius.com/Blac-youngsta-beat-it-lyrics",
+          "featured_artists": [
+            {
+              "api_path": "/artists/24823",
+              "header_image_url": "https://images.genius.com/2412caa7109e9a87156ef0e3249183f9.650x430x1.jpg",
+              "id": 24823,
+              "image_url": "https://images.genius.com/a2e8591056a0ace93d131f1556755613.1000x1000x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": true,
+              "name": "Rich Homie Quan",
+              "url": "https://genius.com/artists/Rich-homie-quan",
+              "iq": 1243
+            }
+          ],
+          "primary_artist": {
+            "api_path": "/artists/407382",
+            "header_image_url": "https://images.genius.com/6fbf215a9b81b60e26b4a1873beeedf3.1000x563x1.jpg",
+            "id": 407382,
+            "image_url": "https://images.genius.com/ab14ce6f7a618a943b2ef26c27c36d17.308x308x1.jpg",
+            "is_meme_verified": false,
+            "is_verified": true,
+            "name": "Blac Youngsta",
+            "url": "https://genius.com/artists/Blac-youngsta",
+            "iq": 844
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/407382",
+              "header_image_url": "https://images.genius.com/6fbf215a9b81b60e26b4a1873beeedf3.1000x563x1.jpg",
+              "id": 407382,
+              "image_url": "https://images.genius.com/ab14ce6f7a618a943b2ef26c27c36d17.308x308x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": true,
+              "name": "Blac Youngsta",
+              "url": "https://genius.com/artists/Blac-youngsta",
+              "iq": 844
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 0,
+          "api_path": "/songs/2822244",
+          "artist_names": "Will Singe & Fortafy (Ft. Rob Vegas)",
+          "full_title": "Put It Down by Will Singe & Fortafy (Ft. Rob Vegas)",
+          "header_image_thumbnail_url": "https://images.genius.com/24bc7e0eb6081be10e4467f7bb4a2a8d.300x300x1.jpg",
+          "header_image_url": "https://images.genius.com/24bc7e0eb6081be10e4467f7bb4a2a8d.414x414x1.jpg",
+          "id": 2822244,
+          "lyrics_owner_id": 2490946,
+          "lyrics_state": "complete",
+          "path": "/Will-singe-and-fortafy-put-it-down-lyrics",
+          "primary_artist_names": "Will Singe & Fortafy",
+          "pyongs_count": null,
+          "relationships_index_url": "https://genius.com/Will-singe-and-fortafy-put-it-down-sample",
+          "release_date_components": {
+            "year": 2015,
+            "month": 3,
+            "day": 7
+          },
+          "release_date_for_display": "March 7, 2015",
+          "release_date_with_abbreviated_month_for_display": "Mar. 7, 2015",
+          "song_art_image_thumbnail_url": "https://images.genius.com/24bc7e0eb6081be10e4467f7bb4a2a8d.300x300x1.jpg",
+          "song_art_image_url": "https://images.genius.com/24bc7e0eb6081be10e4467f7bb4a2a8d.414x414x1.jpg",
+          "stats": {
+            "unreviewed_annotations": 0,
+            "hot": false,
+            "pageviews": 10670
+          },
+          "title": "Put It Down",
+          "title_with_featured": "Put It Down (Ft. Rob Vegas)",
+          "url": "https://genius.com/Will-singe-and-fortafy-put-it-down-lyrics",
+          "featured_artists": [
+            {
+              "api_path": "/artists/979595",
+              "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1748011728",
+              "id": 979595,
+              "image_url": "https://assets.genius.com/images/default_avatar_300.png?1748011728",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Rob Vegas",
+              "url": "https://genius.com/artists/Rob-vegas"
+            }
+          ],
+          "primary_artist": {
+            "api_path": "/artists/618849",
+            "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1748011728",
+            "id": 618849,
+            "image_url": "https://assets.genius.com/images/default_avatar_300.png?1748011728",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "Will Singe & Fortafy",
+            "url": "https://genius.com/artists/Will-singe-and-fortafy"
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/618849",
+              "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1748011728",
+              "id": 618849,
+              "image_url": "https://assets.genius.com/images/default_avatar_300.png?1748011728",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Will Singe & Fortafy",
+              "url": "https://genius.com/artists/Will-singe-and-fortafy"
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 1,
+          "api_path": "/songs/6213485",
+          "artist_names": "D Double E & Skepta",
+          "full_title": "Don by D Double E & Skepta",
+          "header_image_thumbnail_url": "https://images.genius.com/ce8d989412d5e11646ba8902767183fa.300x300x1.jpg",
+          "header_image_url": "https://images.genius.com/ce8d989412d5e11646ba8902767183fa.1000x1000x1.jpg",
+          "id": 6213485,
+          "lyrics_owner_id": 126836,
+          "lyrics_state": "complete",
+          "path": "/D-double-e-and-skepta-don-lyrics",
+          "primary_artist_names": "D Double E & Skepta",
+          "pyongs_count": 2,
+          "relationships_index_url": "https://genius.com/D-double-e-and-skepta-don-sample",
+          "release_date_components": {
+            "year": 2020,
+            "month": 11,
+            "day": 26
+          },
+          "release_date_for_display": "November 26, 2020",
+          "release_date_with_abbreviated_month_for_display": "Nov. 26, 2020",
+          "song_art_image_thumbnail_url": "https://images.genius.com/ce8d989412d5e11646ba8902767183fa.300x300x1.jpg",
+          "song_art_image_url": "https://images.genius.com/ce8d989412d5e11646ba8902767183fa.1000x1000x1.jpg",
+          "stats": {
+            "unreviewed_annotations": 1,
+            "hot": false,
+            "pageviews": 7176
+          },
+          "title": "Don",
+          "title_with_featured": "Don",
+          "url": "https://genius.com/D-double-e-and-skepta-don-lyrics",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/2585",
+            "header_image_url": "https://images.genius.com/bea10d1ceda485d478dd5f80892f6026.1000x1000x1.jpg",
+            "id": 2585,
+            "image_url": "https://images.genius.com/bea10d1ceda485d478dd5f80892f6026.1000x1000x1.jpg",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "D Double E",
+            "url": "https://genius.com/artists/D-double-e"
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/2585",
+              "header_image_url": "https://images.genius.com/bea10d1ceda485d478dd5f80892f6026.1000x1000x1.jpg",
+              "id": 2585,
+              "image_url": "https://images.genius.com/bea10d1ceda485d478dd5f80892f6026.1000x1000x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "D Double E",
+              "url": "https://genius.com/artists/D-double-e"
+            },
+            {
+              "api_path": "/artists/1713",
+              "header_image_url": "https://images.genius.com/d59b47f35aef0ce8a2d13916b3c48fde.798x1000x1.jpg",
+              "id": 1713,
+              "image_url": "https://images.genius.com/c15df2b0a713e59ec13eb06bbdb1a284.798x798x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Skepta",
+              "url": "https://genius.com/artists/Skepta"
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 0,
+          "api_path": "/songs/6567805",
+          "artist_names": "Juice (SWE)",
+          "full_title": "No Action by Juice (SWE)",
+          "header_image_thumbnail_url": "https://images.genius.com/36b50fb712a5747c60113e1b4ee2dbc6.300x300x1.png",
+          "header_image_url": "https://images.genius.com/36b50fb712a5747c60113e1b4ee2dbc6.1000x1000x1.png",
+          "id": 6567805,
+          "lyrics_owner_id": 7868347,
+          "lyrics_state": "complete",
+          "path": "/Juice-swe-no-action-lyrics",
+          "primary_artist_names": "Juice (SWE)",
+          "pyongs_count": null,
+          "relationships_index_url": "https://genius.com/Juice-swe-no-action-sample",
+          "release_date_components": {
+            "year": 2021,
+            "month": 3,
+            "day": 26
+          },
+          "release_date_for_display": "March 26, 2021",
+          "release_date_with_abbreviated_month_for_display": "Mar. 26, 2021",
+          "song_art_image_thumbnail_url": "https://images.genius.com/36b50fb712a5747c60113e1b4ee2dbc6.300x300x1.png",
+          "song_art_image_url": "https://images.genius.com/36b50fb712a5747c60113e1b4ee2dbc6.1000x1000x1.png",
+          "stats": {
+            "unreviewed_annotations": 0,
+            "hot": false,
+            "pageviews": 5518
+          },
+          "title": "No Action",
+          "title_with_featured": "No Action",
+          "url": "https://genius.com/Juice-swe-no-action-lyrics",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/1861960",
+            "header_image_url": "https://images.genius.com/f98508033651d5395bbcc3b2b8b3708b.1000x1000x1.jpg",
+            "id": 1861960,
+            "image_url": "https://images.genius.com/55e9d0a583ee3acf838f8ab6a4c5ec6f.948x948x1.jpg",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "Juice (SWE)",
+            "url": "https://genius.com/artists/Juice-swe"
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/1861960",
+              "header_image_url": "https://images.genius.com/f98508033651d5395bbcc3b2b8b3708b.1000x1000x1.jpg",
+              "id": 1861960,
+              "image_url": "https://images.genius.com/55e9d0a583ee3acf838f8ab6a4c5ec6f.948x948x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Juice (SWE)",
+              "url": "https://genius.com/artists/Juice-swe"
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 0,
+          "api_path": "/songs/2932811",
+          "artist_names": "Lulu Be.",
+          "full_title": "Rude Tings by Lulu Be.",
+          "header_image_thumbnail_url": "https://images.genius.com/ad3bc55c5a3c529652a5018fba9ac0ba.300x300x1.jpg",
+          "header_image_url": "https://images.genius.com/ad3bc55c5a3c529652a5018fba9ac0ba.1000x1000x1.jpg",
+          "id": 2932811,
+          "lyrics_owner_id": 4033609,
+          "lyrics_state": "complete",
+          "path": "/Lulu-be-rude-tings-lyrics",
+          "primary_artist_names": "Lulu Be.",
+          "pyongs_count": null,
+          "relationships_index_url": "https://genius.com/Lulu-be-rude-tings-sample",
+          "release_date_components": {
+            "year": 2016,
+            "month": 12,
+            "day": 13
+          },
+          "release_date_for_display": "December 13, 2016",
+          "release_date_with_abbreviated_month_for_display": "Dec. 13, 2016",
+          "song_art_image_thumbnail_url": "https://images.genius.com/ad3bc55c5a3c529652a5018fba9ac0ba.300x300x1.jpg",
+          "song_art_image_url": "https://images.genius.com/ad3bc55c5a3c529652a5018fba9ac0ba.1000x1000x1.jpg",
+          "stats": {
+            "unreviewed_annotations": 0,
+            "hot": false
+          },
+          "title": "Rude Tings",
+          "title_with_featured": "Rude Tings",
+          "url": "https://genius.com/Lulu-be-rude-tings-lyrics",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/1045901",
+            "header_image_url": "https://images.genius.com/7eceb679a114aea3374e567f80d48773.1000x333x1.png",
+            "id": 1045901,
+            "image_url": "https://images.genius.com/ad465a573cff71278799687a105a9209.1000x1000x1.png",
+            "is_meme_verified": false,
+            "is_verified": true,
+            "name": "Lulu Be.",
+            "url": "https://genius.com/artists/Lulu-be",
+            "iq": 955
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/1045901",
+              "header_image_url": "https://images.genius.com/7eceb679a114aea3374e567f80d48773.1000x333x1.png",
+              "id": 1045901,
+              "image_url": "https://images.genius.com/ad465a573cff71278799687a105a9209.1000x1000x1.png",
+              "is_meme_verified": false,
+              "is_verified": true,
+              "name": "Lulu Be.",
+              "url": "https://genius.com/artists/Lulu-be",
+              "iq": 955
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

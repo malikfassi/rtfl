@@ -27,12 +27,3 @@ export class PlaylistNotFoundError extends NotFoundError {
     super('PLAYLIST_NOT_FOUND', `Playlist not found: ${playlistId}`);
   }
 }
-
-export class NoMatchingTracksError extends NotFoundError {
-  static readonly code = 'NO_MATCHING_TRACKS';
-  static readonly message = 'No matching tracks found';
-
-  constructor() {
-    super(NoMatchingTracksError.code, NoMatchingTracksError.message);
-  }
-}

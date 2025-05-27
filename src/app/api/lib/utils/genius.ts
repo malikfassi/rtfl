@@ -44,7 +44,7 @@ export function constructGeniusSearchQuery(title: string, artist: string): strin
 export function extractGeniusData(hit: GeniusHit): GeniusData {
   return {
     title: hit.result.title,
-    url: hit.result.url,
-    artist: hit.result.primary_artist.name
+    url: hit.result.url ?? '',
+    artist: hit.result.primary_artist?.name ?? ''
   };
 }

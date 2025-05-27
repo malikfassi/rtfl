@@ -1,91 +1,70 @@
 import { decode } from 'html-entities';
-
+import { env } from '@/app/api/lib/env';
 import { LyricsExtractionError } from '@/app/api/lib/errors/services/lyrics';
-
 
 export class LyricsService {
   /**
-   * Extract lyrics from HTML content
+   * Get lyrics for a song using its Genius ID
    */
-  public async getLyrics(url: string): Promise<string> {
-    const html = await this.fetchHtml(url);
-    const lyrics = this.extractLyricsFromHTML(html);
-    
-    if (!lyrics) {
-      throw new LyricsExtractionError(new Error('Failed to extract lyrics from HTML'));
-    }
-
-    return lyrics;
-  }
-
-  /**
-   * Fetch HTML content from a URL
-   */
-  private async fetchHtml(url: string): Promise<string> {
+  public async getLyrics(songId: string): Promise<string> {
     try {
-      const response = await fetch(url);
+      // Fetch lyrics using Genius API
+      const response = await fetch(`https://api.genius.com/songs/${songId}?text_format=plain`, {
+        headers: {
+          'Authorization': `Bearer ${env.GENIUS_ACCESS_TOKEN}`,
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+        }
+      });
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch lyrics page: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch lyrics: ${response.status} ${response.statusText}`);
       }
-      return await response.text();
+
+      const data = await response.json();
+      const lyrics = data.response.song.description?.plain;
+      
+      if (!lyrics) {
+        throw new Error('No lyrics found in API response');
+      }
+
+      return lyrics;
     } catch (error) {
       throw new LyricsExtractionError(error as Error);
     }
   }
 
   /**
-   * Extract clean lyrics text from HTML content
+   * Extract song ID from Genius URL
    */
-  private extractLyricsFromHTML(html: string): string | null {
-    // Try different selectors and patterns to find lyrics
+  private extractSongId(url: string): string | null {
+    console.log('Trying to extract song ID from URL with these patterns:');
+    // Try different URL patterns
     const patterns = [
-      // Method 1: Modern lyrics container with data attribute (most reliable)
-      {
-        regex: /<div[^>]+?data-lyrics-container[^>]*?>([\s\S]*?)<\/div>/gi,
-        extract: (matches: RegExpMatchArray | null) => {
-          if (!matches) return null;
-          return Array.from(matches)
-            .map(match => match.replace(/<div[^>]+?data-lyrics-container[^>]*?>/i, '')
-                              .replace(/<\/div>/i, '')
-                              .trim())
-            .join('\n\n');
-        }
-      },
-      // Method 2: Legacy lyrics div
-      {
-        regex: /<div[^>]+?class="lyrics"[^>]*?>([\s\S]*?)<\/div>/i,
-        extract: (match: RegExpMatchArray | null) => {
-          if (!match || !match[1]) return null;
-          return match[1];
-        }
-      }
+      /\/songs\/(\d+)/, // Direct song ID
+      /genius\.com\/([^-]+-)*?(\d+)$/, // ID at end of URL
+      /genius\.com\/.*?-(\d+)-lyrics/, // ID in lyrics URL
+      /genius\.com\/.*?-lyrics-(\d+)/, // ID after lyrics
+      /genius\.com\/.*?-(\d+)/, // Any ID in URL
+      /api_path"?:\s*"?\/songs\/(\d+)"?/ // From API response
     ];
 
     for (const pattern of patterns) {
-      const matches = html.match(pattern.regex);
-      if (matches) {
-        const extracted = pattern.extract(matches);
-        if (extracted) {
-          // Clean up the lyrics text
-          const lyrics = decode(extracted)
-            .replace(/<br\s*\/?>/gi, '\n') // Convert <br> to newlines
-            .replace(/<[^>]+>/g, '')  // Remove remaining HTML tags
-            .replace(/\[.+?\]/g, '')   // Remove section headers
-            .replace(/\{.+?\}/g, '')   // Remove annotations
-            .replace(/\(\d+x\)/g, '')  // Remove repeat indicators
-            .replace(/\s*\n\s*/g, '\n')  // Normalize whitespace around newlines
-            .replace(/\n{3,}/g, '\n\n')  // Normalize multiple newlines
-            .replace(/^\s+|\s+$/g, '')   // Trim start/end whitespace
-            .trim();
-
-          if (lyrics.length > 0) {
-            return lyrics;
-          }
-        }
+      console.log(`Trying pattern: ${pattern}`);
+      const match = url.match(pattern);
+      if (match) {
+        console.log(`Found match with pattern ${pattern}:`, match);
+        // Return the last captured group (the ID)
+        return match[match.length - 1];
       }
     }
 
-    return null;
+    // If no pattern matches, try to find any number in the URL
+    console.log('No pattern matched, trying to find any number in the URL');
+    const numberMatch = url.match(/\d+/);
+    if (numberMatch) {
+      console.log('Found number:', numberMatch[0]);
+    }
+    return numberMatch ? numberMatch[0] : null;
   }
 }
 

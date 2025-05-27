@@ -100,6 +100,6 @@ export class GeniusService {
     return bestMatch;
   }
 }
-
 // Export singleton instance
 export const geniusService = new GeniusService();
+

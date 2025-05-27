@@ -1,5 +1,14 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
-import type { SpotifyData } from '@/app/types/spotify';
+import type { SpotifyData } from '@/app/api/lib/types/spotify';
+
+/**
+ * Constructs a search query for Spotify
+ */
+export function constructSpotifySearchQuery(title: string, artist?: string): string {
+  const cleanText = (text: string) => text.toLowerCase().trim();
+  const cleanTitle = cleanText(title);
+  return artist ? `${cleanTitle} ${cleanText(artist)}` : cleanTitle;
+}
 
 /**
  * Extracts essential data from a Spotify track response

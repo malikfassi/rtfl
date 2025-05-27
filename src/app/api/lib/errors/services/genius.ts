@@ -8,11 +8,11 @@ export class LyricsExtractionError extends AppError {
   }
 }
 
-export class NoMatchingLyricsError extends NotFoundError {
+export class NoMatchingLyricsError extends AppError {
   static readonly code = 'NO_MATCHING_LYRICS';
   static readonly message = 'No matching lyrics found';
 
   constructor() {
-    super(NoMatchingLyricsError.code, NoMatchingLyricsError.message);
+    super(NoMatchingLyricsError.code, NoMatchingLyricsError.message, 404);
   }
 }

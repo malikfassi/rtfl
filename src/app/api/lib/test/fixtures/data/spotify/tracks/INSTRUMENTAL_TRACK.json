@@ -1,0 +1,77 @@
+{
+  "album": {
+    "album_type": "album",
+    "artists": [
+      {
+        "external_urls": {
+          "spotify": "https://open.spotify.com/artist/7rnJmWRXmHh4HKwFYiEWWI"
+        },
+        "href": "https://api.spotify.com/v1/artists/7rnJmWRXmHh4HKwFYiEWWI",
+        "id": "7rnJmWRXmHh4HKwFYiEWWI",
+        "name": "B. Kunjabihari Sharma",
+        "type": "artist",
+        "uri": "spotify:artist:7rnJmWRXmHh4HKwFYiEWWI"
+      }
+    ],
+    "available_markets": [],
+    "external_urls": {
+      "spotify": "https://open.spotify.com/album/22MzIFbpaVh2Pjmb3gDcu4"
+    },
+    "href": "https://api.spotify.com/v1/albums/22MzIFbpaVh2Pjmb3gDcu4",
+    "id": "22MzIFbpaVh2Pjmb3gDcu4",
+    "images": [
+      {
+        "url": "https://i.scdn.co/image/ab67616d0000b2736c3ee892046bd6f2b3a06a23",
+        "width": 640,
+        "height": 640
+      },
+      {
+        "url": "https://i.scdn.co/image/ab67616d00001e026c3ee892046bd6f2b3a06a23",
+        "width": 300,
+        "height": 300
+      },
+      {
+        "url": "https://i.scdn.co/image/ab67616d000048516c3ee892046bd6f2b3a06a23",
+        "width": 64,
+        "height": 64
+      }
+    ],
+    "name": "Yaiphare Khanna Chatkhrabi",
+    "release_date": "2000-08-03",
+    "release_date_precision": "day",
+    "total_tracks": 11,
+    "type": "album",
+    "uri": "spotify:album:22MzIFbpaVh2Pjmb3gDcu4"
+  },
+  "artists": [
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/020Mljlv6pDKRwB0132GfR"
+      },
+      "href": "https://api.spotify.com/v1/artists/020Mljlv6pDKRwB0132GfR",
+      "id": "020Mljlv6pDKRwB0132GfR",
+      "name": "Instrumental Track",
+      "type": "artist",
+      "uri": "spotify:artist:020Mljlv6pDKRwB0132GfR"
+    }
+  ],
+  "available_markets": [],
+  "disc_number": 1,
+  "duration_ms": 212842,
+  "explicit": false,
+  "external_ids": {
+    "isrc": "FRX452115955"
+  },
+  "external_urls": {
+    "spotify": "https://open.spotify.com/track/3x0CWa9KGGfVH8dEby53PM"
+  },
+  "href": "https://api.spotify.com/v1/tracks/3x0CWa9KGGfVH8dEby53PM",
+  "id": "3x0CWa9KGGfVH8dEby53PM",
+  "is_local": false,
+  "name": "Eigi Thamoi Ashida Track",
+  "popularity": 0,
+  "preview_url": null,
+  "track_number": 2,
+  "type": "track",
+  "uri": "spotify:track:3x0CWa9KGGfVH8dEby53PM"
+}

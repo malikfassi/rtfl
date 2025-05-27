@@ -1,6 +1,3 @@
-import { ErrorCode } from './codes';
-import { ErrorMessage } from './messages';
-
 export class AppError extends Error {
   constructor(
     public readonly code: string,

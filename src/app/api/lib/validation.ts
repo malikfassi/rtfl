@@ -114,6 +114,75 @@ export const guessRequestSchema = z.object({
   guess: z.string().trim().min(1, 'Guess is required')
 }).strict();
 
+// Genius schemas
+export const geniusArtistSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  url: z.string(),
+  image_url: z.string(),
+  api_path: z.string().optional(),
+  header_image_url: z.string().optional(),
+  is_meme_verified: z.boolean().optional(),
+  is_verified: z.boolean().optional(),
+  iq: z.number().optional()
+});
+
+export const geniusResultSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  url: z.string().optional(),
+  path: z.string().optional(),
+  header_image_thumbnail_url: z.string().optional(),
+  header_image_url: z.string().optional(),
+  primary_artist: geniusArtistSchema.optional(),
+  annotation_count: z.number().optional(),
+  api_path: z.string().optional(),
+  artist_names: z.string().optional(),
+  full_title: z.string().optional(),
+  lyrics_owner_id: z.number().optional(),
+  lyrics_state: z.string().optional(),
+  primary_artist_names: z.string().optional(),
+  pyongs_count: z.union([z.number(), z.null()]).optional(),
+  relationships_index_url: z.string().optional(),
+  release_date_components: z.union([
+    z.object({
+      year: z.number(),
+      month: z.union([z.number(), z.null()]).optional(),
+      day: z.union([z.number(), z.null()]).optional()
+    }),
+    z.null()
+  ]).optional(),
+  release_date_for_display: z.union([z.string(), z.null()]).optional(),
+  release_date_with_abbreviated_month_for_display: z.union([z.string(), z.null()]).optional(),
+  song_art_image_thumbnail_url: z.string().optional(),
+  song_art_image_url: z.string().optional(),
+  stats: z.object({
+    unreviewed_annotations: z.number().optional(),
+    hot: z.boolean().optional(),
+    pageviews: z.number().optional(),
+    concurrents: z.number().optional()
+  }).optional(),
+  title_with_featured: z.string().optional(),
+  featured_artists: z.array(z.unknown()).optional(),
+  primary_artists: z.array(z.unknown()).optional()
+});
+
+export const geniusHitSchema = z.object({
+  highlights: z.array(z.unknown()).optional(),
+  index: z.string().optional(),
+  type: z.string().optional(),
+  result: geniusResultSchema
+});
+
+export const geniusSearchResponseSchema = z.object({
+  meta: z.object({
+    status: z.number()
+  }),
+  response: z.object({
+    hits: z.array(geniusHitSchema)
+  })
+});
+
 // Export commonly used schemas
 export const schemas = {
   date: dateSchema,
@@ -125,5 +194,10 @@ export const schemas = {
   submitGuess: submitGuessSchema,
   searchSong: searchSongSchema,
   maskText: maskTextSchema,
-  guessRequest: guessRequestSchema
+  guessRequest: guessRequestSchema,
+  genius: {
+    searchResponse: geniusSearchResponseSchema,
+    hit: geniusHitSchema,
+    result: geniusResultSchema
+  }
 } as const; 
