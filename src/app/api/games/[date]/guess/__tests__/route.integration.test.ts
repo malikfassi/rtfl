@@ -18,10 +18,11 @@ let context: IntegrationTestContext;
 
 beforeEach(async () => {
   context = await setupIntegrationTest();
-  // Seed a game for the date using fixtures or context.gameService
   const key = TRACK_KEYS.PARTY_IN_THE_USA;
-  const trackId = fixtures.spotify.tracks[key].id;
-  await context.gameService.createOrUpdate(date, trackId);
+  const track = fixtures.spotify.tracks[key];
+  // Create the song in the DB and get its CUID
+  const song = await context.songService.create(track.id);
+  await context.gameService.createOrUpdate(date, song.id);
 });
 
 afterEach(async () => {

@@ -13,9 +13,6 @@ describe('SongService Unit Tests', () => {
   beforeEach(() => {
     context = setupUnitTest();
     (context.mockGeniusClient as any).findMatch = jest.fn();
-    context.mockPrisma.song = {
-      create: jest.fn(),
-    } as any;
     service = new SongService(
       context.mockPrisma as unknown as PrismaClient,
       context.mockSpotifyClient,

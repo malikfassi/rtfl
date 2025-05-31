@@ -19,12 +19,12 @@ let context: IntegrationTestContext;
 
 beforeEach(async () => {
   context = await setupIntegrationTest();
-  // Seed games for the month using fixtures or context.gameService
   const keys = [TRACK_KEYS.PARTY_IN_THE_USA, TRACK_KEYS.BEAT_IT, TRACK_KEYS.LA_VIE_EN_ROSE];
   const dates = ['2025-01-25', '2025-01-26', '2025-01-27'];
   for (let i = 0; i < keys.length; i++) {
-    const trackId = fixtures.spotify.tracks[keys[i]].id;
-    await context.gameService.createOrUpdate(dates[i], trackId);
+    const track = fixtures.spotify.tracks[keys[i]];
+    const song = await context.songService.create(track.id);
+    await context.gameService.createOrUpdate(dates[i], song.id);
   }
 });
 

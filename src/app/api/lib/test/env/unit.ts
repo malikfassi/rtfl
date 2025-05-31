@@ -45,6 +45,7 @@ export interface UnitTestContext {
     };
     song: {
       create: jest.Mock<any, any>;
+      findFirst: jest.Mock<any, any>;
     };
     $transaction: jest.Mock<any, any>;
   };
@@ -80,6 +81,7 @@ export function setupUnitTest(): UnitTestContext {
   mockPrisma.guess.create = jest.fn();
   mockPrisma.guess.findMany = jest.fn();
   mockPrisma.song.create = jest.fn();
+  mockPrisma.song.findFirst = jest.fn();
   mockPrisma.$transaction = jest.fn(async (cb: any) => cb({
     game: mockPrisma.game,
     guess: mockPrisma.guess,

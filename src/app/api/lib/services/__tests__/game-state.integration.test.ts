@@ -74,7 +74,8 @@ describe('GameStateService Integration - Realistic Scenario', () => {
     guessService = new GuessService(context.prisma);
     gameService = context.gameService;
     const trackId = fixtures.spotify.tracks[key].id;
-    const game = await gameService.createOrUpdate(testDate, trackId);
+    const song = await context.songService.create(trackId);
+    const game = await gameService.createOrUpdate(testDate, song.id);
     gameId = game.id;
   });
 

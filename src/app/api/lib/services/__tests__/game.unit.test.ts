@@ -70,7 +70,7 @@ describe('GameService Unit Tests', () => {
           updatedAt: new Date(),
         };
         context.mockPrisma.game.upsert.mockResolvedValueOnce(gameResult);
-        const result = await service.createOrUpdate('2025-01-25', track.id);
+        const result = await service.createOrUpdate('2025-01-25', song.id);
         unit_validator.game_service.createOrUpdate(key, result);
         expect(context.mockPrisma.game.upsert).toHaveBeenCalledWith({
           where: { date: '2025-01-25' },

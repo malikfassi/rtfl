@@ -29,7 +29,8 @@ describe('GameService Integration', () => {
       const key = TRACK_KEYS.PARTY_IN_THE_USA;
       const trackUri = TRACK_URIS[key];
       const trackId = trackUri.split(':').pop()!;
-      const game = await context.gameService.createOrUpdate(date, trackId);
+      const song = await context.songService.create(trackId);
+      const game = await context.gameService.createOrUpdate(date, song.id);
       integration_validator.game_service.createOrUpdate(game);
       expect(game).toEqual(expect.objectContaining({
         date,
@@ -42,8 +43,10 @@ describe('GameService Integration', () => {
       const key2 = TRACK_KEYS.LA_VIE_EN_ROSE;
       const trackId1 = TRACK_URIS[key1].split(':').pop()!;
       const trackId2 = TRACK_URIS[key2].split(':').pop()!;
-      await context.gameService.createOrUpdate(date, trackId1);
-      const game = await context.gameService.createOrUpdate(date, trackId2);
+      const song1 = await context.songService.create(trackId1);
+      const song2 = await context.songService.create(trackId2);
+      await context.gameService.createOrUpdate(date, song1.id);
+      const game = await context.gameService.createOrUpdate(date, song2.id);
       integration_validator.game_service.createOrUpdate(game);
       expect(game).toEqual(expect.objectContaining({
         date,
@@ -66,19 +69,19 @@ describe('GameService Integration', () => {
     });
 
     it('throws ValidationError when trackId is empty', async () => {
-      await expect(context.gameService.createOrUpdate(date, ''))
+      await expect(context.songService.create(''))
         .rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError when trackId is invalid', async () => {
-      await expect(context.gameService.createOrUpdate(date, 'invalid-id'))
+      await expect(context.songService.create('invalid-id'))
         .rejects.toThrow(ValidationError);
     });
 
-    it('throws GameNotFoundError when track does not exist', async () => {
+    it('throws SongNotFoundError when track does not exist', async () => {
       const key = TRACK_KEYS.NOT_FOUND;
       const trackId = TRACK_URIS[key].split(':').pop()!;
-      await expect(context.gameService.createOrUpdate(date, trackId))
+      await expect(context.songService.create(trackId))
         .rejects.toThrow('Track not found');
     });
   });
@@ -87,7 +90,8 @@ describe('GameService Integration', () => {
     it('returns game when found', async () => {
       const key = TRACK_KEYS.PARTY_IN_THE_USA;
       const trackId = TRACK_URIS[key].split(':').pop()!;
-      await context.gameService.createOrUpdate(date, trackId);
+      const song = await context.songService.create(trackId);
+      await context.gameService.createOrUpdate(date, song.id);
       const game = await context.gameService.getByDate(date);
       integration_validator.game_service.getByDate(game);
       expect(game).toEqual(expect.objectContaining({
@@ -119,7 +123,8 @@ describe('GameService Integration', () => {
     it('returns games for month when found', async () => {
       const key = TRACK_KEYS.PARTY_IN_THE_USA;
       const trackId = TRACK_URIS[key].split(':').pop()!;
-      await context.gameService.createOrUpdate(date, trackId);
+      const song = await context.songService.create(trackId);
+      await context.gameService.createOrUpdate(date, song.id);
       const games = await context.gameService.getByMonth(month);
       integration_validator.game_service.getByMonth(games);
       expect(games).toHaveLength(1);

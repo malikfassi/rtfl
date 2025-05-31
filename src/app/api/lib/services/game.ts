@@ -4,6 +4,8 @@ import type { Prisma } from '@prisma/client';
 import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
 import { schemas, validateSchema } from '@/app/api/lib/validation';
 import type { GameWithSong, GameWithSongAndGuesses } from '@/app/api/lib/types/game';
+import { ValidationError } from '@/app/api/lib/errors/base';
+import { SongNotFoundError } from '@/app/api/lib/errors/services/song';
 
 import { prisma } from '../db';
 import { createSongService, SongService } from './song';
@@ -16,7 +18,15 @@ export class GameService {
 
   async createOrUpdate(date: string, songId: string): Promise<GameWithSong> {
     const validatedDate = validateSchema(schemas.date, date);
-    // Assume songId is a valid DB ID (CUID) and exists
+    // Validate songId format (simple CUID check)
+    if (!songId || typeof songId !== 'string' || songId.length < 20) {
+      throw new ValidationError('Invalid song ID');
+    }
+    // Check that the song exists
+    const song = await this.prisma.song.findUnique({ where: { id: songId } });
+    if (!song) {
+      throw new SongNotFoundError(songId);
+    }
     return await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const game = await tx.game.upsert({
         where: { date: validatedDate },
