@@ -1,10 +1,14 @@
 import type { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 import type { GeniusSearchResponse } from '../../types/genius';
-import { TEST_IDS } from '../constants';
+import { TEST_IDS, getAllTrackIds } from '../constants';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { constructGeniusSearchQuery } from '../../utils/genius';
 import { constructSpotifySearchQuery } from '../../utils/spotify';
+import { MaskedLyricsService, maskedLyricsService } from '../../services/masked-lyrics';
+import { extractLyricsFromHtml } from '../../services/lyrics';
+
+// All fixture access is by constant key only. No mapping helpers needed.
 
 // Helper to get ID from Spotify URI
 const getId = (uri: string) => uri.split(':').pop()!;
@@ -44,7 +48,6 @@ export interface GeniusFixtures {
 function loadJsonFixture<T>(service: string, type: string, id: string): T {
   try {
     const filePath = join(process.cwd(), 'src/app/api/lib/test/fixtures/data', service, type, `${id}.json`);
-    console.log(`Loading JSON fixture from: ${filePath}`);
     const content = readFileSync(filePath, 'utf-8');
     return JSON.parse(content);
   } catch (error) {
@@ -57,7 +60,6 @@ function loadJsonFixture<T>(service: string, type: string, id: string): T {
 function loadHtmlFixture(service: string, type: string, id: string): string {
   try {
     const filePath = join(process.cwd(), 'src/app/api/lib/test/fixtures/data', service, type, `${id}.html`);
-    console.log(`Loading HTML fixture from: ${filePath}`);
     return readFileSync(filePath, 'utf-8');
   } catch (error) {
     console.error(`Failed to load HTML fixture: ${service}/${type}/${id}`, error);
@@ -65,8 +67,12 @@ function loadHtmlFixture(service: string, type: string, id: string): string {
   }
 }
 
-// Load track fixtures first
-const SPOTIFY_TRACK_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.TRACKS).reduce((acc, [key, uri]) => {
+const WITH_LYRICS_TRACKS = TEST_IDS.SPOTIFY.TRACKS.WITH_LYRICS;
+const INSTRUMENTAL_TRACKS = TEST_IDS.SPOTIFY.TRACKS.INSTRUMENTAL;
+const ERROR_CASES = TEST_IDS.SPOTIFY.ERROR_CASES;
+
+// Only load normal fixtures for WITH_LYRICS and INSTRUMENTAL
+const SPOTIFY_TRACK_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key, uri]) => {
   try {
     acc[key] = loadJsonFixture<Track>('spotify', 'tracks', key);
   } catch (error) {
@@ -75,8 +81,7 @@ const SPOTIFY_TRACK_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.TRACKS).reduce((a
   return acc;
 }, {} as SpotifyFixtures['tracks']);
 
-// Build search fixtures from captured data
-const SPOTIFY_SEARCH_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.TRACKS).reduce((acc, [key, uri]) => {
+const SPOTIFY_SEARCH_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key, uri]) => {
   try {
     const searchData = loadJsonFixture<{ tracks: { items: Track[] } }>('spotify', 'search', key);
     acc[key] = searchData;
@@ -85,6 +90,61 @@ const SPOTIFY_SEARCH_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.TRACKS).reduce((
   }
   return acc;
 }, {} as SpotifyFixtures['search']);
+
+const GENIUS_SEARCH_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key, uri]) => {
+  try {
+    acc[key] = loadJsonFixture<GeniusSearchResponse>('genius', 'search', key);
+  } catch (error) {
+    console.warn(`Failed to load Genius search fixture for track ${key}: ${error}`);
+  }
+  return acc;
+}, {} as GeniusFixtures['search']);
+
+const GENIUS_LYRICS_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key, uri]) => {
+  try {
+    acc[key] = loadHtmlFixture('genius', 'lyrics', key);
+  } catch (error) {
+    console.warn(`Failed to load lyrics fixture for track ${key}: ${error}`);
+  }
+  return acc;
+}, {} as GeniusFixtures['lyrics']);
+
+// For error cases, only load error fixtures
+const SPOTIFY_ERROR_TRACK_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key, uri]) => {
+  try {
+    acc[key] = loadJsonFixture('spotify', 'tracks', key);
+  } catch (error) {
+    console.warn(`Failed to load error track fixture for ${key}: ${error}`);
+  }
+  return acc;
+}, {} as SpotifyFixtures['tracks']);
+
+const SPOTIFY_ERROR_SEARCH_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key, uri]) => {
+  try {
+    acc[key] = loadJsonFixture('spotify', 'search', key);
+  } catch (error) {
+    console.warn(`Failed to load error search fixture for ${key}: ${error}`);
+  }
+  return acc;
+}, {} as SpotifyFixtures['search']);
+
+const GENIUS_ERROR_SEARCH_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key, uri]) => {
+  try {
+    acc[key] = loadJsonFixture('genius', 'search', key);
+  } catch (error) {
+    console.warn(`Failed to load error search fixture for ${key}: ${error}`);
+  }
+  return acc;
+}, {} as GeniusFixtures['search']);
+
+const GENIUS_ERROR_LYRICS_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key, uri]) => {
+  try {
+    acc[key] = loadHtmlFixture('genius', 'lyrics', key);
+  } catch (error) {
+    console.warn(`Failed to load error lyrics fixture for ${key}: ${error}`);
+  }
+  return acc;
+}, {} as GeniusFixtures['lyrics']);
 
 // Build playlist fixtures from captured data
 const SPOTIFY_PLAYLIST_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.PLAYLISTS).reduce((acc, [key, uri]) => {
@@ -107,144 +167,64 @@ const SPOTIFY_PLAYLIST_SEARCH_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.PLAYLIS
   return acc;
 }, {} as SpotifyFixtures['search']);
 
-// Build Genius search fixtures from captured data
-const GENIUS_SEARCH_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.TRACKS).reduce((acc, [key, uri]) => {
+// Merge all fixtures
+const SPOTIFY_FIXTURES: SpotifyFixtures = {
+  tracks: { ...SPOTIFY_TRACK_FIXTURES, ...SPOTIFY_ERROR_TRACK_FIXTURES },
+  search: { ...SPOTIFY_SEARCH_FIXTURES, ...SPOTIFY_ERROR_SEARCH_FIXTURES, ...SPOTIFY_PLAYLIST_SEARCH_FIXTURES },
+  playlists: SPOTIFY_PLAYLIST_FIXTURES
+};
+
+// Also load Genius search fixtures for special query keys (e.g., NO_RESULTS)
+const GENIUS_QUERY_SEARCH_FIXTURES = Object.keys(TEST_IDS.GENIUS.QUERIES).reduce((acc, key) => {
   try {
-    const searchData = loadJsonFixture<GeniusSearchResponse>('genius', 'search', key);
-    acc[key] = searchData;
+    acc[key] = loadJsonFixture('genius', 'search', key);
   } catch (error) {
-    console.warn(`Failed to load Genius search fixture for track ${key}: ${error}`);
+    console.warn(`Failed to load Genius search fixture for query key ${key}: ${error}`);
   }
   return acc;
 }, {} as GeniusFixtures['search']);
 
-// Build Genius lyrics fixtures from captured data
-const GENIUS_LYRICS_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.TRACKS).reduce((acc, [key, uri]) => {
+// Merge all Genius search fixtures
+const GENIUS_FIXTURES: GeniusFixtures = {
+  search: { ...GENIUS_SEARCH_FIXTURES, ...GENIUS_ERROR_SEARCH_FIXTURES, ...GENIUS_QUERY_SEARCH_FIXTURES },
+  lyrics: { ...GENIUS_LYRICS_FIXTURES, ...GENIUS_ERROR_LYRICS_FIXTURES }
+};
+
+// Generate maskedLyrics for each WITH_LYRICS_TRACKS entry
+const GENIUS_MASKED_LYRICS_FIXTURES = Object.entries(WITH_LYRICS_TRACKS).reduce((acc, [key, uri]) => {
   try {
-    acc[key] = loadHtmlFixture('genius', 'lyrics', key);
+    const track = SPOTIFY_TRACK_FIXTURES[key];
+    const lyricsHtml = GENIUS_LYRICS_FIXTURES[key];
+    if (track && lyricsHtml) {
+      const lyrics = extractLyricsFromHtml(lyricsHtml);
+      acc[key] = maskedLyricsService.create(
+        track.name,
+        track.artists[0].name,
+        lyrics
+      );
+    }
   } catch (error) {
-    console.warn(`Failed to load lyrics fixture for track ${key}: ${error}`);
+    console.warn(`Failed to generate maskedLyrics for ${key}: ${error}`);
   }
   return acc;
-}, {} as GeniusFixtures['lyrics']);
-
-// Merge all search fixtures
-const SPOTIFY_FIXTURES: SpotifyFixtures = {
-  tracks: SPOTIFY_TRACK_FIXTURES,
-  search: {
-    ...SPOTIFY_SEARCH_FIXTURES,
-    ...SPOTIFY_PLAYLIST_SEARCH_FIXTURES
-  },
-  playlists: SPOTIFY_PLAYLIST_FIXTURES
-};
-
-const GENIUS_FIXTURES: GeniusFixtures = {
-  search: GENIUS_SEARCH_FIXTURES,
-  lyrics: GENIUS_LYRICS_FIXTURES
-};
+}, {} as Record<string, any>);
 
 // Helper to get fixture with error handling
 const getFixture = <T>(obj: Record<string, T>, key: string, type: string): T => {
-  console.log(`Getting fixture for ${type}: ${key}`);
-  console.log(`Available keys:`, Object.keys(obj));
-  
-  const response = obj[key];
-  if (!response) throw new Error(`No fixture found for ${type}: ${key}`);
-  return response;
+  if (!(key in obj)) throw new Error(`No fixture found for ${type}: ${key}. Available keys: ${Object.keys(obj).join(', ')}`);
+  return obj[key];
 };
 
-// Export typed fixtures
+// NEW: Direct key-based fixture access. Use only key constants for lookups.
 export const fixtures = {
   spotify: {
-    getTrack: {
-      get: (id: string) => {
-        // Find the constant key for this track URI
-        const [key] = Object.entries(TEST_IDS.SPOTIFY.TRACKS).find(([_, uri]) => uri === id) || [];
-        if (!key) throw new Error(`No fixture found for track: ${id}`);
-        return getFixture(SPOTIFY_FIXTURES.tracks, key, 'track');
-      }
-    },
-    searchTracks: {
-      get: (query: string) => {
-        // Find the constant key for this search query
-        const [key] = Object.entries(TEST_IDS.SPOTIFY.TRACKS).find(([k, uri]) => {
-          const track = SPOTIFY_FIXTURES.tracks[k];
-          return track && constructSpotifySearchQuery(track.name, track.artists[0].name) === query;
-        }) || [];
-        
-        if (!key) {
-          throw new Error(`No fixture found for search: ${query}`);
-        }
-        
-        const result = getFixture(SPOTIFY_FIXTURES.search, key, 'search');
-        return result.tracks?.items || [];
-      }
-    },
-    searchPlaylists: {
-      get: (query: string) => {
-        // Find the constant key for this playlist search
-        const [key] = Object.entries(TEST_IDS.SPOTIFY.PLAYLISTS).find(([k, uri]) => {
-          const playlist = SPOTIFY_FIXTURES.playlists[k];
-          return playlist && playlist.name === query;
-        }) || [];
-        
-        if (!key) {
-          throw new Error(`No fixture found for playlist search: ${query}`);
-        }
-        
-        return getFixture(SPOTIFY_FIXTURES.search, key, 'search');
-      }
-    },
-    getPlaylist: {
-      get: (id: string) => {
-        // Find the constant key for this playlist URI
-        const [key] = Object.entries(TEST_IDS.SPOTIFY.PLAYLISTS).find(([_, uri]) => uri === id) || [];
-        if (!key) throw new Error(`No fixture found for playlist: ${id}`);
-        return getFixture(SPOTIFY_FIXTURES.playlists, key, 'playlist');
-      }
-    },
-    getPlaylistTracks: {
-      get: (id: string) => {
-        // Find the constant key for this playlist URI
-        const [key] = Object.entries(TEST_IDS.SPOTIFY.PLAYLISTS).find(([_, uri]) => uri === id) || [];
-        if (!key) throw new Error(`No fixture found for playlist: ${id}`);
-        const playlist = getFixture(SPOTIFY_FIXTURES.playlists, key, 'playlist');
-        return playlist.tracks.items.map(item => item.track);
-      }
-    }
+    tracks: SPOTIFY_FIXTURES.tracks,
+    search: SPOTIFY_FIXTURES.search,
+    playlists: SPOTIFY_FIXTURES.playlists,
   },
   genius: {
-    search: {
-      get: (query: string) => {
-        // Find the constant key for this search query
-        const [key] = Object.entries(TEST_IDS.SPOTIFY.TRACKS).find(([k, uri]) => {
-          const track = SPOTIFY_FIXTURES.tracks[k];
-          return track && constructGeniusSearchQuery(track.name, track.artists[0].name) === query;
-        }) || [];
-        
-        if (!key) {
-          throw new Error(`No fixture found for Genius search: ${query}`);
-        }
-        
-        return getFixture(GENIUS_FIXTURES.search, key, 'search');
-      }
-    },
-    lyrics: {
-      get: (url: string) => {
-        // Find the constant key for this lyrics URL
-        const [key] = Object.entries(TEST_IDS.SPOTIFY.TRACKS).find(([k, uri]) => {
-          const track = SPOTIFY_FIXTURES.tracks[k];
-          const searchData = GENIUS_FIXTURES.search[k];
-          return searchData?.response.hits[0]?.result?.url === url;
-        }) || [];
-        
-        if (!key) {
-          throw new Error(`No fixture found for Genius lyrics: ${url}`);
-        }
-        
-        return getFixture(GENIUS_FIXTURES.lyrics, key, 'lyrics');
-      }
-    },
-    getSearchQuery: (track: Track) => constructGeniusSearchQuery(track.name, track.artists[0].name)
-  }
+    search: GENIUS_FIXTURES.search,
+    lyrics: GENIUS_FIXTURES.lyrics,
+    maskedLyrics: GENIUS_MASKED_LYRICS_FIXTURES,
+  },
 }; 

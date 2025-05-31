@@ -6,7 +6,7 @@
   },
   "followers": {
     "href": null,
-    "total": 137872
+    "total": 138270
   },
   "href": "https://api.spotify.com/v1/playlists/141guhSLUNzE58MqlIC4zT?locale=*",
   "id": "141guhSLUNzE58MqlIC4zT",
@@ -30,7 +30,7 @@
   },
   "primary_color": null,
   "public": true,
-  "snapshot_id": "AAAXBlo5v/rrhFaZzwpM9oET0g0t5RQp",
+  "snapshot_id": "AAAXCmqfnoNEvTplnjoLUVwzcjk/eD9/",
   "tracks": {
     "href": "https://api.spotify.com/v1/playlists/141guhSLUNzE58MqlIC4zT/tracks?offset=0&limit=100&locale=*",
     "items": [
@@ -1152,7 +1152,7 @@
           "href": "https://api.spotify.com/v1/tracks/4uLU6hMCjMI75M1A2tKUQC",
           "id": "4uLU6hMCjMI75M1A2tKUQC",
           "name": "Never Gonna Give You Up",
-          "popularity": 10,
+          "popularity": 9,
           "uri": "spotify:track:4uLU6hMCjMI75M1A2tKUQC",
           "is_local": false
         },
@@ -2095,7 +2095,7 @@
         }
       },
       {
-        "added_at": "2025-04-14T19:51:31Z",
+        "added_at": "2025-05-31T15:32:45Z",
         "added_by": {
           "external_urls": {
             "spotify": "https://open.spotify.com/user/tsouwer"
@@ -2490,72 +2490,72 @@
             ],
             "type": "album",
             "album_type": "single",
-            "href": "https://api.spotify.com/v1/albums/39fX084sJfYRx779YcVcbv",
-            "id": "39fX084sJfYRx779YcVcbv",
+            "href": "https://api.spotify.com/v1/albums/5s5LGNDHjvLzEkRDYKBkaE",
+            "id": "5s5LGNDHjvLzEkRDYKBkaE",
             "images": [
               {
-                "url": "https://i.scdn.co/image/ab67616d0000b273b1df01a42bb617ad168d30ff",
+                "url": "https://i.scdn.co/image/ab67616d0000b2736d6c89b3a00ca9f63803b86f",
                 "width": 640,
                 "height": 640
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00001e02b1df01a42bb617ad168d30ff",
+                "url": "https://i.scdn.co/image/ab67616d00001e026d6c89b3a00ca9f63803b86f",
                 "width": 300,
                 "height": 300
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00004851b1df01a42bb617ad168d30ff",
+                "url": "https://i.scdn.co/image/ab67616d000048516d6c89b3a00ca9f63803b86f",
                 "width": 64,
                 "height": 64
               }
             ],
-            "name": "Heart with a Hole",
-            "release_date": "2024-06-21",
+            "name": "Desert Roll, Exactly.",
+            "release_date": "2025-04-27",
             "release_date_precision": "day",
-            "uri": "spotify:album:39fX084sJfYRx779YcVcbv",
+            "uri": "spotify:album:5s5LGNDHjvLzEkRDYKBkaE",
             "artists": [
               {
                 "external_urls": {
-                  "spotify": "https://open.spotify.com/artist/4YXfdi8GIPOemB4xJjDvhQ"
+                  "spotify": "https://open.spotify.com/artist/3Gqlvwb5U3hbST19eSdJqB"
                 },
-                "href": "https://api.spotify.com/v1/artists/4YXfdi8GIPOemB4xJjDvhQ",
-                "id": "4YXfdi8GIPOemB4xJjDvhQ",
-                "name": "Dustin Massey",
+                "href": "https://api.spotify.com/v1/artists/3Gqlvwb5U3hbST19eSdJqB",
+                "id": "3Gqlvwb5U3hbST19eSdJqB",
+                "name": "A VIOLET IN YOUTH",
                 "type": "artist",
-                "uri": "spotify:artist:4YXfdi8GIPOemB4xJjDvhQ"
+                "uri": "spotify:artist:3Gqlvwb5U3hbST19eSdJqB"
               }
             ],
             "external_urls": {
-              "spotify": "https://open.spotify.com/album/39fX084sJfYRx779YcVcbv"
+              "spotify": "https://open.spotify.com/album/5s5LGNDHjvLzEkRDYKBkaE"
             },
             "total_tracks": 2
           },
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/4YXfdi8GIPOemB4xJjDvhQ"
+                "spotify": "https://open.spotify.com/artist/3Gqlvwb5U3hbST19eSdJqB"
               },
-              "href": "https://api.spotify.com/v1/artists/4YXfdi8GIPOemB4xJjDvhQ",
-              "id": "4YXfdi8GIPOemB4xJjDvhQ",
-              "name": "Dustin Massey",
+              "href": "https://api.spotify.com/v1/artists/3Gqlvwb5U3hbST19eSdJqB",
+              "id": "3Gqlvwb5U3hbST19eSdJqB",
+              "name": "A VIOLET IN YOUTH",
               "type": "artist",
-              "uri": "spotify:artist:4YXfdi8GIPOemB4xJjDvhQ"
+              "uri": "spotify:artist:3Gqlvwb5U3hbST19eSdJqB"
             }
           ],
           "disc_number": 1,
           "track_number": 1,
-          "duration_ms": 236562,
+          "duration_ms": 201898,
           "external_ids": {
-            "isrc": "QZNJW2470761"
+            "isrc": "QZMER2590023"
           },
           "external_urls": {
-            "spotify": "https://open.spotify.com/track/6sGVljLVs6ZnTAhiNJRlQb"
+            "spotify": "https://open.spotify.com/track/1i3jPowCNmyemFeiJtvLSA"
           },
-          "href": "https://api.spotify.com/v1/tracks/6sGVljLVs6ZnTAhiNJRlQb",
-          "id": "6sGVljLVs6ZnTAhiNJRlQb",
-          "name": "Heart with a Hole",
-          "popularity": 40,
-          "uri": "spotify:track:6sGVljLVs6ZnTAhiNJRlQb",
+          "href": "https://api.spotify.com/v1/tracks/1i3jPowCNmyemFeiJtvLSA",
+          "id": "1i3jPowCNmyemFeiJtvLSA",
+          "name": "Desert Roll",
+          "popularity": 3,
+          "uri": "spotify:track:1i3jPowCNmyemFeiJtvLSA",
           "is_local": false
         },
         "video_thumbnail": {
@@ -7424,7 +7424,7 @@
           "href": "https://api.spotify.com/v1/tracks/0tTC67dz52fc0MRoaplZ5C",
           "id": "0tTC67dz52fc0MRoaplZ5C",
           "name": "Old Fashioned Rhyme",
-          "popularity": 35,
+          "popularity": 38,
           "uri": "spotify:track:0tTC67dz52fc0MRoaplZ5C",
           "is_local": false
         },
@@ -8748,7 +8748,7 @@
           "href": "https://api.spotify.com/v1/tracks/6pBM20jZldvNlbNcnwAX0y",
           "id": "6pBM20jZldvNlbNcnwAX0y",
           "name": "Beat It",
-          "popularity": 56,
+          "popularity": 57,
           "uri": "spotify:track:6pBM20jZldvNlbNcnwAX0y",
           "is_local": false
         },
@@ -10246,7 +10246,7 @@
           "href": "https://api.spotify.com/v1/tracks/7CrpeIOaTBJNHdNpbprDh2",
           "id": "7CrpeIOaTBJNHdNpbprDh2",
           "name": "Lost and Found",
-          "popularity": 33,
+          "popularity": 34,
           "uri": "spotify:track:7CrpeIOaTBJNHdNpbprDh2",
           "is_local": false
         },
@@ -11372,7 +11372,7 @@
           "href": "https://api.spotify.com/v1/tracks/7o2CTH4ctstm8TNelqjb51",
           "id": "7o2CTH4ctstm8TNelqjb51",
           "name": "Sweet Child O' Mine",
-          "popularity": 19,
+          "popularity": 18,
           "uri": "spotify:track:7o2CTH4ctstm8TNelqjb51",
           "is_local": false
         },
@@ -11840,7 +11840,7 @@
           "href": "https://api.spotify.com/v1/tracks/3oJScnk3XI5hQRmzb89klx",
           "id": "3oJScnk3XI5hQRmzb89klx",
           "name": "Shades",
-          "popularity": 31,
+          "popularity": 32,
           "uri": "spotify:track:3oJScnk3XI5hQRmzb89klx",
           "is_local": false
         },
@@ -13276,7 +13276,7 @@
           "href": "https://api.spotify.com/v1/tracks/6xepovPqjvrkEw9Y5AMmTm",
           "id": "6xepovPqjvrkEw9Y5AMmTm",
           "name": "Lambada - Original Version 1989",
-          "popularity": 73,
+          "popularity": 74,
           "uri": "spotify:track:6xepovPqjvrkEw9Y5AMmTm",
           "is_local": false
         },
@@ -14212,7 +14212,7 @@
           "href": "https://api.spotify.com/v1/tracks/4k4UqdNIGQJ8dCiss0cnZt",
           "id": "4k4UqdNIGQJ8dCiss0cnZt",
           "name": "Never Look Back",
-          "popularity": 35,
+          "popularity": 37,
           "uri": "spotify:track:4k4UqdNIGQJ8dCiss0cnZt",
           "is_local": false
         },
@@ -14684,7 +14684,7 @@
           "href": "https://api.spotify.com/v1/tracks/4aMT5LHe8A2uIc11H8Cx2m",
           "id": "4aMT5LHe8A2uIc11H8Cx2m",
           "name": "Conga",
-          "popularity": 58,
+          "popularity": 59,
           "uri": "spotify:track:4aMT5LHe8A2uIc11H8Cx2m",
           "is_local": false
         },
@@ -19998,7 +19998,7 @@
           "href": "https://api.spotify.com/v1/tracks/1Rvl8qsKJurfFTyWLBI9ib",
           "id": "1Rvl8qsKJurfFTyWLBI9ib",
           "name": "Baby, I Love Your Way",
-          "popularity": 74,
+          "popularity": 75,
           "uri": "spotify:track:1Rvl8qsKJurfFTyWLBI9ib",
           "is_local": false
         },
@@ -27280,17 +27280,17 @@
             "id": "6xPQ1KliozUso45L09UzG0",
             "images": [
               {
-                "url": "https://i.scdn.co/image/ab67616d0000b273e3b1e713258a8eccfbf12a97",
+                "url": "https://i.scdn.co/image/ab67616d0000b273b5c069553e819c0aebb1c2c9",
                 "width": 640,
                 "height": 640
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00001e02e3b1e713258a8eccfbf12a97",
+                "url": "https://i.scdn.co/image/ab67616d00001e02b5c069553e819c0aebb1c2c9",
                 "width": 300,
                 "height": 300
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00004851e3b1e713258a8eccfbf12a97",
+                "url": "https://i.scdn.co/image/ab67616d00004851b5c069553e819c0aebb1c2c9",
                 "width": 64,
                 "height": 64
               }
@@ -34952,7 +34952,7 @@
           "href": "https://api.spotify.com/v1/tracks/6kQz6t5z1FK4uohPh8Kd73",
           "id": "6kQz6t5z1FK4uohPh8Kd73",
           "name": "Let's Get Loud",
-          "popularity": 75,
+          "popularity": 76,
           "uri": "spotify:track:6kQz6t5z1FK4uohPh8Kd73",
           "is_local": false
         },

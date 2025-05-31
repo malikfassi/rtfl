@@ -6,5 +6,8 @@ export interface GameState {
   date: string;
   masked: MaskedLyrics;
   guesses: Guess[];
-  song?: Song;  // Only included if game is won
+  song?: Song & {
+    title?: string;
+    artist?: string;
+  };  // Only included if game is won
 }

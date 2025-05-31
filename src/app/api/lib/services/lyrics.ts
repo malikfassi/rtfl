@@ -1,30 +1,101 @@
+import * as cheerio from 'cheerio';
 import { decode } from 'html-entities';
-import { env } from '@/app/api/lib/env';
 import { LyricsExtractionError } from '@/app/api/lib/errors/services/lyrics';
+
+export function extractLyricsFromHtml(html: string): string {
+  const $ = cheerio.load(html);
+  // Check for licensing message
+  const licensingMessage = $('.LyricsPlaceholder__Message-sc-14g6xqc-2, .LyricsPlaceholder__Container-sc-14g6xqc-0').text();
+  if (licensingMessage && licensingMessage.toLowerCase().includes('licensing')) {
+    return '[Lyrics not available due to licensing]';
+  }
+  const selectors = [
+    '[data-lyrics-container="true"]',
+    '.lyrics',
+    '[class*="Lyrics__Container"]',
+    '[class*="Lyrics__Root"]',
+    '[class*="Lyrics__Container-sc"]'
+  ];
+  let rawText = '';
+  for (const selector of selectors) {
+    const lyricsContainer = $(selector);
+    if (lyricsContainer.length > 0) {
+      const text = lyricsContainer
+        .find('br')
+        .replaceWith('\n')
+        .end()
+        .text()
+        .trim();
+      if (text && text !== '[No lyrics available]') {
+        rawText = decode(text)
+          .replace(/\[.+?\]/g, '')
+          .replace(/\{.+?\}/g, '')
+          .replace(/\(\d+x\)/g, '')
+          .replace(/\s*\n\s*/g, '\n')
+          .replace(/\n{3,}/g, '\n\n')
+          .replace(/^\s+|\s+$/g, '')
+          .trim();
+        break;
+      }
+    }
+  }
+  if (!rawText) return '[No lyrics available]';
+
+  // Clean out non-lyric content (headers, contributors, translations, etc.)
+  const nonLyricPatterns = [
+    /^\d+\s*Contributors?$/i,
+    /^Contributors?$/i,
+    /^Translations?$/i,
+    /^Read More$/i,
+    /^Lyrics$/i,
+    /^English$/i,
+    /^Deutsch$/i,
+    /^Paroles de la chanson/i,
+    /^La chanson/i,
+    /^\d+\s*$/,
+    /^\s*$/, // empty lines
+    /^\s*\p{L}{1,2}\s*$/u // single letters/words (often artifacts)
+  ];
+  const cleaned = rawText
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line =>
+      line.length > 0 &&
+      !nonLyricPatterns.some(pattern => pattern.test(line)) &&
+      !/Read More/i.test(line) &&
+      !/Translations?/i.test(line) &&
+      !/Contributors?/i.test(line)
+    )
+    .join('\n')
+    .replace(/^\s+|\s+$/g, '');
+
+  return cleaned;
+}
 
 export class LyricsService {
   /**
-   * Get lyrics for a song using its Genius ID
+   * Get lyrics by scraping the Genius lyrics page URL
    */
-  public async getLyrics(songId: string): Promise<string> {
+  public async getLyrics(url: string): Promise<string> {
     try {
-      // Fetch lyrics using Genius API
-      const response = await fetch(`https://api.genius.com/songs/${songId}?text_format=plain`, {
+      // Fetch the HTML page
+      const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${env.GENIUS_ACCESS_TOKEN}`,
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9'
         }
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch lyrics: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch lyrics page: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
-      const lyrics = data.response.song.description?.plain;
+      const html = await response.text();
+      const lyrics = extractLyricsFromHtml(html);
       
-      if (!lyrics) {
-        throw new Error('No lyrics found in API response');
+      if (!lyrics || lyrics === '[No lyrics available]') {
+        throw new Error('No lyrics found on the page');
       }
 
       return lyrics;

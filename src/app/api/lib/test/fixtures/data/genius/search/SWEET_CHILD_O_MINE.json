@@ -33,9 +33,9 @@
           "song_art_image_url": "https://images.genius.com/a8dbbb16d6f02f2d27b86e60d11b1476.1000x1000x1.jpg",
           "stats": {
             "unreviewed_annotations": 0,
-            "concurrents": 4,
+            "concurrents": 6,
             "hot": false,
-            "pageviews": 2398160
+            "pageviews": 2410839
           },
           "title": "Sweet Child O’ Mine",
           "title_with_featured": "Sweet Child O' Mine",
@@ -95,7 +95,7 @@
           "stats": {
             "unreviewed_annotations": 1,
             "hot": false,
-            "pageviews": 5076
+            "pageviews": 5101
           },
           "title": "The 500 Greatest Songs of All Time (2021)",
           "title_with_featured": "The 500 Greatest Songs of All Time (2021)",
@@ -151,7 +151,7 @@
           "stats": {
             "unreviewed_annotations": 17,
             "hot": false,
-            "pageviews": 5686
+            "pageviews": 5689
           },
           "title": "A list of all their YouTube videos",
           "title_with_featured": "A list of all their YouTube videos",
@@ -280,7 +280,7 @@
             "is_verified": false,
             "name": "1za1ah_I3I",
             "url": "https://genius.com/artists/1za1ah-i3i",
-            "iq": 32433
+            "iq": 32439
           },
           "primary_artists": [
             {
@@ -292,7 +292,7 @@
               "is_verified": false,
               "name": "1za1ah_I3I",
               "url": "https://genius.com/artists/1za1ah-i3i",
-              "iq": 32433
+              "iq": 32439
             }
           ]
         }

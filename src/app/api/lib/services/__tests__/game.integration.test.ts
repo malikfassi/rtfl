@@ -1,15 +1,23 @@
-import { describe, expect, it } from '@jest/globals';
-
+import { describe, expect, it, beforeEach, afterEach } from '@jest/globals';
 import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
-import { SONGS } from '@/app/api/lib/test/fixtures/core/test_cases';
-import { cleanupIntegrationTest,setupIntegrationTest } from '@/app/api/lib/test/test-env/integration';
+import { ValidationError } from '@/app/api/lib/errors/base';
+import {
+  cleanupIntegrationTest,
+  setupIntegrationTest,
+  type IntegrationTestContext
+} from '@/app/api/lib/test/env/integration';
+import { TRACK_KEYS, TRACK_URIS } from '@/app/api/lib/test/constants';
+import { fixtures } from '@/app/api/lib/test/fixtures';
+import { integration_validator } from '@/app/api/lib/test/validators';
+
 
 describe('GameService Integration', () => {
+  let context: IntegrationTestContext;
   const date = '2025-01-01';
   const month = '2025-01';
 
   beforeEach(async () => {
-    await setupIntegrationTest();
+    context = await setupIntegrationTest();
   });
 
   afterEach(async () => {
@@ -18,8 +26,11 @@ describe('GameService Integration', () => {
 
   describe('createOrUpdate', () => {
     it('creates a new game with a song', async () => {
-      const { gameService } = await setupIntegrationTest();
-      const game = await gameService.createOrUpdate(date, SONGS.VALID.id);
+      const key = TRACK_KEYS.PARTY_IN_THE_USA;
+      const trackUri = TRACK_URIS[key];
+      const trackId = trackUri.split(':').pop()!;
+      const game = await context.gameService.createOrUpdate(date, trackId);
+      integration_validator.game_service.createOrUpdate(game);
       expect(game).toEqual(expect.objectContaining({
         date,
         songId: expect.any(String)
@@ -27,9 +38,13 @@ describe('GameService Integration', () => {
     });
 
     it('updates existing game with new song', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await gameService.createOrUpdate(date, SONGS.VALID.id);
-      const game = await gameService.createOrUpdate(date, SONGS.FRENCH.id);
+      const key1 = TRACK_KEYS.PARTY_IN_THE_USA;
+      const key2 = TRACK_KEYS.LA_VIE_EN_ROSE;
+      const trackId1 = TRACK_URIS[key1].split(':').pop()!;
+      const trackId2 = TRACK_URIS[key2].split(':').pop()!;
+      await context.gameService.createOrUpdate(date, trackId1);
+      const game = await context.gameService.createOrUpdate(date, trackId2);
+      integration_validator.game_service.createOrUpdate(game);
       expect(game).toEqual(expect.objectContaining({
         date,
         songId: expect.any(String)
@@ -37,100 +52,99 @@ describe('GameService Integration', () => {
     });
 
     it('throws ValidationError when date is empty', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await expect(gameService.createOrUpdate('', SONGS.VALID.id))
-        .rejects.toThrow('Invalid date format');
+      const key = TRACK_KEYS.PARTY_IN_THE_USA;
+      const trackId = TRACK_URIS[key].split(':').pop()!;
+      await expect(context.gameService.createOrUpdate('', trackId))
+        .rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError when date is invalid', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await expect(gameService.createOrUpdate('invalid-date', SONGS.VALID.id))
-        .rejects.toThrow('Invalid date format');
+      const key = TRACK_KEYS.PARTY_IN_THE_USA;
+      const trackId = TRACK_URIS[key].split(':').pop()!;
+      await expect(context.gameService.createOrUpdate('invalid-date', trackId))
+        .rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError when trackId is empty', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await expect(gameService.createOrUpdate(date, ''))
-        .rejects.toThrow('Spotify ID is required');
+      await expect(context.gameService.createOrUpdate(date, ''))
+        .rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError when trackId is invalid', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await expect(gameService.createOrUpdate(date, 'invalid-id'))
-        .rejects.toThrow('Invalid Spotify track ID format');
+      await expect(context.gameService.createOrUpdate(date, 'invalid-id'))
+        .rejects.toThrow(ValidationError);
     });
 
-    it('throws NotFoundError when track does not exist', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await expect(gameService.createOrUpdate(date, 'spotify:track:1234567890123456789012'))
+    it('throws GameNotFoundError when track does not exist', async () => {
+      const key = TRACK_KEYS.NOT_FOUND;
+      const trackId = TRACK_URIS[key].split(':').pop()!;
+      await expect(context.gameService.createOrUpdate(date, trackId))
         .rejects.toThrow('Track not found');
     });
   });
 
   describe('getByDate', () => {
     it('returns game when found', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await gameService.createOrUpdate(date, SONGS.VALID.id);
-      const game = await gameService.getByDate(date);
+      const key = TRACK_KEYS.PARTY_IN_THE_USA;
+      const trackId = TRACK_URIS[key].split(':').pop()!;
+      await context.gameService.createOrUpdate(date, trackId);
+      const game = await context.gameService.getByDate(date);
+      integration_validator.game_service.getByDate(game);
       expect(game).toEqual(expect.objectContaining({
         date,
         songId: expect.any(String),
         song: expect.objectContaining({
-          spotifyId: SONGS.VALID.id
+          spotifyId: trackId
         })
       }));
     });
 
     it('throws GameNotFoundError when game does not exist', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await expect(gameService.getByDate(date))
+      await expect(context.gameService.getByDate(date))
         .rejects.toThrow(GameNotFoundError);
     });
 
     it('throws ValidationError when date is empty', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await expect(gameService.getByDate(''))
-        .rejects.toThrow('Invalid date format');
+      await expect(context.gameService.getByDate(''))
+        .rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError when date is invalid', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await expect(gameService.getByDate('invalid-date'))
-        .rejects.toThrow('Invalid date format');
+      await expect(context.gameService.getByDate('invalid-date'))
+        .rejects.toThrow(ValidationError);
     });
   });
 
   describe('getByMonth', () => {
     it('returns games for month when found', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await gameService.createOrUpdate(date, SONGS.VALID.id);
-      const games = await gameService.getByMonth(month);
+      const key = TRACK_KEYS.PARTY_IN_THE_USA;
+      const trackId = TRACK_URIS[key].split(':').pop()!;
+      await context.gameService.createOrUpdate(date, trackId);
+      const games = await context.gameService.getByMonth(month);
+      integration_validator.game_service.getByMonth(games);
       expect(games).toHaveLength(1);
       expect(games[0]).toEqual(expect.objectContaining({
         date,
         songId: expect.any(String),
         song: expect.objectContaining({
-          spotifyId: SONGS.VALID.id
+          spotifyId: trackId
         })
       }));
     });
 
     it('returns empty array when no games found', async () => {
-      const { gameService } = await setupIntegrationTest();
-      const games = await gameService.getByMonth(month);
+      const games = await context.gameService.getByMonth(month);
       expect(games).toHaveLength(0);
     });
 
     it('throws ValidationError when month is empty', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await expect(gameService.getByMonth(''))
-        .rejects.toThrow('Month is required');
+      await expect(context.gameService.getByMonth(''))
+        .rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError when month is invalid', async () => {
-      const { gameService } = await setupIntegrationTest();
-      await expect(gameService.getByMonth('invalid-month'))
-        .rejects.toThrow('Invalid month format');
+      await expect(context.gameService.getByMonth('invalid-month'))
+        .rejects.toThrow(ValidationError);
     });
   });
 }); 

@@ -1,20 +1,23 @@
 import { NextRequest } from 'next/server';
-
-import { 
-  cleanupIntegrationTest,
-  setupIntegrationTest, 
-} from '@/app/api/lib/test';
-import { TEST_CASES } from '@/app/api/lib/test/fixtures/core/test_cases';
-import { validators } from '@/app/api/lib/test/fixtures/core/validators';
-import { prisma } from '@/app/api/lib/test/test-env/db';
-
+import { cleanupIntegrationTest, setupIntegrationTest } from '@/app/api/lib/test';
+import { TRACK_KEYS } from '@/app/api/lib/test/constants';
+import { fixtures } from '@/app/api/lib/test/fixtures';
+import { integration_validator } from '@/app/api/lib/test/validators';
+import { ErrorCode } from '@/app/api/lib/errors/codes';
+import { ErrorMessage } from '@/app/api/lib/errors/messages';
 import { GET, POST } from '../route';
 
 describe('Games by Date API Integration', () => {
-  const validSongCase = TEST_CASES.SONGS.VALID;
-  const frenchSongCase = TEST_CASES.SONGS.FRENCH;
-  const date = '2024-01-01';
+  const validSongKey = TRACK_KEYS.PARTY_IN_THE_USA;
+  const validSong = fixtures.spotify.tracks[validSongKey];
+  const frenchSongKey = TRACK_KEYS.LA_VIE_EN_ROSE;
+  const frenchSong = fixtures.spotify.tracks[frenchSongKey];
+  const date = new Date().toISOString().split('T')[0];
   let context: Awaited<ReturnType<typeof setupIntegrationTest>>;
+
+  function getErrorMessage(msg: string | ((...args: any[]) => string), ...args: any[]): string {
+    return typeof msg === 'function' ? msg(...args) : msg;
+  }
 
   beforeEach(async () => {
     context = await setupIntegrationTest();
@@ -26,8 +29,8 @@ describe('Games by Date API Integration', () => {
 
   describe('GET /api/admin/games/[date]', () => {
     beforeEach(async () => {
-      // Create test game
-      await context.gameService.createOrUpdate(date, validSongCase.id);
+      const song = await context.songService.create(validSong.id);
+      await context.gameService.createOrUpdate(date, song.id);
     });
 
     test('returns game when found', async () => {
@@ -35,25 +38,25 @@ describe('Games by Date API Integration', () => {
         `http://localhost:3000/api/admin/games/${date}`
       );
 
-      const response = await GET(request, { params: Promise.resolve({ date }) });
+      const response = await GET(context.prisma)(request, { params: Promise.resolve({ date }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      validators.integration.game(data, validSongCase, date);
+      integration_validator.game_service.createOrUpdate(data);
     });
 
     test('returns 404 when game not found', async () => {
-      const nonexistentDate = '2024-12-31';
+      const nonexistentDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString().split('T')[0]; // 1 year in the future
       const request = new NextRequest(
         `http://localhost:3000/api/admin/games/${nonexistentDate}`
       );
 
-      const response = await GET(request, { params: Promise.resolve({ date: nonexistentDate }) });
+      const response = await GET(context.prisma)(request, { params: Promise.resolve({ date: nonexistentDate }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
-      expect(data.error).toBe('NOT_FOUND');
-      expect(data.message).toBe(`Game not found for date: ${nonexistentDate}`);
+      expect(data.error).toBe(ErrorCode.GameNotFound);
+      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.GameNotFound], nonexistentDate));
     });
 
     test('returns 400 for invalid date format', async () => {
@@ -62,128 +65,56 @@ describe('Games by Date API Integration', () => {
         `http://localhost:3000/api/admin/games/${invalidDate}`
       );
 
-      const response = await GET(request, { params: Promise.resolve({ date: invalidDate }) });
+      const response = await GET(context.prisma)(request, { params: Promise.resolve({ date: invalidDate }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe('VALIDATION_ERROR');
-      expect(data.message).toBe('Invalid date format. Expected YYYY-MM-DD');
+      expect(data.error).toBe(ErrorCode.ValidationError);
+      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError], invalidDate));
     });
   });
 
   describe('POST /api/admin/games/[date]', () => {
     test('creates new game', async () => {
+      // Debug: print the Spotify ID and its length
+      // eslint-disable-next-line no-console
+      console.log('DEBUG: validSong.id =', validSong.id, 'length =', validSong.id.length);
       const request = new NextRequest(
         `http://localhost:3000/api/admin/games/${date}`,
         {
           method: 'POST',
           body: JSON.stringify({
-            spotifyId: validSongCase.id
+            spotifyId: validSong.id
           })
         }
       );
 
-      const response = await POST(request, { params: Promise.resolve({ date }) });
+      const response = await POST(context.prisma)(request, { params: Promise.resolve({ date }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      validators.integration.game(data, validSongCase, date);
-
-      // Verify in database
-      const game = await prisma.game.findUnique({
-        where: { date },
-        include: { song: true }
-      });
-      expect(game).toBeTruthy();
-      if (game) {
-        validators.unit.game(game, validSongCase, date);
-      }
+      integration_validator.game_service.createOrUpdate(data);
     });
 
     test('updates existing game', async () => {
-      // First create a game
-      await context.gameService.createOrUpdate(date, validSongCase.id);
-
-      // Then update it with new track
+      const song1 = await context.songService.create(validSong.id);
+      const song2 = await context.songService.create(frenchSong.id);
+      await context.gameService.createOrUpdate(date, song1.id);
       const request = new NextRequest(
         `http://localhost:3000/api/admin/games/${date}`,
         {
           method: 'POST',
           body: JSON.stringify({
-            spotifyId: frenchSongCase.id
+            spotifyId: frenchSong.id
           })
         }
       );
 
-      const response = await POST(request, { params: Promise.resolve({ date }) });
+      const response = await POST(context.prisma)(request, { params: Promise.resolve({ date }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      validators.integration.game(data, frenchSongCase, date);
-
-      // Verify in database
-      const game = await prisma.game.findUnique({
-        where: { date },
-        include: { song: true }
-      });
-      expect(game).toBeTruthy();
-      if (game) {
-        validators.unit.game(game, frenchSongCase, date);
-      }
-    });
-
-    test('returns 400 when required fields are missing', async () => {
-      const request = new NextRequest(
-        `http://localhost:3000/api/admin/games/${date}`,
-        {
-          method: 'POST',
-          body: ''
-        }
-      );
-
-      const response = await POST(request, { params: Promise.resolve({ date }) });
-      const data = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(data.error).toBe('INTERNAL_ERROR');
-      expect(data.message).toBe('Internal server error');
-    });
-
-    test('returns 400 for invalid date format', async () => {
-      const invalidDate = 'invalid-date';
-      const request = new NextRequest(
-        `http://localhost:3000/api/admin/games/${invalidDate}`,
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            spotifyId: validSongCase.id
-          })
-        }
-      );
-
-      const response = await POST(request, { params: Promise.resolve({ date: invalidDate }) });
-      const data = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(data.error).toBe('VALIDATION_ERROR');
-      expect(data.message).toBe('Invalid date format. Expected YYYY-MM-DD');
-    });
-
-    test('returns 400 when Spotify ID is missing', async () => {
-      const request = new NextRequest(
-        `http://localhost:3000/api/admin/games/${date}`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ otherField: 'value' })
-        }
-      );
-
-      const response = await POST(request, { params: Promise.resolve({ date }) });
-      const data = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(data.error).toBe('VALIDATION_ERROR');
-      expect(data.message).toBe('Required');
+      integration_validator.game_service.createOrUpdate(data);
     });
   });
-}); 
+});

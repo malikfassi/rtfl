@@ -33,8 +33,9 @@
           "song_art_image_url": "https://images.genius.com/1a4545c150afe6dcc02bcd59d1efef18.900x900x1.png",
           "stats": {
             "unreviewed_annotations": 0,
+            "concurrents": 3,
             "hot": false,
-            "pageviews": 1180589
+            "pageviews": 1182048
           },
           "title": "Party in the U.S.A.",
           "title_with_featured": "Party in the U.S.A.",
@@ -42,7 +43,7 @@
           "featured_artists": [],
           "primary_artist": {
             "api_path": "/artists/805",
-            "header_image_url": "https://images.genius.com/839fec7efd9c7f82c16177e2be049f4c.1000x667x1.jpg",
+            "header_image_url": "https://images.genius.com/66234a5ee8bba5bf505f26e727cd8c94.1000x165x1.png",
             "id": 805,
             "image_url": "https://images.genius.com/0ae7f4590be0f49453df90ff8f950492.1000x1000x1.png",
             "is_meme_verified": false,
@@ -53,13 +54,72 @@
           "primary_artists": [
             {
               "api_path": "/artists/805",
-              "header_image_url": "https://images.genius.com/839fec7efd9c7f82c16177e2be049f4c.1000x667x1.jpg",
+              "header_image_url": "https://images.genius.com/66234a5ee8bba5bf505f26e727cd8c94.1000x165x1.png",
               "id": 805,
               "image_url": "https://images.genius.com/0ae7f4590be0f49453df90ff8f950492.1000x1000x1.png",
               "is_meme_verified": false,
               "is_verified": false,
               "name": "Miley Cyrus",
               "url": "https://genius.com/artists/Miley-cyrus"
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 0,
+          "api_path": "/songs/5618315",
+          "artist_names": "Martin Grice",
+          "full_title": "Float On (Modest Mouse Cover) / Party In The USA (Miley Cyrus Cover) by Martin Grice",
+          "header_image_thumbnail_url": "https://images.genius.com/41d8bc1a493025a9fa93df99bb539ff4.300x300x1.jpg",
+          "header_image_url": "https://images.genius.com/41d8bc1a493025a9fa93df99bb539ff4.1000x1000x1.jpg",
+          "id": 5618315,
+          "lyrics_owner_id": 5597048,
+          "lyrics_state": "complete",
+          "path": "/Martin-grice-float-on-modest-mouse-cover-party-in-the-usa-miley-cyrus-cover-lyrics",
+          "primary_artist_names": "Martin Grice",
+          "pyongs_count": null,
+          "relationships_index_url": "https://genius.com/Martin-grice-float-on-modest-mouse-cover-party-in-the-usa-miley-cyrus-cover-sample",
+          "release_date_components": {
+            "year": 2017,
+            "month": 8,
+            "day": 21
+          },
+          "release_date_for_display": "August 21, 2017",
+          "release_date_with_abbreviated_month_for_display": "Aug. 21, 2017",
+          "song_art_image_thumbnail_url": "https://images.genius.com/41d8bc1a493025a9fa93df99bb539ff4.300x300x1.jpg",
+          "song_art_image_url": "https://images.genius.com/41d8bc1a493025a9fa93df99bb539ff4.1000x1000x1.jpg",
+          "stats": {
+            "unreviewed_annotations": 0,
+            "hot": false
+          },
+          "title": "Float On (Modest Mouse Cover) / Party In The USA (Miley Cyrus Cover)",
+          "title_with_featured": "Float On (Modest Mouse Cover) / Party In The USA (Miley Cyrus Cover)",
+          "url": "https://genius.com/Martin-grice-float-on-modest-mouse-cover-party-in-the-usa-miley-cyrus-cover-lyrics",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/2257605",
+            "header_image_url": "https://images.genius.com/1c947d5af4027b6bfe60c1e7b5273957.500x500x1.png",
+            "id": 2257605,
+            "image_url": "https://images.genius.com/1c947d5af4027b6bfe60c1e7b5273957.500x500x1.png",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "Martin Grice",
+            "url": "https://genius.com/artists/Martin-grice"
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/2257605",
+              "header_image_url": "https://images.genius.com/1c947d5af4027b6bfe60c1e7b5273957.500x500x1.png",
+              "id": 2257605,
+              "image_url": "https://images.genius.com/1c947d5af4027b6bfe60c1e7b5273957.500x500x1.png",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Martin Grice",
+              "url": "https://genius.com/artists/Martin-grice"
             }
           ]
         }
@@ -140,6 +200,63 @@
         "index": "song",
         "type": "song",
         "result": {
+          "annotation_count": 1,
+          "api_path": "/songs/11912622",
+          "artist_names": "franco_mp3",
+          "full_title": "Songs that mention Britney by franco_mp3",
+          "header_image_thumbnail_url": "https://images.genius.com/d876e87e45f5e071e1d538c650226917.300x225x1.jpg",
+          "header_image_url": "https://images.genius.com/d876e87e45f5e071e1d538c650226917.600x450x1.jpg",
+          "id": 11912622,
+          "lyrics_owner_id": 22146750,
+          "lyrics_state": "complete",
+          "path": "/Franco-mp3-songs-that-mention-britney-annotated",
+          "primary_artist_names": "franco_mp3",
+          "pyongs_count": null,
+          "relationships_index_url": "https://genius.com/Franco-mp3-songs-that-mention-britney-sample",
+          "release_date_components": null,
+          "release_date_for_display": null,
+          "release_date_with_abbreviated_month_for_display": null,
+          "song_art_image_thumbnail_url": "https://images.genius.com/d876e87e45f5e071e1d538c650226917.300x225x1.jpg",
+          "song_art_image_url": "https://images.genius.com/d876e87e45f5e071e1d538c650226917.600x450x1.jpg",
+          "stats": {
+            "unreviewed_annotations": 0,
+            "hot": false
+          },
+          "title": "Songs that mention Britney",
+          "title_with_featured": "Songs that mention Britney",
+          "url": "https://genius.com/Franco-mp3-songs-that-mention-britney-annotated",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/4388145",
+            "header_image_url": "https://images.genius.com/4bc3aca26f5665ddbde2853439d67169.800x1000x1.jpg",
+            "id": 4388145,
+            "image_url": "https://images.genius.com/138e06ca3d1422d8156e91609b099c56.295x295x1.jpg",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "franco_mp3",
+            "url": "https://genius.com/artists/Franco-mp3",
+            "iq": 28548
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/4388145",
+              "header_image_url": "https://images.genius.com/4bc3aca26f5665ddbde2853439d67169.800x1000x1.jpg",
+              "id": 4388145,
+              "image_url": "https://images.genius.com/138e06ca3d1422d8156e91609b099c56.295x295x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "franco_mp3",
+              "url": "https://genius.com/artists/Franco-mp3",
+              "iq": 28548
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
           "annotation_count": 2,
           "api_path": "/songs/7839798",
           "artist_names": "Miley Cyrus",
@@ -172,7 +289,7 @@
           "featured_artists": [],
           "primary_artist": {
             "api_path": "/artists/805",
-            "header_image_url": "https://images.genius.com/839fec7efd9c7f82c16177e2be049f4c.1000x667x1.jpg",
+            "header_image_url": "https://images.genius.com/66234a5ee8bba5bf505f26e727cd8c94.1000x165x1.png",
             "id": 805,
             "image_url": "https://images.genius.com/0ae7f4590be0f49453df90ff8f950492.1000x1000x1.png",
             "is_meme_verified": false,
@@ -183,7 +300,7 @@
           "primary_artists": [
             {
               "api_path": "/artists/805",
-              "header_image_url": "https://images.genius.com/839fec7efd9c7f82c16177e2be049f4c.1000x667x1.jpg",
+              "header_image_url": "https://images.genius.com/66234a5ee8bba5bf505f26e727cd8c94.1000x165x1.png",
               "id": 805,
               "image_url": "https://images.genius.com/0ae7f4590be0f49453df90ff8f950492.1000x1000x1.png",
               "is_meme_verified": false,
@@ -260,136 +377,56 @@
         "index": "song",
         "type": "song",
         "result": {
-          "annotation_count": 1,
-          "api_path": "/songs/1833838",
-          "artist_names": "Tony Yayo (Ft. Cory Gunz & Danny Brown)",
-          "full_title": "Tables by Tony Yayo (Ft. Cory Gunz & Danny Brown)",
-          "header_image_thumbnail_url": "https://images.genius.com/f82368530d51afa5db41bb2b9c17f734.300x300x1.png",
-          "header_image_url": "https://images.genius.com/f82368530d51afa5db41bb2b9c17f734.600x600x1.png",
-          "id": 1833838,
-          "lyrics_owner_id": 2703119,
+          "annotation_count": 0,
+          "api_path": "/songs/11138178",
+          "artist_names": "Miley Cyrus",
+          "full_title": "Party In The U.S.A. (Cahill Club Mix) by Miley Cyrus",
+          "header_image_thumbnail_url": "https://images.genius.com/4ace68313d78b5ca407af9a31b912040.300x264x1.png",
+          "header_image_url": "https://images.genius.com/4ace68313d78b5ca407af9a31b912040.1000x879x1.png",
+          "id": 11138178,
+          "lyrics_owner_id": 8280771,
           "lyrics_state": "complete",
-          "path": "/Tony-yayo-tables-lyrics",
-          "primary_artist_names": "Tony Yayo",
+          "path": "/Miley-cyrus-party-in-the-usa-cahill-club-mix-lyrics",
+          "primary_artist_names": "Miley Cyrus",
           "pyongs_count": null,
-          "relationships_index_url": "https://genius.com/Tony-yayo-tables-sample",
-          "release_date_components": null,
-          "release_date_for_display": null,
-          "release_date_with_abbreviated_month_for_display": null,
-          "song_art_image_thumbnail_url": "https://images.genius.com/f82368530d51afa5db41bb2b9c17f734.300x300x1.png",
-          "song_art_image_url": "https://images.genius.com/f82368530d51afa5db41bb2b9c17f734.600x600x1.png",
+          "relationships_index_url": "https://genius.com/Miley-cyrus-party-in-the-usa-cahill-club-mix-sample",
+          "release_date_components": {
+            "year": 2009,
+            "month": 8,
+            "day": 4
+          },
+          "release_date_for_display": "August 4, 2009",
+          "release_date_with_abbreviated_month_for_display": "Aug. 4, 2009",
+          "song_art_image_thumbnail_url": "https://images.genius.com/4ace68313d78b5ca407af9a31b912040.300x264x1.png",
+          "song_art_image_url": "https://images.genius.com/4ace68313d78b5ca407af9a31b912040.1000x879x1.png",
           "stats": {
             "unreviewed_annotations": 0,
             "hot": false
           },
-          "title": "Tables",
-          "title_with_featured": "Tables (Ft. Cory Gunz & Danny Brown)",
-          "url": "https://genius.com/Tony-yayo-tables-lyrics",
-          "featured_artists": [
-            {
-              "api_path": "/artists/1422",
-              "header_image_url": "https://images.genius.com/344ff4409d4b7fddb09f4bb7dde34987.965x579x1.jpg",
-              "id": 1422,
-              "image_url": "https://images.genius.com/c0563c9032200258584576466a5d6d53.395x395x1.jpg",
-              "is_meme_verified": false,
-              "is_verified": true,
-              "name": "Danny Brown",
-              "url": "https://genius.com/artists/Danny-brown",
-              "iq": 12911
-            },
-            {
-              "api_path": "/artists/349",
-              "header_image_url": "https://images.genius.com/03d5998aefc6566ec69427ea4b060117.640x799x1.jpg",
-              "id": 349,
-              "image_url": "https://images.genius.com/03d5998aefc6566ec69427ea4b060117.640x799x1.jpg",
-              "is_meme_verified": false,
-              "is_verified": false,
-              "name": "Cory Gunz",
-              "url": "https://genius.com/artists/Cory-gunz"
-            }
-          ],
-          "primary_artist": {
-            "api_path": "/artists/556",
-            "header_image_url": "https://images.genius.com/3596927b4f965a021b77bdce59700d88.237x237x1.jpg",
-            "id": 556,
-            "image_url": "https://images.genius.com/3596927b4f965a021b77bdce59700d88.237x237x1.jpg",
-            "is_meme_verified": false,
-            "is_verified": false,
-            "name": "Tony Yayo",
-            "url": "https://genius.com/artists/Tony-yayo"
-          },
-          "primary_artists": [
-            {
-              "api_path": "/artists/556",
-              "header_image_url": "https://images.genius.com/3596927b4f965a021b77bdce59700d88.237x237x1.jpg",
-              "id": 556,
-              "image_url": "https://images.genius.com/3596927b4f965a021b77bdce59700d88.237x237x1.jpg",
-              "is_meme_verified": false,
-              "is_verified": false,
-              "name": "Tony Yayo",
-              "url": "https://genius.com/artists/Tony-yayo"
-            }
-          ]
-        }
-      },
-      {
-        "highlights": [],
-        "index": "song",
-        "type": "song",
-        "result": {
-          "annotation_count": 7,
-          "api_path": "/songs/2469194",
-          "artist_names": "Mike Posner",
-          "full_title": "Miley Cyrus by Mike Posner",
-          "header_image_thumbnail_url": "https://images.genius.com/00713a83a66a097395319f83ab6cf66e.300x300x1.jpg",
-          "header_image_url": "https://images.genius.com/00713a83a66a097395319f83ab6cf66e.480x480x1.jpg",
-          "id": 2469194,
-          "lyrics_owner_id": 2353834,
-          "lyrics_state": "complete",
-          "path": "/Mike-posner-miley-cyrus-lyrics",
-          "primary_artist_names": "Mike Posner",
-          "pyongs_count": 1,
-          "relationships_index_url": "https://genius.com/Mike-posner-miley-cyrus-sample",
-          "release_date_components": {
-            "year": 2016,
-            "month": 5,
-            "day": 6
-          },
-          "release_date_for_display": "May 6, 2016",
-          "release_date_with_abbreviated_month_for_display": "May 6, 2016",
-          "song_art_image_thumbnail_url": "https://images.genius.com/00713a83a66a097395319f83ab6cf66e.300x300x1.jpg",
-          "song_art_image_url": "https://images.genius.com/00713a83a66a097395319f83ab6cf66e.480x480x1.jpg",
-          "stats": {
-            "unreviewed_annotations": 5,
-            "hot": false,
-            "pageviews": 6716
-          },
-          "title": "Miley Cyrus",
-          "title_with_featured": "Miley Cyrus",
-          "url": "https://genius.com/Mike-posner-miley-cyrus-lyrics",
+          "title": "Party In The U.S.A. (Cahill Club Mix)",
+          "title_with_featured": "Party In The U.S.A. (Cahill Club Mix)",
+          "url": "https://genius.com/Miley-cyrus-party-in-the-usa-cahill-club-mix-lyrics",
           "featured_artists": [],
           "primary_artist": {
-            "api_path": "/artists/654",
-            "header_image_url": "https://images.genius.com/d9175ccb1103a5cc3f89e9ce5b995599.1000x333x1.jpg",
-            "id": 654,
-            "image_url": "https://images.genius.com/3bb0fbe528e5fe92e4e13b0e79d2febe.400x400x1.jpg",
-            "is_meme_verified": true,
-            "is_verified": true,
-            "name": "Mike Posner",
-            "url": "https://genius.com/artists/Mike-posner",
-            "iq": 16898
+            "api_path": "/artists/805",
+            "header_image_url": "https://images.genius.com/66234a5ee8bba5bf505f26e727cd8c94.1000x165x1.png",
+            "id": 805,
+            "image_url": "https://images.genius.com/0ae7f4590be0f49453df90ff8f950492.1000x1000x1.png",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "Miley Cyrus",
+            "url": "https://genius.com/artists/Miley-cyrus"
           },
           "primary_artists": [
             {
-              "api_path": "/artists/654",
-              "header_image_url": "https://images.genius.com/d9175ccb1103a5cc3f89e9ce5b995599.1000x333x1.jpg",
-              "id": 654,
-              "image_url": "https://images.genius.com/3bb0fbe528e5fe92e4e13b0e79d2febe.400x400x1.jpg",
-              "is_meme_verified": true,
-              "is_verified": true,
-              "name": "Mike Posner",
-              "url": "https://genius.com/artists/Mike-posner",
-              "iq": 16898
+              "api_path": "/artists/805",
+              "header_image_url": "https://images.genius.com/66234a5ee8bba5bf505f26e727cd8c94.1000x165x1.png",
+              "id": 805,
+              "image_url": "https://images.genius.com/0ae7f4590be0f49453df90ff8f950492.1000x1000x1.png",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Miley Cyrus",
+              "url": "https://genius.com/artists/Miley-cyrus"
             }
           ]
         }
@@ -400,18 +437,77 @@
         "type": "song",
         "result": {
           "annotation_count": 0,
-          "api_path": "/songs/5266696",
-          "artist_names": "Genius srpski prevodi",
-          "full_title": "Miley Cyrus - Party in the U.S.A. (Srpski Prevod) by Genius srpski prevodi",
+          "api_path": "/songs/11138148",
+          "artist_names": "Miley Cyrus",
+          "full_title": "Party In The U.S.A. (Wideboys Full Club) by Miley Cyrus",
+          "header_image_thumbnail_url": "https://images.genius.com/4ace68313d78b5ca407af9a31b912040.300x264x1.png",
+          "header_image_url": "https://images.genius.com/4ace68313d78b5ca407af9a31b912040.1000x879x1.png",
+          "id": 11138148,
+          "lyrics_owner_id": 8280771,
+          "lyrics_state": "complete",
+          "path": "/Miley-cyrus-party-in-the-usa-wideboys-full-club-lyrics",
+          "primary_artist_names": "Miley Cyrus",
+          "pyongs_count": null,
+          "relationships_index_url": "https://genius.com/Miley-cyrus-party-in-the-usa-wideboys-full-club-sample",
+          "release_date_components": {
+            "year": 2009,
+            "month": 8,
+            "day": 4
+          },
+          "release_date_for_display": "August 4, 2009",
+          "release_date_with_abbreviated_month_for_display": "Aug. 4, 2009",
+          "song_art_image_thumbnail_url": "https://images.genius.com/4ace68313d78b5ca407af9a31b912040.300x264x1.png",
+          "song_art_image_url": "https://images.genius.com/4ace68313d78b5ca407af9a31b912040.1000x879x1.png",
+          "stats": {
+            "unreviewed_annotations": 0,
+            "hot": false
+          },
+          "title": "Party In The U.S.A. (Wideboys Full Club)",
+          "title_with_featured": "Party In The U.S.A. (Wideboys Full Club)",
+          "url": "https://genius.com/Miley-cyrus-party-in-the-usa-wideboys-full-club-lyrics",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/805",
+            "header_image_url": "https://images.genius.com/66234a5ee8bba5bf505f26e727cd8c94.1000x165x1.png",
+            "id": 805,
+            "image_url": "https://images.genius.com/0ae7f4590be0f49453df90ff8f950492.1000x1000x1.png",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "Miley Cyrus",
+            "url": "https://genius.com/artists/Miley-cyrus"
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/805",
+              "header_image_url": "https://images.genius.com/66234a5ee8bba5bf505f26e727cd8c94.1000x165x1.png",
+              "id": 805,
+              "image_url": "https://images.genius.com/0ae7f4590be0f49453df90ff8f950492.1000x1000x1.png",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "Miley Cyrus",
+              "url": "https://genius.com/artists/Miley-cyrus"
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 0,
+          "api_path": "/songs/5266709",
+          "artist_names": "Miley Cyrus",
+          "full_title": "Party In The USA (Teddy Cream Bootleg) by Miley Cyrus",
           "header_image_thumbnail_url": "https://images.genius.com/8ec869ab3b6ee89e16b1f750fcc1a95c.300x300x1.jpg",
           "header_image_url": "https://images.genius.com/8ec869ab3b6ee89e16b1f750fcc1a95c.900x900x1.jpg",
-          "id": 5266696,
+          "id": 5266709,
           "lyrics_owner_id": 9159893,
           "lyrics_state": "complete",
-          "path": "/Genius-srpski-prevodi-miley-cyrus-party-in-the-usa-srpski-prevod-lyrics",
-          "primary_artist_names": "Genius srpski prevodi",
+          "path": "/Miley-cyrus-party-in-the-usa-teddy-cream-bootleg-lyrics",
+          "primary_artist_names": "Miley Cyrus",
           "pyongs_count": null,
-          "relationships_index_url": "https://genius.com/Genius-srpski-prevodi-miley-cyrus-party-in-the-usa-srpski-prevod-sample",
+          "relationships_index_url": "https://genius.com/Miley-cyrus-party-in-the-usa-teddy-cream-bootleg-sample",
           "release_date_components": {
             "year": 2009,
             "month": 8,
@@ -425,208 +521,30 @@
             "unreviewed_annotations": 0,
             "hot": false
           },
-          "title": "Miley Cyrus - Party in the U.S.A. (Srpski Prevod)",
-          "title_with_featured": "Miley Cyrus - Party in the U.S.A. (Srpski Prevod)",
-          "url": "https://genius.com/Genius-srpski-prevodi-miley-cyrus-party-in-the-usa-srpski-prevod-lyrics",
+          "title": "Party In The USA (Teddy Cream Bootleg)",
+          "title_with_featured": "Party In The USA (Teddy Cream Bootleg)",
+          "url": "https://genius.com/Miley-cyrus-party-in-the-usa-teddy-cream-bootleg-lyrics",
           "featured_artists": [],
           "primary_artist": {
-            "api_path": "/artists/2060763",
-            "header_image_url": "https://images.genius.com/547373b7282db1716ced41b046ee91ff.1000x205x1.png",
-            "id": 2060763,
-            "image_url": "https://images.genius.com/cdd47eee97c223cad1b0f349503d1ac9.512x512x1.png",
+            "api_path": "/artists/805",
+            "header_image_url": "https://images.genius.com/66234a5ee8bba5bf505f26e727cd8c94.1000x165x1.png",
+            "id": 805,
+            "image_url": "https://images.genius.com/0ae7f4590be0f49453df90ff8f950492.1000x1000x1.png",
             "is_meme_verified": false,
             "is_verified": false,
-            "name": "Genius srpski prevodi",
-            "url": "https://genius.com/artists/Genius-srpski-prevodi"
+            "name": "Miley Cyrus",
+            "url": "https://genius.com/artists/Miley-cyrus"
           },
           "primary_artists": [
             {
-              "api_path": "/artists/2060763",
-              "header_image_url": "https://images.genius.com/547373b7282db1716ced41b046ee91ff.1000x205x1.png",
-              "id": 2060763,
-              "image_url": "https://images.genius.com/cdd47eee97c223cad1b0f349503d1ac9.512x512x1.png",
+              "api_path": "/artists/805",
+              "header_image_url": "https://images.genius.com/66234a5ee8bba5bf505f26e727cd8c94.1000x165x1.png",
+              "id": 805,
+              "image_url": "https://images.genius.com/0ae7f4590be0f49453df90ff8f950492.1000x1000x1.png",
               "is_meme_verified": false,
               "is_verified": false,
-              "name": "Genius srpski prevodi",
-              "url": "https://genius.com/artists/Genius-srpski-prevodi"
-            }
-          ]
-        }
-      },
-      {
-        "highlights": [],
-        "index": "song",
-        "type": "song",
-        "result": {
-          "annotation_count": 0,
-          "api_path": "/songs/9973250",
-          "artist_names": "Genius Arabic Translations (الترجمات العربية)",
-          "full_title": "Miley Cyrus - Party In the U.S.A. (الترجمة العربية) by Genius Arabic Translations (الترجمات العربية)",
-          "header_image_thumbnail_url": "https://images.genius.com/d8a7d238a604c365157c4fdc7e892b8a.300x300x1.jpg",
-          "header_image_url": "https://images.genius.com/d8a7d238a604c365157c4fdc7e892b8a.504x504x1.jpg",
-          "id": 9973250,
-          "lyrics_owner_id": 20869951,
-          "lyrics_state": "complete",
-          "path": "/Genius-arabic-translations-miley-cyrus-party-in-the-usa-lyrics",
-          "primary_artist_names": "Genius Arabic Translations (الترجمات العربية)",
-          "pyongs_count": null,
-          "relationships_index_url": "https://genius.com/Genius-arabic-translations-miley-cyrus-party-in-the-usa-sample",
-          "release_date_components": {
-            "year": 2009,
-            "month": 8,
-            "day": 11
-          },
-          "release_date_for_display": "August 11, 2009",
-          "release_date_with_abbreviated_month_for_display": "Aug. 11, 2009",
-          "song_art_image_thumbnail_url": "https://images.genius.com/d8a7d238a604c365157c4fdc7e892b8a.300x300x1.jpg",
-          "song_art_image_url": "https://images.genius.com/d8a7d238a604c365157c4fdc7e892b8a.504x504x1.jpg",
-          "stats": {
-            "unreviewed_annotations": 0,
-            "hot": false
-          },
-          "title": "Miley Cyrus - Party In the U.S.A. (الترجمة العربية)",
-          "title_with_featured": "Miley Cyrus - Party In the U.S.A. (الترجمة العربية)",
-          "url": "https://genius.com/Genius-arabic-translations-miley-cyrus-party-in-the-usa-lyrics",
-          "featured_artists": [],
-          "primary_artist": {
-            "api_path": "/artists/211029",
-            "header_image_url": "https://images.genius.com/6d6e547b6cf723439d4a51eeee242dfb.1000x309x1.jpg",
-            "id": 211029,
-            "image_url": "https://images.genius.com/016c76ec565485f573f8c1c720cd8729.988x988x1.jpg",
-            "is_meme_verified": false,
-            "is_verified": false,
-            "name": "Genius Arabic Translations (الترجمات العربية)",
-            "url": "https://genius.com/artists/Genius-arabic-translations"
-          },
-          "primary_artists": [
-            {
-              "api_path": "/artists/211029",
-              "header_image_url": "https://images.genius.com/6d6e547b6cf723439d4a51eeee242dfb.1000x309x1.jpg",
-              "id": 211029,
-              "image_url": "https://images.genius.com/016c76ec565485f573f8c1c720cd8729.988x988x1.jpg",
-              "is_meme_verified": false,
-              "is_verified": false,
-              "name": "Genius Arabic Translations (الترجمات العربية)",
-              "url": "https://genius.com/artists/Genius-arabic-translations"
-            }
-          ]
-        }
-      },
-      {
-        "highlights": [],
-        "index": "song",
-        "type": "song",
-        "result": {
-          "annotation_count": 0,
-          "api_path": "/songs/7855665",
-          "artist_names": "Genius Traducciones al Español",
-          "full_title": "Miley Cyrus - Party In The U.S.A. (Live) (Traducción al Español) by Genius Traducciones al Español",
-          "header_image_thumbnail_url": "https://images.genius.com/f226df0a0a92e836c62cce615835bb6d.300x300x1.png",
-          "header_image_url": "https://images.genius.com/f226df0a0a92e836c62cce615835bb6d.1000x1000x1.png",
-          "id": 7855665,
-          "lyrics_owner_id": 11128325,
-          "lyrics_state": "unreleased",
-          "path": "/Genius-traducciones-al-espanol-miley-cyrus-party-in-the-usa-live-traduccion-al-espanol-lyrics",
-          "primary_artist_names": "Genius Traducciones al Español",
-          "pyongs_count": null,
-          "relationships_index_url": "https://genius.com/Genius-traducciones-al-espanol-miley-cyrus-party-in-the-usa-live-traduccion-al-espanol-sample",
-          "release_date_components": {
-            "year": 2022,
-            "month": 4,
-            "day": 1
-          },
-          "release_date_for_display": "April 1, 2022",
-          "release_date_with_abbreviated_month_for_display": "Apr. 1, 2022",
-          "song_art_image_thumbnail_url": "https://images.genius.com/f226df0a0a92e836c62cce615835bb6d.300x300x1.png",
-          "song_art_image_url": "https://images.genius.com/f226df0a0a92e836c62cce615835bb6d.1000x1000x1.png",
-          "stats": {
-            "unreviewed_annotations": 0,
-            "hot": false
-          },
-          "title": "Miley Cyrus - Party In The U.S.A. (Live) (Traducción al Español)",
-          "title_with_featured": "Miley Cyrus - Party In The U.S.A. (Live) (Traducción al Español)",
-          "url": "https://genius.com/Genius-traducciones-al-espanol-miley-cyrus-party-in-the-usa-live-traduccion-al-espanol-lyrics",
-          "featured_artists": [],
-          "primary_artist": {
-            "api_path": "/artists/1376254",
-            "header_image_url": "https://images.genius.com/d43c9375eda8e9c8e8768a3a911b7d49.1000x213x44.gif",
-            "id": 1376254,
-            "image_url": "https://images.genius.com/766a687c3e07f9acd993d7f8ac3e9902.1000x1000x1.png",
-            "is_meme_verified": false,
-            "is_verified": false,
-            "name": "Genius Traducciones al Español",
-            "url": "https://genius.com/artists/Genius-traducciones-al-espanol"
-          },
-          "primary_artists": [
-            {
-              "api_path": "/artists/1376254",
-              "header_image_url": "https://images.genius.com/d43c9375eda8e9c8e8768a3a911b7d49.1000x213x44.gif",
-              "id": 1376254,
-              "image_url": "https://images.genius.com/766a687c3e07f9acd993d7f8ac3e9902.1000x1000x1.png",
-              "is_meme_verified": false,
-              "is_verified": false,
-              "name": "Genius Traducciones al Español",
-              "url": "https://genius.com/artists/Genius-traducciones-al-espanol"
-            }
-          ]
-        }
-      },
-      {
-        "highlights": [],
-        "index": "song",
-        "type": "song",
-        "result": {
-          "annotation_count": 8,
-          "api_path": "/songs/3718",
-          "artist_names": "Lil B",
-          "full_title": "I'm Miley Cyrus by Lil B",
-          "header_image_thumbnail_url": "https://images.genius.com/c42d61d15bf57eed400592a302c0cc0a.300x300x1.png",
-          "header_image_url": "https://images.genius.com/c42d61d15bf57eed400592a302c0cc0a.1000x1000x1.png",
-          "id": 3718,
-          "lyrics_owner_id": 5328,
-          "lyrics_state": "complete",
-          "path": "/Lil-b-im-miley-cyrus-lyrics",
-          "primary_artist_names": "Lil B",
-          "pyongs_count": 5,
-          "relationships_index_url": "https://genius.com/Lil-b-im-miley-cyrus-sample",
-          "release_date_components": {
-            "year": 2010,
-            "month": 11,
-            "day": 9
-          },
-          "release_date_for_display": "November 9, 2010",
-          "release_date_with_abbreviated_month_for_display": "Nov. 9, 2010",
-          "song_art_image_thumbnail_url": "https://images.genius.com/c42d61d15bf57eed400592a302c0cc0a.300x300x1.png",
-          "song_art_image_url": "https://images.genius.com/c42d61d15bf57eed400592a302c0cc0a.1000x1000x1.png",
-          "stats": {
-            "unreviewed_annotations": 5,
-            "hot": false,
-            "pageviews": 17138
-          },
-          "title": "I’m Miley Cyrus",
-          "title_with_featured": "I'm Miley Cyrus",
-          "url": "https://genius.com/Lil-b-im-miley-cyrus-lyrics",
-          "featured_artists": [],
-          "primary_artist": {
-            "api_path": "/artists/455",
-            "header_image_url": "https://images.genius.com/f2993dee2668494e4b8a7fb70ebe05a7.1000x165x1.jpg",
-            "id": 455,
-            "image_url": "https://images.genius.com/fdaaf4e5a68f7324c6f3b1fff13a8e20.333x333x1.jpg",
-            "is_meme_verified": false,
-            "is_verified": false,
-            "name": "Lil B",
-            "url": "https://genius.com/artists/Lil-b"
-          },
-          "primary_artists": [
-            {
-              "api_path": "/artists/455",
-              "header_image_url": "https://images.genius.com/f2993dee2668494e4b8a7fb70ebe05a7.1000x165x1.jpg",
-              "id": 455,
-              "image_url": "https://images.genius.com/fdaaf4e5a68f7324c6f3b1fff13a8e20.333x333x1.jpg",
-              "is_meme_verified": false,
-              "is_verified": false,
-              "name": "Lil B",
-              "url": "https://genius.com/artists/Lil-b"
+              "name": "Miley Cyrus",
+              "url": "https://genius.com/artists/Miley-cyrus"
             }
           ]
         }

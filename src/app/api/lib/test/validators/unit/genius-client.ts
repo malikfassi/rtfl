@@ -1,5 +1,8 @@
 import type { GeniusSearchResponse } from '../../../types/genius';
 import { fixtures } from '../../fixtures';
+import { getExpectedSongMetadata } from '../../utils/genius';
+import { TRACK_KEYS } from '../../constants';
+import { extractLyricsFromHtml } from '../../../services/lyrics';
 
 export interface LyricsMetadata {
   title: string;
@@ -11,9 +14,9 @@ export interface LyricsMetadata {
 }
 
 export const genius_client = {
-  search: (response: GeniusSearchResponse, query: string) => {
+  search: (response: GeniusSearchResponse, key: string) => {
     expect(response).toBeDefined();
-    const fixture = fixtures.genius.search.get(query);
+    const fixture = fixtures.genius.search[key];
     expect(fixture).toBeDefined();
     
     // Validate response structure
@@ -43,10 +46,45 @@ export const genius_client = {
     return true;
   },
 
-  lyrics: (content: string, url: string) => {
-    // Compare with fixture
-    const fixture = fixtures.genius.lyrics.get(url);
-    expect(content).toEqual(fixture);
+  lyrics: (content: string, key: string) => {
+    expect(content).toBeDefined();
+    expect(typeof content).toBe('string');
+    expect(content.length).toBeGreaterThan(0);
+    
+    // Extract expected lyrics from fixture HTML
+    const fixtureHtml = fixtures.genius.lyrics[key];
+    expect(fixtureHtml).toBeDefined();
+    const expectedLyrics = extractLyricsFromHtml(fixtureHtml);
+    expect(expectedLyrics).toBeDefined();
+    expect(expectedLyrics.length).toBeGreaterThan(0);
+    
+    // Compare actual lyrics to expected extracted lyrics
+    expect(content).toBe(expectedLyrics);
+    
+    // Get expected metadata for this track key (cast to correct type)
+    const metadata = getExpectedSongMetadata(key as keyof typeof TRACK_KEYS);
+    
+    if (metadata.hasLyrics && metadata.title) {
+      // Check that lyrics contain some reference to the song title
+      const titleWords = metadata.title.toLowerCase().split(/\s+/);
+      const contentLower = content.toLowerCase();
+      
+      // At least one significant word from the title should appear in lyrics
+      const hasRelevantContent = titleWords.some(word => 
+        word.length > 2 && contentLower.includes(word)
+      );
+      
+      // This is flexible - not all songs will have the exact title in lyrics
+      if (!hasRelevantContent && !contentLower.includes('licensing')) {
+        console.warn(`No title words found in lyrics for ${key}, but this may be normal`);
+      }
+    }
+    
+    // Should not contain HTML tags
+    expect(content).not.toMatch(/<[^>]*>/);
+    expect(content).not.toContain('class=');
+    expect(content).not.toContain('data-');
+    
     return content;
   }
 }; 

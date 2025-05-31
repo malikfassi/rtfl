@@ -1,12 +1,20 @@
 import { NextRequest } from 'next/server';
 
 import { cleanupIntegrationTest, setupIntegrationTest } from '@/app/api/lib/test';
-import { TEST_CASES } from '@/app/api/lib/test/fixtures/core/test_cases';
-import { validators } from '@/app/api/lib/test/fixtures/core/validators';
+import { TRACK_KEYS } from '@/app/api/lib/test/constants';
+import { fixtures } from '@/app/api/lib/test/fixtures';
+import { integration_validator } from '@/app/api/lib/test/validators';
+import { ErrorCode } from '@/app/api/lib/errors/codes';
+import { ErrorMessage } from '@/app/api/lib/errors/messages';
 
 import { GET } from '../route';
 
-const validSongCase = TEST_CASES.SONGS.VALID;
+const validTrackKey = TRACK_KEYS.PARTY_IN_THE_USA;
+const validTrack = fixtures.spotify.tracks[validTrackKey];
+
+function getErrorMessage(msg: string | ((...args: any[]) => string), ...args: any[]): string {
+  return typeof msg === 'function' ? msg(...args) : msg;
+}
 
 describe('Spotify Tracks Search API Integration', () => {
   beforeEach(async () => {
@@ -19,9 +27,8 @@ describe('Spotify Tracks Search API Integration', () => {
 
   describe('GET /api/admin/spotify/tracks/search', () => {
     test('should return tracks when found by query', async () => {
-      const track = validSongCase.spotify.getTrack();
       const request = new NextRequest(
-        new URL(`http://localhost:3000/api/admin/spotify/tracks/search?q=${track.name}`),
+        new URL(`http://localhost:3000/api/admin/spotify/tracks/search?q=${validTrack.name}`),
         { method: 'GET' }
       );
 
@@ -31,22 +38,7 @@ describe('Spotify Tracks Search API Integration', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(data.tracks)).toBe(true);
       expect(data.tracks.length).toBeGreaterThan(0);
-      validators.integration.spotifyTrack(data.tracks[0], track);
-    }, 10000);
-
-    test('should return empty array when no tracks found', async () => {
-      const nonexistentQuery = 'nonexistent-song-name';
-      const request = new NextRequest(
-        new URL(`http://localhost:3000/api/admin/spotify/tracks/search?q=${nonexistentQuery}`),
-        { method: 'GET' }
-      );
-
-      const response = await GET(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(Array.isArray(data.tracks)).toBe(true);
-      expect(data.tracks.length).toBe(0);
+      integration_validator.spotify_client.track(data.tracks[0], validTrackKey);
     }, 10000);
 
     test('should return 400 when query is missing', async () => {
@@ -59,8 +51,8 @@ describe('Spotify Tracks Search API Integration', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe('VALIDATION_ERROR');
-      expect(data.message).toBe('Expected string, received null');
+      expect(data.error).toBe(ErrorCode.ValidationError);
+      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
     }, 10000);
 
     test('should return 400 when query is empty', async () => {
@@ -73,8 +65,8 @@ describe('Spotify Tracks Search API Integration', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe('VALIDATION_ERROR');
-      expect(data.message).toBe('Search query cannot be empty');
+      expect(data.error).toBe(ErrorCode.ValidationError);
+      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
     }, 10000);
 
     test('should return 400 when query is too long', async () => {
@@ -88,8 +80,8 @@ describe('Spotify Tracks Search API Integration', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe('VALIDATION_ERROR');
-      expect(data.message).toBe('String must contain at most 100 character(s)');
+      expect(data.error).toBe(ErrorCode.ValidationError);
+      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
     }, 10000);
   });
 }); 

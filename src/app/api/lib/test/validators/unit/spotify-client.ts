@@ -5,11 +5,12 @@ import { constructSpotifySearchQuery } from '../../../utils/spotify';
 
 type SpotifyTrackFixture = Track;
 
+// All fixture access is by constant key only. No mapping helpers used.
 export const spotify_client = {
-  track: (track: unknown, id: string) => {
+  track: (track: unknown, key: string) => {
     expect(track).toBeDefined();
     const t = track as Track;
-    const fixture = fixtures.spotify.getTrack.get(id) as SpotifyTrackFixture;
+    const fixture = fixtures.spotify.tracks[key] as SpotifyTrackFixture;
     
     // Validate track structure
     expect(t.id).toBeDefined();
@@ -23,19 +24,13 @@ export const spotify_client = {
     return true;
   },
 
-  search: (tracks: unknown, query: string) => {
+  search: (tracks: unknown, key: string) => {
     expect(Array.isArray(tracks)).toBe(true);
     const results = tracks as Track[];
     
-    // Get the reference track from fixtures
-    const referenceTrack = fixtures.spotify.getTrack.get(TEST_IDS.SPOTIFY.TRACKS.PARTY_IN_THE_USA);
-    const expectedQuery = constructSpotifySearchQuery(referenceTrack.name, referenceTrack.artists[0].name);
-    
-    // Only validate against fixture if the query matches our reference track
-    if (query === expectedQuery) {
-      const fixtureResults = fixtures.spotify.searchTracks.get(query);
-      expect(results).toEqual(fixtureResults);
-    }
+    // Only validate against fixture if the key matches our reference track
+    const fixtureResults = fixtures.spotify.search[key]?.tracks?.items || [];
+    expect(results).toEqual(fixtureResults);
     
     // Validate each track has required structure
     results.forEach(track => {
@@ -49,17 +44,11 @@ export const spotify_client = {
     return true;
   },
 
-  playlist_search: (response: unknown, query: string) => {
+  playlist_search: (response: unknown, key: string) => {
     expect(response).toBeDefined();
     const result = response as { playlists: { items: SimplifiedPlaylist[] } };
-    
-    // Get the reference playlist from fixtures
-    const fixtureResults = fixtures.spotify.searchPlaylists.get(query);
-    
-    // Compare with fixture data
-    console.log('Query:', query);
-    console.log('First playlist item:', result.playlists.items[0]);
-    expect(result).toEqual(fixtureResults);
+    const fixtureResults = fixtures.spotify.search[key]?.playlists || { items: [] };
+    expect(result.playlists.items).toEqual(fixtureResults.items);
     
     // Validate playlist structure
     expect(Array.isArray(result.playlists.items)).toBe(true);
@@ -74,11 +63,12 @@ export const spotify_client = {
     return true;
   },
 
-  playlist_tracks: (tracks: unknown, id: string) => {
+  playlist_tracks: (tracks: unknown, key: string) => {
     expect(Array.isArray(tracks)).toBe(true);
     const results = tracks as Track[];
-    const fixture = fixtures.spotify.getPlaylistTracks.get(id);
-    
+    const fixture = fixtures.spotify.playlists[key]?.tracks.items.map(item => item.track) || [];
+    expect(results).toEqual(fixture);
+
     // Validate each track has required structure
     results.forEach(track => {
       expect(track.id).toBeDefined();
@@ -88,8 +78,6 @@ export const spotify_client = {
       expect(track.artists[0].name).toBeDefined();
     });
 
-    // Compare with fixture
-    expect(results).toEqual(fixture);
     return true;
   }
 };

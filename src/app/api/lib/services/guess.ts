@@ -86,9 +86,6 @@ export class GuessService {
 }
 
 // Export factory function
-export function createGuessService(client: PrismaClient = prisma) {
+export function createGuessService(client: PrismaClient) {
   return new GuessService(client);
-}
-
-// Export default instance
-export const guessService = new GuessService(prisma); 
+} 

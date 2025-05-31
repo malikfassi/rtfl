@@ -14,22 +14,16 @@ export class GameService {
     private prisma: PrismaClient
   ) {}
 
-  async createOrUpdate(date: string, trackId: string): Promise<GameWithSong> {
+  async createOrUpdate(date: string, songId: string): Promise<GameWithSong> {
     const validatedDate = validateSchema(schemas.date, date);
-    const validatedTrackId = validateSchema(schemas.spotifyId, trackId);
-
-    // First fetch all external data outside the transaction
-    const song = await this.songService.create(validatedTrackId);
-
-    // Then perform the database transaction
+    // Assume songId is a valid DB ID (CUID) and exists
     return await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const game = await tx.game.upsert({
         where: { date: validatedDate },
-        create: { date: validatedDate, songId: song.id },
-        update: { songId: song.id },
+        create: { date: validatedDate, songId },
+        update: { songId },
         include: { song: true }
       });
-
       return game;
     });
   }
@@ -142,4 +136,6 @@ export const gameService = new GameService(
 // Factory function to create new instances with custom dependencies
 export const createGameService = (songService: SongService = createSongService(), prismaClient: PrismaClient = prisma) => {
   return new GameService(songService, prismaClient);
-}; 
+};
+
+export type { GameWithSong } from '@/app/api/lib/types/game'; 

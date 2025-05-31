@@ -19,8 +19,8 @@ export async function GET(request: Request): Promise<NextResponse<Response>> {
     const query = validateSearchParam(searchParams, 'q', schemas.searchQuery);
     
     const client = await getSpotifyClient();
-    const playlists = await client.searchPlaylists(query);
-    return NextResponse.json({ playlists });
+    const playlistsPage = await client.searchPlaylists(query);
+    return NextResponse.json({ playlists: playlistsPage.items });
   } catch (error) {
     return handleError(error);
   }

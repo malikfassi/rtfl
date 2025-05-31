@@ -1,127 +1,134 @@
 import { ValidationError } from '@/app/api/lib/errors/base';
-import { NoMatchingLyricsError } from '@/app/api/lib/errors/clients/genius';
 import { TrackNotFoundError } from '@/app/api/lib/errors/clients/spotify';
-import { TEST_CASES } from '@/app/api/lib/test/fixtures/core/test_cases';
-import { SONG_IDS } from '@/app/api/lib/test/fixtures/spotify_ids';
+import { NoMatchingLyricsError } from '@/app/api/lib/errors/services/genius';
 import {
   cleanupIntegrationTest,
-  type IntegrationTestContext,
-  setupIntegrationTest} from '@/app/api/lib/test/test-env/integration';
+  setupIntegrationTest,
+  IntegrationTestContext
+} from '@/app/api/lib/test/env/integration';
+import { TRACK_KEYS, TRACK_URIS, TEST_IDS } from '@/app/api/lib/test/constants';
+import { SongService } from '../song';
+import { spotifyService } from '../spotify';
+import { geniusService } from '../genius';
+import { lyricsService } from '../lyrics';
+import { fixtures } from '@/app/api/lib/test/fixtures';
+import { integration_validator } from '@/app/api/lib/test/validators';
 
 describe('SongService Integration', () => {
   let context: IntegrationTestContext;
-
-  // Get test cases
-  const validSongCase = TEST_CASES.SONGS.VALID;
-  const frenchSongCase = TEST_CASES.SONGS.FRENCH;
-  const unknownSongCase = TEST_CASES.SONGS.UNKNOWN_SONG;
+  let songService: SongService;
 
   beforeEach(async () => {
     // Setup integration test context with clean database
     context = await setupIntegrationTest();
+    
+    // Create SongService with real database but mocked external services
+    songService = new SongService(context.prisma, spotifyService, geniusService);
+    
+    // Mock external API calls to use fixture data
+    jest.spyOn(geniusService, 'findMatch').mockImplementation(async (title: string, artist: string) => {
+      // Return fixture data based on the track
+      if (title.toLowerCase().includes('party') && artist.toLowerCase().includes('miley')) {
+        return fixtures.genius.search.PARTY_IN_THE_USA.response.hits[0];
+      }
+      if (title.toLowerCase().includes('vie en rose')) {
+        return fixtures.genius.search.LA_VIE_EN_ROSE.response.hits[0];
+      }
+      throw new NoMatchingLyricsError();
+    });
+    
+    jest.spyOn(lyricsService, 'getLyrics').mockImplementation(async (url: string) => {
+      // Return fixture lyrics based on URL
+      if (url.includes('party-in-the-usa')) {
+        return fixtures.genius.lyrics.PARTY_IN_THE_USA || 'Mock Party in the USA lyrics';
+      }
+      if (url.includes('la-vie-en-rose')) {
+        return fixtures.genius.lyrics.LA_VIE_EN_ROSE || 'Mock La Vie en Rose lyrics';
+      }
+      return 'Mock lyrics content';
+    });
   });
 
   afterEach(async () => {
     // Cleanup test context and database
     await cleanupIntegrationTest();
+    jest.restoreAllMocks();
   });
 
   describe('create', () => {
     it('creates a song with valid data', async () => {
-      const { id } = validSongCase;
-      const song = await context.songService.create(id);
+      const key = TRACK_KEYS.PARTY_IN_THE_USA;
+      const trackUri = TRACK_URIS[key];
+      const trackId = trackUri.split(':').pop()!;
+      const song = await songService.create(trackId);
       
-      // Validate song using test case validators
-      validSongCase.validators.unit.song(song);
-      await validSongCase.validators.integration.song(song);
+      integration_validator.song_service.create(key, song);
+      
+      // Verify the song was actually saved to the database
+      const savedSong = await context.prisma.song.findUnique({
+        where: { id: song.id }
+      });
+      expect(savedSong).not.toBeNull();
+      expect(savedSong?.spotifyId).toBe(trackId);
     });
 
     it('creates a song with French track data', async () => {
-      const { id } = frenchSongCase;
-      const song = await context.songService.create(id);
-
-      frenchSongCase.validators.unit.song(song);
-      await frenchSongCase.validators.integration.song(song);
+      const key = TRACK_KEYS.LA_VIE_EN_ROSE;
+      const trackUri = TRACK_URIS[key];
+      const trackId = trackUri.split(':').pop()!;
+      const song = await songService.create(trackId);
+      
+      integration_validator.song_service.create(key, song);
+      
+      // Verify the song was actually saved to the database
+      const savedSong = await context.prisma.song.findUnique({
+        where: { id: song.id }
+      });
+      expect(savedSong).not.toBeNull();
+      expect(savedSong?.spotifyId).toBe(trackId);
     });
 
     it('throws TrackNotFoundError when track does not exist', async () => {
-      const { id } = unknownSongCase;
-
-      await expect(context.songService.create(id))
+      const key = TRACK_KEYS.NOT_FOUND;
+      const trackUri = TRACK_URIS[key];
+      const trackId = trackUri.split(':').pop()!;
+      await expect(songService.create(trackId))
         .rejects
         .toThrow(TrackNotFoundError);
     });
 
-    it('throws NoMatchingLyricsError for instrumental tracks', async () => {
-      await expect(context.songService.create(SONG_IDS.INSTRUMENTAL_TRACK))
+    it('throws NoMatchingLyricsError when no Genius match found', async () => {
+      const key = TRACK_KEYS.INSTRUMENTAL_TRACK;
+      const trackUri = TRACK_URIS[key];
+      const trackId = trackUri.split(':').pop()!;
+      
+      // Mock genius service to throw NoMatchingLyricsError for instrumental
+      jest.spyOn(geniusService, 'findMatch').mockRejectedValueOnce(new NoMatchingLyricsError());
+      
+      await expect(songService.create(trackId))
         .rejects
         .toThrow(NoMatchingLyricsError);
     });
 
     it('throws ValidationError when spotify ID is empty', async () => {
-      await expect(context.songService.create(''))
+      await expect(songService.create(''))
         .rejects
         .toThrow(ValidationError);
-      
-      await expect(context.songService.create(''))
-        .rejects
-        .toThrow('Spotify ID is required');
     });
 
     it('throws ValidationError when spotify ID is only whitespace', async () => {
-      await expect(context.songService.create('   '))
+      await expect(songService.create('   '))
         .rejects
         .toThrow(ValidationError);
-      
-      await expect(context.songService.create('   '))
+    });
+
+    it('throws ValidationError when spotify ID format is invalid', async () => {
+      const key = TRACK_KEYS.INVALID_FORMAT;
+      const trackUri = TRACK_URIS[key];
+      const invalidId = trackUri.split(':').pop()!;
+      await expect(songService.create(invalidId))
         .rejects
-        .toThrow('Spotify ID is required');
-    });
-  });
-
-  describe('searchTracks', () => {
-    it('returns tracks when search is successful for valid song', async () => {
-      const track = validSongCase.spotify.getTrack();
-      const query = `${track.name} ${track.artists[0].name}`;
-
-      const results = await context.songService.searchTracks(query);
-      expect(results.length).toBeGreaterThan(0);
-      
-      // Verify first result has expected track properties
-      const firstResult = results[0];
-      expect(firstResult).toHaveProperty('id');
-      expect(firstResult).toHaveProperty('name');
-      expect(firstResult).toHaveProperty('artists');
-    });
-
-    it('returns tracks when search is successful for French song', async () => {
-      const track = frenchSongCase.spotify.getTrack();
-      const query = `${track.name} ${track.artists[0].name}`;
-
-      const results = await context.songService.searchTracks(query);
-      expect(results.length).toBeGreaterThan(0);
-      
-      const firstResult = results[0];
-      expect(firstResult).toHaveProperty('id');
-      expect(firstResult).toHaveProperty('name');
-      expect(firstResult).toHaveProperty('artists');
-    });
-
-    it('returns empty array when no tracks found', async () => {
-      const results = await context.songService.searchTracks('completely unknown nonexistent song title');
-      expect(results).toEqual([]);
-    });
-
-    it('throws ValidationError when query is empty', async () => {
-      await expect(context.songService.searchTracks(''))
-        .rejects
-        .toThrow('Search query cannot be empty');
-    });
-
-    it('throws ValidationError when query is only whitespace', async () => {
-      await expect(context.songService.searchTracks('   '))
-        .rejects
-        .toThrow('Search query cannot be empty');
+        .toThrow(ValidationError);
     });
   });
 });

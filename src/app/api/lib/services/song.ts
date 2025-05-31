@@ -20,15 +20,35 @@ export class SongService {
     private geniusService: GeniusServiceInterface
   ) {}
 
+  /**
+   * Idempotently create a song for the given Spotify ID.
+   * If a song with the given Spotify ID already exists, it is returned.
+   * Otherwise, fetches data from Spotify/Genius and creates the song.
+   */
   async create(spotifyId: string, tx?: PrismaClient): Promise<Song> {
     const validatedId = validateSchema(spotifyIdSchema, spotifyId);
+
+    // Check if the song already exists
+    const prisma = tx || this.prisma;
+    const existingSong = await prisma.song.findFirst({ where: { spotifyId: validatedId } });
+    if (existingSong) {
+      return existingSong;
+    }
 
     // First, fetch all external data
     const [track, bestMatch, lyrics] = await this.fetchExternalData(validatedId);
 
     // Then, create the song in the database
-    const prisma = tx || this.prisma;
     return await this.createSongInDb(validatedId, track, bestMatch, lyrics, prisma);
+  }
+
+  /**
+   * Fetch a song by Spotify ID, or return null if not found.
+   */
+  async getBySpotifyId(spotifyId: string, tx?: PrismaClient): Promise<Song | null> {
+    const validatedId = validateSchema(spotifyIdSchema, spotifyId);
+    const prisma = tx || this.prisma;
+    return prisma.song.findFirst({ where: { spotifyId: validatedId } });
   }
 
   private async fetchExternalData(spotifyId: string): Promise<[Track, GeniusHit, string]> {
@@ -43,6 +63,12 @@ export class SongService {
     
     const bestMatch = await this.geniusService.findMatch(track.name, track.artists[0].name);
 
+    if (!bestMatch.result.primary_artist) {
+      throw new Error('Genius result is missing primary_artist');
+    }
+    if (!bestMatch.result.url) {
+      throw new Error('Genius result is missing url for lyrics');
+    }
     console.log('Found lyrics:', {
       title: bestMatch.result.title,
       artist: bestMatch.result.primary_artist.name,

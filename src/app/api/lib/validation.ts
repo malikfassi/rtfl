@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 import { ValidationError } from './errors/base';
+import { ErrorMessage } from './errors/messages';
+import { ErrorCode } from './errors/codes';
 
 /**
  * Validates data against a Zod schema and throws a ValidationError if invalid
@@ -11,10 +13,15 @@ export function validateSchema<T>(schema: z.ZodSchema<T>, data: unknown): T {
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // Get the first required error or the first error
-      const requiredError = error.errors.find(e => e.message === 'Required');
-      const firstError = error.errors[0];
-      throw new ValidationError(requiredError?.message || firstError.message);
+      // Always throw a generic ValidationError using the error system, but include Zod error details as context
+      const msg = typeof ErrorMessage[ErrorCode.ValidationError] === 'function'
+        ? ErrorMessage[ErrorCode.ValidationError]()
+        : ErrorMessage[ErrorCode.ValidationError];
+      const context = error.errors.map(e => e.message).join('; ');
+      const validationError = new ValidationError(msg);
+      // @ts-expect-error: add context for debugging
+      validationError.context = context;
+      throw validationError;
     }
     throw error;
   }

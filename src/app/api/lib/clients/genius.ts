@@ -2,8 +2,6 @@ import { env } from '@/app/api/lib/env';
 import { GeniusApiError } from '@/app/api/lib/errors/clients/genius';
 import type { GeniusSearchResponse } from '@/app/api/lib/types/genius';
 import { validateSchema, schemas } from '@/app/api/lib/validation';
-import * as cheerio from 'cheerio';
-import { decode } from 'html-entities';
 
 export interface GeniusClient {
   search(query: string): Promise<GeniusSearchResponse>;
@@ -21,52 +19,6 @@ export class GeniusClientImpl implements GeniusClient {
     }
     this.accessToken = accessToken || env.GENIUS_ACCESS_TOKEN;
     this.client = client || this.createDefaultClient();
-  }
-
-  private extractLyricsFromHtml(html: string): string {
-    const $ = cheerio.load(html);
-    
-    // Check for licensing message
-    const licensingMessage = $('.LyricsPlaceholder__Message-sc-14g6xqc-2, .LyricsPlaceholder__Container-sc-14g6xqc-0').text();
-    if (licensingMessage && licensingMessage.toLowerCase().includes('licensing')) {
-      return '[Lyrics not available due to licensing]';
-    }
-
-    // Try multiple selectors for lyrics container
-    const selectors = [
-      '[data-lyrics-container="true"]',
-      '.lyrics',
-      '[class*="Lyrics__Container"]',
-      '[class*="Lyrics__Root"]',
-      '[class*="Lyrics__Container-sc"]'
-    ];
-
-    for (const selector of selectors) {
-      const lyricsContainer = $(selector);
-      if (lyricsContainer.length > 0) {
-        // Get all text nodes within the container
-        const text = lyricsContainer
-          .find('br')
-          .replaceWith('\n')
-          .end()
-          .text()
-          .trim();
-
-        if (text && text !== '[No lyrics available]') {
-          // Clean up the lyrics text
-          return decode(text)
-            .replace(/\[.+?\]/g, '')   // Remove section headers
-            .replace(/\{.+?\}/g, '')   // Remove annotations
-            .replace(/\(\d+x\)/g, '')  // Remove repeat indicators
-            .replace(/\s*\n\s*/g, '\n')  // Normalize whitespace around newlines
-            .replace(/\n{3,}/g, '\n\n')  // Normalize multiple newlines
-            .replace(/^\s+|\s+$/g, '')   // Trim start/end whitespace
-            .trim();
-        }
-      }
-    }
-
-    return '[No lyrics available]';
   }
 
   private createDefaultClient(): GeniusClient {

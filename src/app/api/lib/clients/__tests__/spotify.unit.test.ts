@@ -4,6 +4,16 @@ import { setupUnitTest, cleanupUnitTest } from '@/app/api/lib/test/env/unit';
 import type { UnitTestContext } from '@/app/api/lib/test/env/unit';
 import { fixtures } from '@/app/api/lib/test/fixtures';
 import { constructSpotifySearchQuery } from '@/app/api/lib/utils/spotify';
+import { TEST_IDS, getErrorCaseKeyById, TRACK_KEYS, PLAYLIST_KEYS, TRACK_URIS } from '@/app/api/lib/test/constants';
+
+// Helper function to extract Spotify ID from URI
+function extractSpotifyId(uri: string): string {
+  const parts = uri.split(':');
+  if (parts.length !== 3) {
+    throw new Error(`Invalid Spotify URI format: ${uri}`);
+  }
+  return parts[2];
+}
 
 describe('SpotifyClient', () => {
   let client: SpotifyClientImpl;
@@ -35,10 +45,12 @@ describe('SpotifyClient', () => {
 
   describe('getTrack', () => {
     it('should return track for valid id', async () => {
-      const id = context.constants.ids.SPOTIFY.TRACKS.PARTY_IN_THE_USA;
-      const track = await client.getTrack(id);
-      context.validator.spotify_client.track(track, id);
-      expect(context.mockSpotifyClient.getTrack).toHaveBeenCalledWith(id);
+      const key = TRACK_KEYS.PARTY_IN_THE_USA;
+      const uri = TRACK_URIS[key];
+      const spotifyId = extractSpotifyId(uri);
+      const track = await client.getTrack(spotifyId);
+      context.validator.spotify_client.track(track, key);
+      expect(context.mockSpotifyClient.getTrack).toHaveBeenCalledWith(spotifyId);
     });
 
     it('should throw TrackNotFoundError for non-existent track', async () => {
@@ -52,16 +64,26 @@ describe('SpotifyClient', () => {
       await expect(client.getTrack('error')).rejects.toThrow(SpotifyApiError);
       expect(context.mockSpotifyClient.getTrack).toHaveBeenCalledWith('error');
     });
+
+    it('should throw for NOT_FOUND track', async () => {
+      const id = TEST_IDS.SPOTIFY.ERROR_CASES.NOT_FOUND;
+      context.mockSpotifyClient.getTrack.mockRejectedValueOnce(new Error('Track not found'));
+      await expect(client.getTrack(id)).rejects.toThrow('Track not found');
+    });
+
+    it('should throw for INVALID_FORMAT track', async () => {
+      const id = TEST_IDS.SPOTIFY.ERROR_CASES.INVALID_FORMAT;
+      context.mockSpotifyClient.getTrack.mockRejectedValueOnce(new Error('Invalid id'));
+      await expect(client.getTrack(id)).rejects.toThrow('Invalid id');
+    });
   });
 
   describe('searchTracks', () => {
     it('should return tracks for valid query', async () => {
-      const trackId = context.constants.ids.SPOTIFY.TRACKS.PARTY_IN_THE_USA;
-      const track = fixtures.spotify.getTrack.get(trackId);
-      const query = constructSpotifySearchQuery(track.name, track.artists[0].name);
-      const tracks = await client.searchTracks(query);
-      context.validator.spotify_client.search(tracks, query);
-      expect(context.mockSpotifyClient.searchTracks).toHaveBeenCalledWith(query);
+      const trackId = context.constants.ids.SPOTIFY.TRACKS.WITH_LYRICS.PARTY_IN_THE_USA;
+      const tracks = await client.searchTracks(trackId);
+      context.validator.spotify_client.search(tracks, trackId);
+      expect(context.mockSpotifyClient.searchTracks).toHaveBeenCalledWith(trackId);
     });
 
     it('should throw SpotifyApiError for API failures', async () => {
@@ -73,12 +95,10 @@ describe('SpotifyClient', () => {
 
   describe('searchPlaylists', () => {
     it('should return playlists for valid query', async () => {
-      const playlistId = context.constants.ids.SPOTIFY.PLAYLISTS.ROCK_CLASSICS;
-      const playlist = fixtures.spotify.getPlaylist.get(playlistId);
-      const query = playlist.name;
-      const playlists = await client.searchPlaylists(query);
-      context.validator.spotify_client.playlist_search(playlists, query);
-      expect(context.mockSpotifyClient.searchPlaylists).toHaveBeenCalledWith(query);
+      const playlistId = PLAYLIST_KEYS.ROCK_CLASSICS;
+      const playlists = await client.searchPlaylists(playlistId);
+      context.validator.spotify_client.playlist_search(playlists, playlistId);
+      expect(context.mockSpotifyClient.searchPlaylists).toHaveBeenCalledWith(playlistId);
     });
 
     it('should throw SpotifyApiError for API failures', async () => {

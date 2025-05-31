@@ -9,7 +9,7 @@ import { geniusService } from '@/app/api/lib/services/genius';
 import { integration_validator } from '../validators';
 import { TEST_IDS, TEST_DATES, TEST_PLAYERS } from '../constants';
 import { fixtures } from '../fixtures';
-import { prisma } from './db';
+import { createParallelTestDb } from './parallel-db';
 
 // Load environment variables from .env file
 config();
@@ -41,31 +41,13 @@ export interface IntegrationTestContext {
 }
 
 /**
- * Cleans the database by deleting all records
- */
-export async function cleanDatabase() {
-  await prisma.$transaction(async (tx) => {
-    // Disable foreign key checks for SQLite
-    await tx.$executeRaw`PRAGMA foreign_keys = OFF;`;
-
-    // Delete records from all tables in the correct order
-    await tx.guess.deleteMany();
-    await tx.game.deleteMany();
-    await tx.song.deleteMany();
-
-    // Re-enable foreign key checks
-    await tx.$executeRaw`PRAGMA foreign_keys = ON;`;
-  });
-}
-
-/**
- * Sets up a fresh integration test context with real database
+ * Sets up a fresh integration test context with isolated database
  * and real external clients.
  * @returns IntegrationTestContext
  */
 export async function setupIntegrationTest(): Promise<IntegrationTestContext> {
-  // Clean existing data
-  await cleanDatabase();
+  // Create an isolated test database for this test
+  const { prisma: testPrisma, cleanup: dbCleanup } = await createParallelTestDb();
 
   // Create real client instances
   const spotifyClient = new SpotifyClientImpl(
@@ -74,12 +56,12 @@ export async function setupIntegrationTest(): Promise<IntegrationTestContext> {
   );
 
   // Create services with real dependencies
-  const songService = new SongService(prisma, spotifyClient, geniusService);
-  const gameService = new GameService(songService, prisma);
-  const guessService = new GuessService(prisma);
+  const songService = new SongService(testPrisma, spotifyClient, geniusService);
+  const gameService = new GameService(songService, testPrisma);
+  const guessService = new GuessService(testPrisma);
 
   return {
-    prisma,
+    prisma: testPrisma,
     songService,
     gameService,
     guessService,
@@ -90,18 +72,15 @@ export async function setupIntegrationTest(): Promise<IntegrationTestContext> {
       dates: TEST_DATES,
       players: TEST_PLAYERS
     },
-    cleanup: cleanDatabase
+    cleanup: dbCleanup
   };
 }
 
 /**
  * Cleans up the integration test context
+ * This is now handled by the parallel database cleanup
  */
 export async function cleanupIntegrationTest() {
-  try {
-    await cleanDatabase();
-  } catch (error) {
-    console.error('Error during test cleanup:', error);
-    throw error;
-  }
+  // Cleanup is handled by the context's cleanup function
+  // This function is kept for backward compatibility
 } 

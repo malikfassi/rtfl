@@ -28,6 +28,7 @@ export class GeniusService {
 
     // Find exact match first
     const exactMatch = hits.find((hit: GeniusHit) => {
+      if (!hit.result.primary_artist) return false;
       const hitTitle = normalize(hit.result.title);
       const hitArtist = normalize(hit.result.primary_artist.name);
       console.log('Comparing with:', {
@@ -43,6 +44,7 @@ export class GeniusService {
 
     // Find partial match - title must contain our title and artist must match
     const partialMatch = hits.find((hit: GeniusHit) => {
+      if (!hit.result.primary_artist) return false;
       const hitTitle = normalize(hit.result.title);
       const hitArtist = normalize(hit.result.primary_artist.name);
       return (hitTitle.includes(normalizedTitle) || normalizedTitle.includes(hitTitle)) 
@@ -55,6 +57,7 @@ export class GeniusService {
 
     // Try fuzzy match - if artist matches exactly and title has significant overlap
     const fuzzyMatch = hits.find((hit: GeniusHit) => {
+      if (!hit.result.primary_artist) return false;
       const hitTitle = normalize(hit.result.title);
       const hitArtist = normalize(hit.result.primary_artist.name);
       

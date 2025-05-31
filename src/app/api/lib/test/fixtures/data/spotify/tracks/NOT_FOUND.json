@@ -1,0 +1,6 @@
+{
+  "error": {
+    "status": 404,
+    "message": "Unrecognised response code: 404 - Not Found. Body: {\"error\": {\"status\": 404, \"message\": \"Resource not found\" } }"
+  }
+}

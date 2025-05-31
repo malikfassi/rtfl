@@ -6,14 +6,14 @@
   },
   "followers": {
     "href": null,
-    "total": 186607
+    "total": 187722
   },
   "href": "https://api.spotify.com/v1/playlists/2HfFccisPxQfprhgIHM7XH?locale=*",
   "id": "2HfFccisPxQfprhgIHM7XH",
   "images": [
     {
       "height": null,
-      "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c7e680b551fb61cbc60a97dda",
+      "url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da847e680b551fb61cbc60a97dda",
       "width": null
     }
   ],
@@ -2284,7 +2284,7 @@
           "href": "https://api.spotify.com/v1/tracks/0nLiqZ6A27jJri2VCalIUs",
           "id": "0nLiqZ6A27jJri2VCalIUs",
           "name": "Nothing Else Matters",
-          "popularity": 62,
+          "popularity": 60,
           "uri": "spotify:track:0nLiqZ6A27jJri2VCalIUs",
           "is_local": false
         },
@@ -2482,7 +2482,7 @@
           "href": "https://api.spotify.com/v1/tracks/1hyuZzPDnSpBBPVztdGDWr",
           "id": "1hyuZzPDnSpBBPVztdGDWr",
           "name": "I Don't Want To Miss A Thing",
-          "popularity": 1,
+          "popularity": 0,
           "uri": "spotify:track:1hyuZzPDnSpBBPVztdGDWr",
           "is_local": false
         },
@@ -8116,7 +8116,7 @@
           "href": "https://api.spotify.com/v1/tracks/1YwNlWLf8auhazSQUDQLFU",
           "id": "1YwNlWLf8auhazSQUDQLFU",
           "name": "Enjoy the Silence - Single Mix",
-          "popularity": 4,
+          "popularity": 3,
           "uri": "spotify:track:1YwNlWLf8auhazSQUDQLFU",
           "is_local": false
         },
@@ -9120,7 +9120,7 @@
           "href": "https://api.spotify.com/v1/tracks/0cuq829zRNq4AEdmDJA4aw",
           "id": "0cuq829zRNq4AEdmDJA4aw",
           "name": "Two Princes",
-          "popularity": 75,
+          "popularity": 76,
           "uri": "spotify:track:0cuq829zRNq4AEdmDJA4aw",
           "is_local": false
         },
@@ -13688,7 +13688,7 @@
           "href": "https://api.spotify.com/v1/tracks/74irxdVWstNlEQjsvArITq",
           "id": "74irxdVWstNlEQjsvArITq",
           "name": "Crazy",
-          "popularity": 6,
+          "popularity": 5,
           "uri": "spotify:track:74irxdVWstNlEQjsvArITq",
           "is_local": false
         },
@@ -13784,7 +13784,7 @@
           "href": "https://api.spotify.com/v1/tracks/1ENLIbxO4Uma773neTHxbp",
           "id": "1ENLIbxO4Uma773neTHxbp",
           "name": "Sweet Dreams (Are Made Of This)",
-          "popularity": 7,
+          "popularity": 6,
           "uri": "spotify:track:1ENLIbxO4Uma773neTHxbp",
           "is_local": false
         },

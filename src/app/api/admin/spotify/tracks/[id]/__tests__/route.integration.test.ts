@@ -4,12 +4,21 @@ import {
   cleanupIntegrationTest,
   setupIntegrationTest, 
 } from '@/app/api/lib/test';
-import { TEST_CASES } from '@/app/api/lib/test/fixtures/core/test_cases';
+import { TRACK_KEYS } from '@/app/api/lib/test/constants';
+import { fixtures } from '@/app/api/lib/test/fixtures';
+import { integration_validator } from '@/app/api/lib/test/validators';
+import { ErrorCode } from '@/app/api/lib/errors/codes';
+import { ErrorMessage } from '@/app/api/lib/errors/messages';
 
 import { GET } from '../route';
 
-const validSongCase = TEST_CASES.SONGS.VALID;
-const spotifyTrack = validSongCase.spotify.getTrack();
+const validTrackKey = TRACK_KEYS.PARTY_IN_THE_USA;
+const validTrack = fixtures.spotify.tracks[validTrackKey];
+const validTrackId = validTrack.id;
+
+function getErrorMessage(msg: string | ((...args: any[]) => string), ...args: any[]): string {
+  return typeof msg === 'function' ? msg(...args) : msg;
+}
 
 describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
   beforeEach(async () => {
@@ -22,15 +31,14 @@ describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
 
   it('returns track when found', async () => {
     const request = new NextRequest(
-      new URL(`http://localhost:3000/api/admin/spotify/tracks/${validSongCase.id}`)
+      new URL(`http://localhost:3000/api/admin/spotify/tracks/${validTrackId}`)
     );
 
-    const response = await GET(request, { params: Promise.resolve({ id: validSongCase.id }) });
+    const response = await GET(request, { params: Promise.resolve({ id: validTrackId }) });
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    // The track data comes directly from the Spotify API, so we should match it exactly
-    expect(data).toEqual(spotifyTrack);
+    integration_validator.spotify_client.track(data, validTrackKey);
   });
 
   it('returns 404 when track does not exist', async () => {
@@ -44,8 +52,8 @@ describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
     const data = await response.json();
 
     expect(response.status).toBe(404);
-    expect(data.error).toBe('NOT_FOUND');
-    expect(data.message).toBe('Track not found');
+    expect(data.error).toBe(ErrorCode.TrackNotFound);
+    expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.TrackNotFound]));
   });
 
   it('returns 400 for invalid track ID format', async () => {
@@ -58,8 +66,8 @@ describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBe('VALIDATION_ERROR');
-    expect(data.message).toBe('Invalid Spotify track ID format');
+    expect(data.error).toBe(ErrorCode.ValidationError);
+    expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
   });
 
   it('returns 400 for malformed track ID', async () => {
@@ -73,7 +81,7 @@ describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBe('VALIDATION_ERROR');
-    expect(data.message).toBe('Invalid Spotify track ID format');
+    expect(data.error).toBe(ErrorCode.ValidationError);
+    expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
   });
 }); 

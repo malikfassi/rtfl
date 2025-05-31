@@ -2,6 +2,8 @@ import { describe, expect, it } from '@jest/globals';
 import { GeniusClientImpl } from '../genius';
 import { setupUnitTest, cleanupUnitTest } from '@/app/api/lib/test/env/unit';
 import type { UnitTestContext } from '@/app/api/lib/test/env/unit';
+import { TEST_IDS, getErrorCaseKeyById, TRACK_KEYS } from '@/app/api/lib/test/constants';
+import { fixtures } from '@/app/api/lib/test/fixtures';
 
 describe('GeniusClient', () => {
   let client: GeniusClientImpl;
@@ -19,28 +21,43 @@ describe('GeniusClient', () => {
 
   describe('search', () => {
     it('should return search results for a valid query', async () => {
-      const id = context.constants.ids.SPOTIFY.TRACKS.PARTY_IN_THE_USA;
-      const track = context.fixtures.spotify.getTrack.get(id);
-      const query = context.fixtures.genius.getSearchQuery(track);
-      const response = await client.search(query);
-      context.validator.genius_client.search(response, query);
-      expect(context.mockGeniusClient.search).toHaveBeenCalledWith(query);
+      const id = TRACK_KEYS.PARTY_IN_THE_USA;
+      const track = fixtures.spotify.tracks[id];
+      const key = id;
+      const response = await client.search(key);
+      context.validator.genius_client.search(response, key);
+      expect(context.mockGeniusClient.search).toHaveBeenCalledWith(key);
     });
 
     it('should handle empty search results', async () => {
-      const query = context.constants.ids.GENIUS.QUERIES.NO_RESULTS;
-      const response = await client.search(query);
+      const key = 'NO_RESULTS';
+      const response = await client.search(key);
       expect(response.response.hits).toHaveLength(0);
-      expect(context.mockGeniusClient.search).toHaveBeenCalledWith(query);
+      expect(context.mockGeniusClient.search).toHaveBeenCalledWith(key);
+    });
+
+    it('should not return main artist/title for NOT_FOUND track', async () => {
+      const key = 'NOT_FOUND';
+      const response = await client.search(key);
+      const hits = response.response.hits;
+      const containsMainArtist = hits.some(hit => hit.result && hit.result.primary_artist && hit.result.primary_artist.name === 'Miley Cyrus');
+      expect(containsMainArtist).toBe(false);
+      await expect(client.fetchLyricsPage(key)).rejects.toThrow();
+    });
+
+    it('should throw for invalid lyrics URL', async () => {
+      // This covers the INVALID_FORMAT case for fetchLyricsPage
+      const id = TEST_IDS.SPOTIFY.ERROR_CASES.INVALID_FORMAT;
+      await expect(client.fetchLyricsPage(id)).rejects.toThrow();
     });
   });
 
   describe('fetchLyricsPage', () => {
     it('should return lyrics page HTML for a valid URL', async () => {
-      const id = context.constants.ids.SPOTIFY.TRACKS.PARTY_IN_THE_USA;
-      const track = context.fixtures.spotify.getTrack.get(id);
-      const query = context.fixtures.genius.getSearchQuery(track);
-      const searchResults = await client.search(query);
+      const id = TRACK_KEYS.PARTY_IN_THE_USA;
+      const track = fixtures.spotify.tracks[id];
+      const key = id;
+      const searchResults = await client.search(key);
       const firstHit = searchResults.response.hits[0];
       if (!firstHit) {
         throw new Error('No search results found');
@@ -49,8 +66,13 @@ describe('GeniusClient', () => {
       if (!url) {
         throw new Error('No URL found in search result');
       }
-      const lyrics = await client.fetchLyricsPage(url);
-      context.validator.genius_client.lyrics(lyrics, url);
+      const html = await client.fetchLyricsPage(url);
+      expect(typeof html).toBe('string');
+      expect(html.length).toBeGreaterThan(0);
+      // Should contain HTML tags
+      expect(html).toMatch(/<[^>]+>/);
+      // Should contain the song title somewhere in the HTML
+      expect(html.toLowerCase()).toContain('party');
       expect(context.mockGeniusClient.fetchLyricsPage).toHaveBeenCalledWith(url);
     });
 
