@@ -22,9 +22,6 @@ describe('GameService Unit Tests', () => {
 
   beforeEach(() => {
     context = setupUnitTest();
-    // Ensure upsert and findMany always exist on mockPrisma.game
-    context.mockPrisma.game.upsert = jest.fn();
-    context.mockPrisma.game.findMany = jest.fn();
     songService = new SongService(
       context.mockPrisma as any,
       context.mockSpotifyClient,
@@ -46,8 +43,9 @@ describe('GameService Unit Tests', () => {
     for (const key of keys) {
       it(`creates new game when none exists for ${key}`, async () => {
         const track = fixtures.spotify.tracks[key];
+        // Mock songService.create to return a song with a DB CUID
         const song = {
-          id: 'song-id',
+          id: 'clrqm6nkw0011uy08kg9h1p4y', // Valid CUID
           spotifyId: track.id,
           spotifyData: track,
           geniusData: {
@@ -61,6 +59,7 @@ describe('GameService Unit Tests', () => {
           updatedAt: new Date(),
         };
         jest.spyOn(songService, 'create').mockResolvedValueOnce(song as any);
+        context.mockPrisma.song.findUnique.mockResolvedValue(song);
         const gameResult = {
           id: 'game-id',
           date: '2025-01-25',
@@ -70,7 +69,9 @@ describe('GameService Unit Tests', () => {
           updatedAt: new Date(),
         };
         context.mockPrisma.game.upsert.mockResolvedValueOnce(gameResult);
-        const result = await service.createOrUpdate('2025-01-25', song.id);
+        // Call songService.create with the Spotify ID, then use song.id for createOrUpdate
+        const createdSong = await songService.create(track.id);
+        const result = await service.createOrUpdate('2025-01-25', createdSong.id);
         unit_validator.game_service.createOrUpdate(key, result);
         expect(context.mockPrisma.game.upsert).toHaveBeenCalledWith({
           where: { date: '2025-01-25' },
