@@ -13,25 +13,71 @@ interface Guess {
 }
 
 interface GuessHistoryProps {
-  guesses: Guess[];
+  guesses: Array<{
+    id: string;
+    word: string;
+    valid: boolean;
+  }>;
   maskedLyrics: string;
+  maskedTitle: string;
+  maskedArtist: string;
+  maskedTitleParts?: Array<{ value: string; isToGuess: boolean }>;
+  maskedArtistParts?: Array<{ value: string; isToGuess: boolean }>;
+  maskedLyricsParts?: Array<{ value: string; isToGuess: boolean }>;
   onWordHover: (word: string | null) => void;
   selectedGuess: { id: string; word: string } | null;
   onGuessSelect: (guess: { id: string; word: string } | null) => void;
   colors: Array<{ bg: string; text: string; }>;
 }
 
-export function GuessHistory({ guesses, maskedLyrics, onWordHover, selectedGuess, onGuessSelect, colors }: GuessHistoryProps) {
+export function GuessHistory({ 
+  guesses, 
+  maskedLyrics,
+  maskedTitle,
+  maskedArtist,
+  maskedTitleParts,
+  maskedArtistParts,
+  maskedLyricsParts,
+  onWordHover,
+  selectedGuess,
+  onGuessSelect,
+  colors
+}: GuessHistoryProps) {
   const [hideZeroHits, setHideZeroHits] = useState(false);
   
-  // Count hits for each guess
+  // Count hits for each guess using token logic when available, fallback to regex
   const guessHits = guesses.map(guess => {
-    // Extract all words from lyrics
-    const words = Array.from(maskedLyrics.matchAll(/\p{L}+|\p{N}+/gu), m => m[0]);
-    // Count exact matches
-    const hits = words.filter(word => 
-      word.toLowerCase() === guess.word.toLowerCase()
-    ).length;
+    let hits = 0;
+    
+    // Use token-based counting when available (more accurate)
+    if (maskedLyricsParts) {
+      hits += maskedLyricsParts
+        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
+        .length;
+    } else {
+      // Fallback to regex with word boundaries
+      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+      hits += (maskedLyrics.match(wordRegex) || []).length;
+    }
+    
+    if (maskedTitleParts) {
+      hits += maskedTitleParts
+        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
+        .length;
+    } else {
+      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+      hits += (maskedTitle.match(wordRegex) || []).length;
+    }
+    
+    if (maskedArtistParts) {
+      hits += maskedArtistParts
+        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
+        .length;
+    } else {
+      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+      hits += (maskedArtist.match(wordRegex) || []).length;
+    }
+    
     return { ...guess, hits };
   });
 

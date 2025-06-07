@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { GameState } from '@/app/api/lib/types/game';
+import type { GameState } from '@/app/api/lib/types/game-state';
 import type { Guess, Song } from '@prisma/client';
 import { queryKeys } from '@/app/front/lib/query-client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -20,11 +20,16 @@ interface GameInterfaceState {
 }
 
 const playerApi = {
-  getCurrentGame: async (userId: string, date: string): Promise<GameState> => {
+  getCurrentGame: async (userId: string, date: string): Promise<GameState | null> => {
+    console.log("getCurrentGame called with userId:", userId, "date:", date);
     const response = await fetch(`/api/games/${date}`, {
       headers: { 'x-user-id': userId }
     });
     if (!response.ok) {
+      if (response.status === 404) {
+        // Return null for missing games instead of throwing error
+        return null;
+      }
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch game state');
     }
@@ -59,10 +64,11 @@ const playerApi = {
   }
 };
 
-export function useGameState(userId: string, date: string) {
+export function useGameState(userId: string, date: string, enabled = true) {
   return useQuery({
-    queryKey: queryKeys.games.byDate(new Date(date)),
+    queryKey: queryKeys.games.byDate(date),
     queryFn: () => playerApi.getCurrentGame(userId, date),
+    enabled,
   });
 }
 
@@ -72,14 +78,14 @@ export function useGuess(userId: string, date: string) {
   return useMutation({
     mutationFn: (guess: string) => playerApi.submitGuess(userId, date, guess),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.games.byDate(new Date(date)) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.byDate(date) });
     },
   });
 }
 
 export function useMonthGames(userId: string, month: string) {
   return useQuery({
-    queryKey: queryKeys.games.byMonth(new Date(month)),
+    queryKey: queryKeys.games.byMonth(month),
     queryFn: () => playerApi.getGamesByMonth(userId, month),
   });
 } 

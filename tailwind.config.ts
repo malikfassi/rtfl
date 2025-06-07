@@ -78,10 +78,15 @@ export default {
             opacity: '1',
             transform: 'translateY(0)'
           }
-        }
+        },
+        'word-reveal': {
+          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
-        enter: 'enter 0.5s ease-out'
+        enter: 'enter 0.5s ease-out',
+        'word-reveal': 'word-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
       }
     },
   },

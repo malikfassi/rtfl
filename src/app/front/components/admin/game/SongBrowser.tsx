@@ -62,7 +62,7 @@ export function SongBrowser({ onSelect, onCancel, disabled }: SongBrowserProps) 
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center gap-4">
+      <div>
         <Input
           ref={inputRef}
           type="text"
@@ -71,39 +71,61 @@ export function SongBrowser({ onSelect, onCancel, disabled }: SongBrowserProps) 
           onChange={(e) => setQuery(e.target.value)}
           disabled={isLoading || disabled}
           autoFocus
-          className="flex-1"
         />
-        <Button variant="secondary" onClick={onCancel} disabled={disabled}>
-          Cancel
-        </Button>
       </div>
 
-      {error && <div className="text-red-500">{error}</div>}
+      {error && (
+        <div className="p-4 rounded-lg bg-accent-error/10 text-accent-error text-sm">
+          {error}
+        </div>
+      )}
 
       {isLoading ? (
-        <div className="text-center text-muted">Searching...</div>
+        <div className="text-center text-primary-muted py-8">
+          <div className="animate-pulse">Searching...</div>
+        </div>
       ) : tracks.length === 0 && debouncedQuery ? (
-        <div className="text-center text-muted">No tracks found</div>
-      ) : (
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {tracks.map((track) => (
+        <div className="text-center text-primary-muted py-8">
+          No tracks found for &ldquo;{debouncedQuery}&rdquo;
+        </div>
+      ) : tracks.length > 0 ? (
+        <div className="space-y-1 max-h-96 overflow-y-auto border border-primary-muted/20 rounded-lg">
+          {tracks.map((track, index) => (
             <button
               key={track.id}
               onClick={() => handleSelectTrack(track)}
               disabled={isLoading || disabled}
               className={cn(
-                'w-full p-2 text-left hover:bg-gray-100 rounded',
-                selectedTrackId === track.id && 'bg-gray-100'
+                'w-full p-4 text-left transition-all duration-200',
+                'hover:bg-primary-muted/10 focus:bg-primary-muted/15 focus:outline-none',
+                'border-b border-primary-muted/10 last:border-b-0',
+                'font-mono text-sm',
+                selectedTrackId === track.id && 'bg-primary-muted/20',
+                disabled && 'opacity-50 cursor-not-allowed'
               )}
             >
-              <div className="font-medium">{track.name}</div>
-              <div className="text-sm text-muted">
-                {track.artists.map(artist => artist.name).join(', ')}
+              <div className="flex items-center gap-3">
+                <div className="text-xs text-primary-muted w-8">
+                  {index + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-primary-dark truncate">
+                    {track.name}
+                  </div>
+                  <div className="text-primary-muted truncate">
+                    {track.artists.map(artist => artist.name).join(', ')}
+                  </div>
+                </div>
+                {selectedTrackId === track.id && (
+                  <div className="text-accent-success text-xs">
+                    ✓
+                  </div>
+                )}
               </div>
             </button>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 } 

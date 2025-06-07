@@ -18,6 +18,11 @@ interface GameControlsProps {
   isGameComplete: boolean;
   guesses: Guess[];
   maskedLyrics: string;
+  maskedTitle: string;
+  maskedArtist: string;
+  maskedTitleParts?: Array<{ value: string; isToGuess: boolean }>;
+  maskedArtistParts?: Array<{ value: string; isToGuess: boolean }>;
+  maskedLyricsParts?: Array<{ value: string; isToGuess: boolean }>;
   onGuess: (guess: string) => Promise<void>;
   isSubmitting: boolean;
   onWordHover: (word: string | null) => void;
@@ -30,7 +35,12 @@ interface GameControlsProps {
 export function GameControls({ 
   isGameComplete, 
   guesses,
-  maskedLyrics, 
+  maskedLyrics,
+  maskedTitle,
+  maskedArtist,
+  maskedTitleParts,
+  maskedArtistParts,
+  maskedLyricsParts,
   onGuess, 
   isSubmitting,
   onWordHover,
@@ -80,9 +90,39 @@ export function GameControls({
     });
   };
 
-  // Count hits for each guess
+  // Count hits for each guess using token logic when available, fallback to regex
   const guessHits = guesses.map(guess => {
-    const hits = (maskedLyrics.match(new RegExp(guess.word, 'gi')) || []).length;
+    let hits = 0;
+    
+    // Use token-based counting when available (more accurate)
+    if (maskedLyricsParts) {
+      hits += maskedLyricsParts
+        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
+        .length;
+    } else {
+      // Fallback to regex with word boundaries
+      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+      hits += (maskedLyrics.match(wordRegex) || []).length;
+    }
+    
+    if (maskedTitleParts) {
+      hits += maskedTitleParts
+        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
+        .length;
+    } else {
+      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+      hits += (maskedTitle.match(wordRegex) || []).length;
+    }
+    
+    if (maskedArtistParts) {
+      hits += maskedArtistParts
+        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
+        .length;
+    } else {
+      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+      hits += (maskedArtist.match(wordRegex) || []).length;
+    }
+    
     return { ...guess, hits };
   });
 
@@ -98,9 +138,9 @@ export function GameControls({
             placeholder="Type your guess..."
             disabled={isSubmitting}
             className={cn(
-              "w-full rounded-lg bg-primary-muted/5 px-4 py-2 text-primary-dark",
+              "w-full rounded-lg bg-primary-muted/5 px-4 py-2 text-primary-dark border-none focus:border-none focus:ring-2 focus:ring-primary-muted/20",
               "placeholder:text-primary-muted/50",
-              "focus:outline-none focus:ring-2 focus:ring-primary-muted/20",
+              "focus:outline-none",
               "disabled:cursor-not-allowed disabled:opacity-50"
             )}
           />
@@ -116,58 +156,20 @@ export function GameControls({
         </div>
       )}
 
-      <div className="lg:hidden overflow-x-auto -mx-4 px-4 pb-4">
-        <div className="flex gap-1.5 min-w-min">
-          {[...guessHits].reverse().map((g, i) => {
-            const index = guesses.findIndex(guess => guess.id === g.id);
-            const color = colors[index % colors.length];
-            const isSelected = g.id === selectedGuess?.id;
-            
-            return (
-              <React.Fragment key={g.id}>
-                <span
-                  className={cn(
-                    "text-xs px-1.5 py-0.5 rounded whitespace-nowrap flex items-center gap-1 cursor-pointer transition-all duration-200",
-                    g.valid 
-                      ? cn(
-                          "bg-primary-muted/10 text-primary-dark",
-                          isSelected && "bg-primary-muted/20"
-                        )
-                      : "bg-accent-error/10 text-accent-error line-through opacity-50"
-                  )}
-                  onClick={() => {
-                    if (g.valid) {
-                      onGuessSelect(isSelected ? null : { id: g.id, word: g.word });
-                      onWordHover(null);
-                    }
-                  }}
-                  onMouseEnter={() => !isSelected && onWordHover(g.word)}
-                  onMouseLeave={() => !isSelected && onWordHover(null)}
-                >
-                  <span>{g.word}</span>
-                  {g.valid && g.hits > 0 && (
-                    <span className="text-[10px] font-medium text-accent-info">×{g.hits}</span>
-                  )}
-                </span>
-                {i < guessHits.length - 1 && (
-                  <span className="text-primary-muted/30">-</span>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="hidden lg:block">
-        <GuessHistory 
-          guesses={guesses} 
-          maskedLyrics={maskedLyrics} 
-          onWordHover={onWordHover}
-          selectedGuess={selectedGuess}
-          onGuessSelect={onGuessSelect}
-          colors={colors}
-        />
-      </div>
+      {/* Always use GuessHistory for guesses display, no mobile/desktop split */}
+      <GuessHistory 
+        guesses={guesses} 
+        maskedLyrics={maskedLyrics}
+        maskedTitle={maskedTitle}
+        maskedArtist={maskedArtist}
+        maskedTitleParts={maskedTitleParts}
+        maskedArtistParts={maskedArtistParts}
+        maskedLyricsParts={maskedLyricsParts}
+        onWordHover={onWordHover}
+        selectedGuess={selectedGuess}
+        onGuessSelect={onGuessSelect}
+        colors={colors}
+      />
     </div>
   );
 } 

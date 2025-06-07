@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 import type { GameWithSong } from '@/app/api/lib/services/game';
 import { queryKeys } from '@/app/front/lib/query-client';
 
@@ -57,7 +57,7 @@ const adminApi = {
 
 export function useAdminGame(date: string) {
   return useQuery({
-    queryKey: queryKeys.games.byDate(new Date(date)),
+    queryKey: queryKeys.games.byDate(date),
     queryFn: () => adminApi.getGame(date),
     enabled: !!date,
   });
@@ -66,7 +66,7 @@ export function useAdminGame(date: string) {
 export function useAdminGames(date?: Date) {
   const month = date ? format(date, 'yyyy-MM') : format(new Date(), 'yyyy-MM');
   return useQuery({
-    queryKey: queryKeys.games.byMonth(new Date(month)),
+    queryKey: queryKeys.games.byMonth(month),
     queryFn: () => adminApi.getGamesByMonth(month),
   });
 }
@@ -77,16 +77,16 @@ export function useAdminGameMutations() {
   const createGame = useMutation({
     mutationFn: adminApi.createOrUpdateGame,
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.games.byDate(new Date(data.date)) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.games.byMonth(new Date(data.date)) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.byDate(data.date) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.byMonth(data.date.slice(0, 7)) });
     },
   });
 
   const deleteGame = useMutation({
     mutationFn: adminApi.deleteGame,
     onSuccess: (_, date) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.games.byDate(new Date(date)) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.games.byMonth(new Date(date)) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.byDate(date) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.byMonth(date.slice(0, 7)) });
     },
   });
 
@@ -96,5 +96,27 @@ export function useAdminGameMutations() {
 export function useSearchTracks() {
   return useMutation({
     mutationFn: adminApi.searchTracks,
+  });
+}
+
+export function useAdminGamesWithSurroundingMonths(date?: Date) {
+  const current = date ? new Date(date) : new Date();
+  const prev = addMonths(current, -1);
+  const next = addMonths(current, 1);
+  const months = [prev, current, next].map(d => format(d, 'yyyy-MM'));
+
+  return useQuery({
+    queryKey: ['games', 'surrounding', ...months],
+    queryFn: async () => {
+      const results = await Promise.all(months.map(m => adminApi.getGamesByMonth(m)));
+      // Flatten and deduplicate by game.date
+      const allGames = results.flat();
+      const seen = new Set<string>();
+      return allGames.filter(g => {
+        if (seen.has(g.date)) return false;
+        seen.add(g.date);
+        return true;
+      });
+    },
   });
 } 

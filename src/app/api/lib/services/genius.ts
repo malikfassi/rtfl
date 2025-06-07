@@ -7,72 +7,104 @@ import type { GeniusSearchResponse, GeniusHit } from '@/app/api/lib/types/genius
 export class GeniusService {
   private geniusClient = getGeniusClient();
 
+  private normalize(str: string): string {
+    return str
+      .toLowerCase()
+      .replace(/\(feat[.a-zA-Z0-9, &]+\)/g, '') // Remove (feat. ...)
+      .replace(/\[feat[.a-zA-Z0-9, &]+\]/g, '') // Remove [feat. ...]
+      .replace(/feat[. ]*[a-zA-Z0-9, &]+/g, '') // Remove feat. ... anywhere
+      .replace(/[.,/#!$%^&*;:{}=\-_`~()\[\]]/g, '') // Remove punctuation
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  private extractFeaturedArtists(str: string): string[] {
+    const matches = [];
+    // (feat. ...)
+    const paren = str.match(/\(feat[. ]*([^)]+)\)/i);
+    if (paren && paren[1]) matches.push(...paren[1].split(/,|&/).map(s => s.trim().toLowerCase()));
+    // [feat. ...]
+    const bracket = str.match(/\[feat[. ]*([^\]]+)\]/i);
+    if (bracket && bracket[1]) matches.push(...bracket[1].split(/,|&/).map(s => s.trim().toLowerCase()));
+    // feat. ...
+    const feat = str.match(/feat[. ]*([a-zA-Z0-9, &]+)/i);
+    if (feat && feat[1]) matches.push(...feat[1].split(/,|&/).map(s => s.trim().toLowerCase()));
+    return matches.filter(Boolean);
+  }
+
   private findBestMatch(
     spotifyTitle: string,
     spotifyArtist: string,
     hits: GeniusSearchResponse['response']['hits']
   ): GeniusHit | null {
-    // Normalize strings for comparison - keep it simple!
-    const normalize = (str: string) => str.toLowerCase()
-      .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '') // Remove punctuation
-      .replace(/\s+/g, ' ')                      // Normalize whitespace
-      .trim();
+    const normalize = this.normalize;
+    const extractFeaturedArtists = this.extractFeaturedArtists;
 
     const normalizedTitle = normalize(spotifyTitle);
     const normalizedArtist = normalize(spotifyArtist);
+    const featuredArtists = Array.from(new Set([
+      ...extractFeaturedArtists(spotifyTitle),
+      ...extractFeaturedArtists(spotifyArtist)
+    ]));
 
     console.log('Normalized search:', {
       title: normalizedTitle,
-      artist: normalizedArtist
+      artist: normalizedArtist,
+      featuredArtists
     });
 
-    // Find exact match first
-    const exactMatch = hits.find((hit: GeniusHit) => {
-      if (!hit.result.primary_artist) return false;
+    // Try to find a match with flexible logic
+    for (const hit of hits) {
+      if (!hit.result.primary_artist) continue;
       const hitTitle = normalize(hit.result.title);
       const hitArtist = normalize(hit.result.primary_artist.name);
+      const hitFeatured = [
+        ...extractFeaturedArtists(hit.result.title),
+        ...extractFeaturedArtists(hit.result.primary_artist.name)
+      ];
+      // Main artist match
+      const mainArtistMatch = hitArtist.includes(normalizedArtist) || normalizedArtist.includes(hitArtist);
+      // Title match (ignoring feat)
+      const titleMatch = hitTitle === normalizedTitle;
+      // All featured artists present
+      const allFeaturedPresent = featuredArtists.every(fa => hitArtist.includes(fa) || hitFeatured.includes(fa));
+      // Log for debugging
       console.log('Comparing with:', {
         title: hitTitle,
-        artist: hitArtist
+        artist: hitArtist,
+        hitFeatured
       });
-      return hitTitle === normalizedTitle && hitArtist === normalizedArtist;
-    });
-
-    if (exactMatch) {
-      return exactMatch;
+      if (mainArtistMatch && titleMatch && (featuredArtists.length === 0 || allFeaturedPresent)) {
+        return hit;
+      }
     }
 
-    // Find partial match - title must contain our title and artist must match
-    const partialMatch = hits.find((hit: GeniusHit) => {
-      if (!hit.result.primary_artist) return false;
+    // Fallback: partial match
+    for (const hit of hits) {
+      if (!hit.result.primary_artist) continue;
       const hitTitle = normalize(hit.result.title);
       const hitArtist = normalize(hit.result.primary_artist.name);
-      return (hitTitle.includes(normalizedTitle) || normalizedTitle.includes(hitTitle)) 
-        && hitArtist === normalizedArtist;
-    });
-
-    if (partialMatch) {
-      return partialMatch;
+      if ((hitTitle.includes(normalizedTitle) || normalizedTitle.includes(hitTitle)) &&
+          (hitArtist.includes(normalizedArtist) || normalizedArtist.includes(hitArtist))) {
+        return hit;
+      }
     }
 
-    // Try fuzzy match - if artist matches exactly and title has significant overlap
-    const fuzzyMatch = hits.find((hit: GeniusHit) => {
-      if (!hit.result.primary_artist) return false;
+    // Fuzzy match: artist matches, title has significant overlap
+    for (const hit of hits) {
+      if (!hit.result.primary_artist) continue;
       const hitTitle = normalize(hit.result.title);
       const hitArtist = normalize(hit.result.primary_artist.name);
-      
-      // Artist must match
-      if (hitArtist !== normalizedArtist) return false;
-      
-      // Check if most words from one title appear in the other
+      if (hitArtist !== normalizedArtist) continue;
       const titleWords = normalizedTitle.split(' ');
       const hitWords = hitTitle.split(' ');
       const commonWords = titleWords.filter(word => hitWords.includes(word));
-      
-      return commonWords.length >= Math.min(titleWords.length, hitWords.length) * 0.5;
-    });
+      if (commonWords.length >= Math.min(titleWords.length, hitWords.length) * 0.5) {
+        return hit;
+      }
+    }
 
-    return fuzzyMatch || null;
+    return null;
   }
 
   /**
@@ -93,13 +125,21 @@ export class GeniusService {
    * Find the best matching song on Genius for a Spotify track
    */
   public async findMatch(title: string, artist: string): Promise<GeniusHit> {
-    const searchResult = await this.search(`${title} ${artist}`);
-    const bestMatch = this.findBestMatch(title, artist, searchResult.response.hits);
-    
+    // 1. Try original search
+    let searchResult = await this.search(`${title} ${artist}`);
+    let bestMatch = this.findBestMatch(title, artist, searchResult.response.hits);
+
+    // 2. If no match, try normalized search
+    if (!bestMatch) {
+      const normalizedTitle = this.normalize(title);
+      const normalizedArtist = this.normalize(artist);
+      searchResult = await this.search(`${normalizedTitle} ${normalizedArtist}`);
+      bestMatch = this.findBestMatch(normalizedTitle, normalizedArtist, searchResult.response.hits);
+    }
+
     if (!bestMatch) {
       throw new NoMatchingLyricsError();
     }
-
     return bestMatch;
   }
 }

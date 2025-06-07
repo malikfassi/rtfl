@@ -35,6 +35,7 @@ interface CalendarProps {
   currentMonth: Date;
   onMonthChange: (date: Date) => void;
   pendingChanges?: Record<string, GameStatusInfo>;
+  onClearPendingChanges?: (dates: Date[]) => void;
 }
 
 interface CalendarDayProps {
@@ -57,10 +58,12 @@ function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDow
 
   // Get background and border colors based on state
   const getStateStyles = () => {
-    if (dayStatus?.status === 'to-create') return 'bg-yellow-500/10 border-yellow-500';
-    if (dayStatus?.status === 'to-edit') return 'bg-blue-500/10 border-blue-500';
-    if (dayStatus?.status === 'loading') return 'bg-blue-500/10 border-blue-500 animate-pulse';
-    if (hasGame) return 'bg-green-500/10 border-green-500';
+    if (dayStatus?.status === 'loading') return 'bg-blue-500/30 border-blue-500 animate-pulse';
+    if (dayStatus?.status === 'success') return 'bg-green-500/30 border-green-500';
+    if (dayStatus?.status === 'error') return 'bg-red-500/30 border-red-500';
+    if (dayStatus?.status === 'to-create') return 'bg-orange-500/30 border-orange-500';
+    if (dayStatus?.status === 'to-edit') return 'bg-blue-500/30 border-blue-500';
+    if (hasGame) return 'bg-green-500/20 border-green-500/50';
     return 'hover:bg-gray-100 border-transparent';
   };
 
@@ -79,12 +82,39 @@ function CalendarDay({ date, isSelected, game, onClick, onMouseEnter, onMouseDow
       )}
     >
       <div className="text-sm font-medium">{format(date, 'd')}</div>
-      {game && (
-        <div className="mt-1">
-          <div className="text-xs font-medium truncate">{game.song.title}</div>
-          <div className="text-xs text-muted truncate">{game.song.artist}</div>
+      
+      {/* Status indicators */}
+      {dayStatus?.status === 'loading' && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
+      {dayStatus?.status === 'success' && (
+        <div className="absolute top-1 left-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+          <div className="w-1 h-1 bg-white rounded-full"></div>
+        </div>
+      )}
+      {dayStatus?.status === 'error' && (
+        <div className="absolute top-1 left-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+          <div className="w-1 h-1 bg-white rounded-full"></div>
+        </div>
+      )}
+      
+      {game && !dayStatus?.status && (
+        <div className="mt-1">
+          <div className="text-xs font-medium text-gray-800 truncate">{game.song.title}</div>
+          <div className="text-xs text-gray-600 truncate">{game.song.artist}</div>
+        </div>
+      )}
+      
+      {/* Pending song info */}
+      {dayStatus?.newSong && (
+        <div className="mt-1">
+          <div className="text-xs font-medium text-gray-800 truncate">{dayStatus.newSong.name}</div>
+          <div className="text-xs text-gray-600 truncate">{dayStatus.newSong.artists[0]?.name}</div>
+        </div>
+      )}
+      
       {isToday && (
         <div className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
       )}
@@ -117,7 +147,8 @@ export function Calendar({
   games, 
   currentMonth, 
   onMonthChange,
-  pendingChanges = {}
+  pendingChanges = {},
+  onClearPendingChanges
 }: CalendarProps) {
   const [dragStart, setDragStart] = useState<Date | null>(null);
 
@@ -129,11 +160,14 @@ export function Calendar({
 
     const isDateSelected = selectedDates.some(d => isSameDay(d, date));
     if (isDateSelected) {
-      onSelect(selectedDates.filter(d => !isSameDay(d, date)));
+      const newSelectedDates = selectedDates.filter(d => !isSameDay(d, date));
+      onSelect(newSelectedDates);
+      // Clear pending changes for unselected date
+      onClearPendingChanges?.([date]);
     } else {
       onSelect([date]);
     }
-  }, [selectedDates, onSelect, dragStart]);
+  }, [selectedDates, onSelect, dragStart, onClearPendingChanges]);
 
   const handleMouseDown = useCallback((date: Date) => {
     setDragStart(date);
@@ -164,14 +198,15 @@ export function Calendar({
     );
 
     if (allSelected) {
-      // If all are selected, unselect current month days
-      onSelect(selectedDates.filter(date => date.getMonth() !== currentMonth.getMonth()));
+      // If all are selected, unselect ALL selected dates (not just current month)
+      onSelect([]);
+      onClearPendingChanges?.(selectedDates);
     } else {
       // If not all are selected, select all current month days while keeping other selections
       const otherDates = selectedDates.filter(date => date.getMonth() !== currentMonth.getMonth());
       onSelect([...otherDates, ...currentMonthDays]);
     }
-  }, [currentMonthDays, selectedDates, currentMonth, onSelect]);
+  }, [currentMonthDays, selectedDates, currentMonth, onSelect, onClearPendingChanges]);
 
   return (
     <div 
@@ -221,7 +256,7 @@ export function Calendar({
 
         {days.map(date => {
           const dateStr = format(date, 'yyyy-MM-dd');
-          const game = games.find(g => format(new Date(g.date), 'yyyy-MM-dd') === dateStr);
+          const game = games.find(g => g.date === dateStr);
           const isSelected = selectedDates.some(d => isSameDay(d, date));
           const status = pendingChanges[dateStr];
 

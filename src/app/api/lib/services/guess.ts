@@ -88,4 +88,7 @@ export class GuessService {
 // Export factory function
 export function createGuessService(client: PrismaClient) {
   return new GuessService(client);
-} 
+}
+
+// Export singleton instance
+export const guessService = new GuessService(prisma); 

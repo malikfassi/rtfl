@@ -14,8 +14,8 @@ export const queryClient = new QueryClient({
 export const queryKeys = {
   games: {
     all: ['games'] as const,
-    byMonth: (month: Date) => [...queryKeys.games.all, month] as const,
-    byDate: (date: Date) => [...queryKeys.games.all, 'byDate', date] as const,
+    byMonth: (month: string) => [...queryKeys.games.all, month] as const,
+    byDate: (date: string) => [...queryKeys.games.all, 'byDate', date] as const,
   },
   playlists: {
     all: ['playlists'] as const,

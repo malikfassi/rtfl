@@ -11,7 +11,7 @@ interface Playlist {
 }
 
 export default function AdminPage() {
-  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | undefined>();
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>();
   const { data: games, isLoading } = useAdminGames();
   const { createGame, deleteGame } = useAdminGameMutations();
 
@@ -31,7 +31,7 @@ export default function AdminPage() {
         games={games || []}
         onCreateGame={createGame.mutate}
         onDeleteGame={deleteGame.mutate}
-        selectedPlaylist={selectedPlaylist}
+        selectedPlaylist={selectedPlaylist ?? undefined}
         onPlaylistChange={setSelectedPlaylist}
       />
     </div>

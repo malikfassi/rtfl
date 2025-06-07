@@ -4,7 +4,7 @@ import { ErrorCode } from '@/app/api/lib/errors/codes';
 import { ErrorMessage } from '@/app/api/lib/errors/messages';
 
 export async function handleError(error: unknown) {
-  console.error('Route error:', error);
+  console.error('Route error:', error || 'Unknown error');
 
   // Log validation context if present
   if (error instanceof Error && 'context' in error && (error as any).context) {

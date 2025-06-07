@@ -129,23 +129,27 @@ export function ScrambleTitle({ date }: ScrambleTitleProps) {
   return (
     <h1 className="text-2xl font-bold uppercase tracking-wider">
       GUESS THE{' '}
-      <span className="inline-flex overflow-hidden group">
+      <span className="inline-flex overflow-hidden group font-mono" style={{ width: '7ch' }}>
         {letters.map((letter, index) => (
           <span
             key={index}
             className={cn(
-              "inline-block transition-all duration-100 relative",
+              "inline-block transition-all duration-100 relative text-center",
               letter.isScrambling ? letter.color : "text-primary-dark",
               !letter.isScrambling && "hover:-translate-y-0.5"
             )}
-            style={{ transform: letter.transform }}
+            style={{ 
+              transform: letter.transform,
+              width: '1ch',
+              minWidth: '1ch'
+            }}
             data-real-char={baseWord[index]}
           >
-            <span className="group-hover:opacity-0 transition-opacity duration-300">
+            <span className="group-hover:opacity-0 transition-opacity duration-300 block">
               {letter.char}
             </span>
             <span className={cn(
-              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center",
               colors[index % colors.length]  // Each letter gets its own color
             )}>
               {baseWord[index]}
@@ -154,14 +158,12 @@ export function ScrambleTitle({ date }: ScrambleTitleProps) {
         ))}
       </span>
       {' '}LYRICS{' '}
-      <Link href="/archive" className="group">
-        <span className="relative inline-block">
-          <span className="text-xs font-normal text-foreground/70 group-hover:opacity-0 transition-all duration-300">
-            {date}
-          </span>
-          <span className="text-xs font-normal text-accent-success opacity-0 group-hover:opacity-100 whitespace-nowrap transition-all duration-300">
-            Go to archive →
-          </span>
+      <Link href="/archive" className="group inline-flex items-baseline">
+        <span className="text-xs font-normal text-foreground/70 group-hover:hidden transition-all duration-300">
+          {date}
+        </span>
+        <span className="hidden group-hover:inline text-xs font-normal text-accent-success whitespace-nowrap transition-all duration-300">
+          Go to archive →
         </span>
       </Link>
     </h1>

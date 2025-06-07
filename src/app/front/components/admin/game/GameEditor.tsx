@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 
 import { Button } from '@/app/front/components/ui/Button';
 import type { AdminGame, GameStatusInfo } from '@/app/types/admin';
+import { useToast } from '@/app/front/hooks/use-toast';
 
-import { GamePreview } from './GamePreview';
 import { SongBrowser } from './SongBrowser';
+import { LyricsGame } from '../../game/LyricsGame';
 
 export type EditorMode = 'preview' | 'search';
 
@@ -36,6 +37,7 @@ export function GameEditor({
   pendingChange
 }: GameEditorProps) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const { toast } = useToast();
 
   if (!selectedDate) {
     return (
@@ -60,15 +62,29 @@ export function GameEditor({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create game');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || `Failed to create game (${response.status})`;
+        throw new Error(errorMessage);
       }
 
       const updatedGame = await response.json();
       
       await onGameUpdate(updatedGame);
       onModeChange('preview');
+      
+      toast({
+        title: "Success",
+        description: `Game created for ${format(selectedDate, 'MMM d, yyyy')}`,
+      });
     } catch (error) {
       console.error('Error creating game:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      toast({
+        title: "Failed to create game",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsUpdating(false);
     }
@@ -80,8 +96,20 @@ export function GameEditor({
     try {
       await onGameDelete(format(selectedDate, 'yyyy-MM-dd'));
       onModeChange('preview');
+      
+      toast({
+        title: "Game deleted",
+        description: `Game for ${format(selectedDate, 'MMM d, yyyy')} has been deleted`,
+      });
     } catch (error) {
       console.error('Error deleting game:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete game';
+      
+      toast({
+        title: "Failed to delete game",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsUpdating(false);
     }
@@ -140,7 +168,7 @@ export function GameEditor({
             onClick={() => onModeChange('search')}
             disabled={isUpdating}
           >
-            {game ? 'Change Song' : 'Add Song'}
+            {game ? 'Change Song' : 'Choose Song'}
           </Button>
         </div>
       </div>
@@ -161,13 +189,17 @@ export function GameEditor({
         </div>
       )}
 
-      {game && (
-        <GamePreview 
-          game={game} 
-          date={selectedDate}
-          onSearchClick={() => onModeChange('search')}
-          isUpdating={isUpdating}
-        />
+      {mode === 'preview' && (
+        <div className="relative">
+          <LyricsGame
+            date={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
+            game={undefined}
+            disabled={!game}
+            isAdmin={true}
+            onChooseSong={() => onModeChange('search')}
+            hideChooseSongButton
+          />
+        </div>
       )}
 
       {pendingChange && (

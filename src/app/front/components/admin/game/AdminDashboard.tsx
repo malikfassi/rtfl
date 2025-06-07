@@ -1,16 +1,15 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
 import { format, isSameDay } from 'date-fns';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 
 import { getTrackArtist, getTrackTitle } from '@/app/front/lib/utils/spotify';
 import type { GameWithSong } from '@/app/api/lib/services/game';
 import type { GameStatusInfo, AdminGame } from '@/app/types/admin';
-import { LyricsGame } from '@/app/front/components/game/LyricsGame';
-import { Button } from '@/app/front/components/ui/Button';
 
 import { BatchGameEditor } from './BatchGameEditor';
 import { Calendar } from './Calendar';
 import { type EditorMode as GameEditorMode, GameEditor } from './GameEditor';
+import { useAdminGamesWithSurroundingMonths } from '@/app/front/hooks/useAdmin';
 
 interface Game {
   id: string;
@@ -27,23 +26,110 @@ interface AdminDashboardProps {
   onCreateGame: (input: { date: string; spotifyId: string }) => void;
   onDeleteGame: (date: string) => void;
   selectedPlaylist?: { tracks: Track[] };
-  onPlaylistChange: (playlist: { tracks: Track[] }) => void;
+  onPlaylistChange: (playlist: { tracks: Track[] } | undefined) => void;
 }
 
-type EditorMode = 'single' | 'batch';
-type SingleViewMode = 'preview' | 'edit';
+type EditorMode = 'preview' | 'search';
 
 export function AdminDashboard({ 
-  games,
+  games: _games, // ignore prop, use hook
   onCreateGame,
   onDeleteGame,
   selectedPlaylist, 
   onPlaylistChange 
 }: AdminDashboardProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const { data: games = [], isLoading } = useAdminGamesWithSurroundingMonths(currentMonth);
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [pendingChanges, setPendingChanges] = useState<Record<string, GameStatusInfo>>({});
-  const [singleViewMode, setSingleViewMode] = useState<SingleViewMode>('preview');
+  const [singleViewMode, setSingleViewMode] = useState<EditorMode>('preview');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Handle ESC key and click outside to unselect
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedDates([]);
+        setPendingChanges({});
+        setSingleViewMode('preview');
+      }
+    };
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        // Check if click was on calendar area specifically
+        const calendarContainer = containerRef.current.querySelector('[data-calendar]');
+        if (calendarContainer && !calendarContainer.contains(event.target as Node)) {
+          setSelectedDates([]);
+          setPendingChanges({});
+          setSingleViewMode('preview');
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleClearPendingChanges = useCallback((dates: Date[]) => {
+    const dateStrs = dates.map(date => format(date, 'yyyy-MM-dd'));
+    setPendingChanges(prev => {
+      const newChanges = { ...prev };
+      dateStrs.forEach(dateStr => {
+        delete newChanges[dateStr];
+      });
+      return newChanges;
+    });
+  }, []);
+
+  // Auto-assign songs when playlist is selected and dates are chosen
+  useEffect(() => {
+    if (selectedPlaylist?.tracks.length && selectedDates.length > 1) {
+      // Only auto-assign to dates that don't already have pending changes
+      setPendingChanges(prev => {
+        // First, filter out changes for dates that are no longer selected
+        const selectedDateStrs = new Set(selectedDates.map(date => format(date, 'yyyy-MM-dd')));
+        const filteredChanges: Record<string, GameStatusInfo> = {};
+        
+        Object.entries(prev).forEach(([dateStr, change]) => {
+          if (selectedDateStrs.has(dateStr)) {
+            filteredChanges[dateStr] = change;
+          }
+        });
+
+        const datesToAssign = selectedDates.filter(date => {
+          const dateStr = format(date, 'yyyy-MM-dd');
+          return !filteredChanges[dateStr];
+        });
+
+        if (datesToAssign.length === 0) return filteredChanges;
+
+        const newChanges: Record<string, GameStatusInfo> = {};
+        
+        datesToAssign.forEach(date => {
+          const dateStr = format(date, 'yyyy-MM-dd');
+          const game = games.find(g => format(new Date(g.date), 'yyyy-MM-dd') === dateStr);
+          const randomTrack = selectedPlaylist.tracks[Math.floor(Math.random() * selectedPlaylist.tracks.length)];
+          
+          newChanges[dateStr] = {
+            status: game ? 'to-edit' : 'to-create',
+            newSong: randomTrack,
+            currentSong: game?.song.spotifyData as Track | undefined
+          };
+        });
+
+        return { ...filteredChanges, ...newChanges };
+      });
+    } else if (selectedDates.length <= 1) {
+      // Clear all pending changes when single date or no dates selected
+      setPendingChanges({});
+    }
+  }, [selectedPlaylist, selectedDates, games]);
 
   const assignRandomSongToDate = useCallback((date: Date) => {
     if (!selectedPlaylist?.tracks.length) return;
@@ -106,60 +192,45 @@ export function AdminDashboard({
   const editorMode = selectedDates.length > 1 ? 'batch' : 'single';
 
   // Get the currently selected game for single mode
-  const selectedGame = selectedDates[0] ? games.find(g => isSameDay(new Date(g.date), selectedDates[0])) : undefined;
+  const selectedGame = selectedDates[0]
+    ? games.find(g => g.date === format(selectedDates[0], 'yyyy-MM-dd'))
+    : undefined;
+
+  const handleSelectDates = (dates: Date[]) => {
+    setSelectedDates(dates);
+    setPendingChanges({});
+    if (onPlaylistChange) onPlaylistChange(undefined);
+  };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div>
+    <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div data-calendar>
         <Calendar
           selectedDates={selectedDates}
-          onSelect={setSelectedDates}
+          onSelect={handleSelectDates}
           games={transformedGames}
           currentMonth={currentMonth}
           onMonthChange={setCurrentMonth}
           pendingChanges={pendingChanges}
+          onClearPendingChanges={handleClearPendingChanges}
         />
       </div>
 
       <div>
         {editorMode === 'single' ? (
           selectedDates.length === 1 ? (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold">
-                  {format(selectedDates[0], 'MMMM d, yyyy')}
-                </h2>
-                <Button
-                  variant="secondary"
-                  onClick={() => setSingleViewMode(singleViewMode === 'preview' ? 'edit' : 'preview')}
-                >
-                  {singleViewMode === 'preview' ? 'Edit' : 'Preview'}
-                </Button>
-              </div>
-
-              {singleViewMode === 'preview' ? (
-                selectedGame ? (
-                  <LyricsGame date={format(selectedDates[0], 'yyyy-MM-dd')} />
-                ) : (
-                  <div className="p-4 text-center text-muted">
-                    No game scheduled for this date
-                  </div>
-                )
-              ) : (
-                <GameEditor
-                  mode="preview"
-                  onModeChange={() => {}}
-                  selectedDate={selectedDates[0]}
-                  game={selectedGame as AdminGame}
-                  onGameUpdate={handleGameUpdate}
-                  onGameDelete={handleGameDelete}
-                  onRandomSongAssign={assignRandomSongToDate}
-                  selectedPlaylist={selectedPlaylist}
-                  onPlaylistChange={onPlaylistChange}
-                  pendingChange={pendingChanges[format(selectedDates[0], 'yyyy-MM-dd')]}
-                />
-              )}
-            </div>
+            <GameEditor
+              mode={singleViewMode}
+              onModeChange={setSingleViewMode}
+              selectedDate={selectedDates[0]}
+              game={selectedGame as AdminGame || null}
+              onGameUpdate={handleGameUpdate}
+              onGameDelete={handleGameDelete}
+              onRandomSongAssign={assignRandomSongToDate}
+              selectedPlaylist={selectedPlaylist}
+              onPlaylistChange={onPlaylistChange}
+              pendingChange={pendingChanges[format(selectedDates[0], 'yyyy-MM-dd')]}
+            />
           ) : (
             <div className="p-4 text-center text-muted">
               Select a date to view or edit

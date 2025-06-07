@@ -31,7 +31,7 @@ export class SpotifyClientImpl implements SpotifyClient {
       if (this.client instanceof SpotifyApi) {
         console.log('Searching playlists with query:', query);
         const response = await withRetry(() => 
-          (this.client as SpotifyApiType).search(query, ['playlist'], undefined, 50)
+          (this.client as SpotifyApiType).search(query, ['playlist'], 'US', 50)
         );
         console.log('Raw search response:', JSON.stringify(response, null, 2));
         return response.playlists as Page<Playlist>;
@@ -87,7 +87,7 @@ export class SpotifyClientImpl implements SpotifyClient {
     try {
       if (this.client instanceof SpotifyApi) {
         const response = await withRetry(() => 
-          (this.client as SpotifyApiType).search(query, ['track'], undefined, 50)
+          (this.client as SpotifyApiType).search(query, ['track'], 'US', 50)
         );
         return response.tracks.items;
       }

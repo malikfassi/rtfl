@@ -20,6 +20,11 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
   const currentDate = new Date(currentMonth);
   const prevMonth = format(subMonths(currentDate, 1), "yyyy-MM");
   const nextMonth = format(addMonths(currentDate, 1), "yyyy-MM");
+  
+  // Don't allow navigation to future months
+  const today = new Date();
+  const currentMonthDate = format(startOfMonth(today), "yyyy-MM");
+  const canNavigateNext = nextMonth <= currentMonthDate;
 
   if (isLoading) {
     return (
@@ -38,7 +43,7 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
         {/* Month Navigation */}
         <div className="flex items-center justify-between mb-8">
           <Link 
-            href={`/archive/${prevMonth}`}
+            href={`/archive/${prevMonth}` as any}
             className="p-2 hover:bg-white/5 rounded-lg transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -46,12 +51,18 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
           <h1 className="text-2xl font-bold">
             {format(currentDate, "MMMM yyyy")}
           </h1>
-          <Link 
-            href={`/archive/${nextMonth}`}
-            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </Link>
+          {canNavigateNext ? (
+            <Link 
+              href={`/archive/${nextMonth}` as any}
+              className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Link>
+          ) : (
+            <div className="p-2 opacity-30 cursor-not-allowed">
+              <ChevronRight className="w-5 h-5" />
+            </div>
+          )}
         </div>
         
         {/* Calendar View */}

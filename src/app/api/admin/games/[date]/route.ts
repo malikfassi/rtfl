@@ -11,7 +11,9 @@ type SuccessResponse = GameWithSong;
 type DeleteResponse = { success: boolean };
 type Response = ErrorResponse | SuccessResponse | DeleteResponse;
 
-export function GET(prisma: PrismaClient) {
+const prisma = new PrismaClient();
+
+export function makeGET(prisma: PrismaClient) {
   return async function handler(
     request: Request,
     { params }: { params: Promise<{ date: string }> }
@@ -28,7 +30,7 @@ export function GET(prisma: PrismaClient) {
   };
 }
 
-export function POST(prisma: PrismaClient) {
+export function makePOST(prisma: PrismaClient) {
   return async function handler(
     request: Request,
     { params }: { params: Promise<{ date: string }> }
@@ -53,7 +55,7 @@ export function POST(prisma: PrismaClient) {
   };
 }
 
-export function DELETE(prisma: PrismaClient) {
+export function makeDELETE(prisma: PrismaClient) {
   return async function handler(
     request: Request,
     { params }: { params: Promise<{ date: string }> }
@@ -69,5 +71,9 @@ export function DELETE(prisma: PrismaClient) {
     }
   };
 }
+
+export const GET = makeGET(prisma);
+export const POST = makePOST(prisma);
+export const DELETE = makeDELETE(prisma);
 
 export const dynamic = 'force-dynamic'; 

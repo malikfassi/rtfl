@@ -1,7 +1,7 @@
 import { Guess, PrismaClient, Song } from '@prisma/client';
 import { validateSchema, dateSchema, playerIdSchema } from '@/app/api/lib/validation';
 import { prisma } from '@/app/api/lib/db';
-import type { MaskedLyrics } from '@/app/api/lib/types/lyrics';
+import type { MaskedLyrics, Token } from '@/app/api/lib/types/lyrics';
 import type { GameState } from '@/app/api/lib/types/game-state';
 import type { GameWithSongAndGuesses } from '@/app/api/lib/types/game';
 import { createGameService } from './game';
@@ -51,6 +51,20 @@ export class GameStateService {
     const isWon = this.isGameWon(game.song, game.guesses);
     const masked = game.song.maskedLyrics as unknown as MaskedLyrics;
 
+    // Get set of guessed words
+    const guessedWords = new Set(game.guesses.filter(g => g.valid).map(g => g.word.toLowerCase()));
+
+    // Helper to mask tokens
+    function maskTokens(tokens: Token[]): Token[] {
+      return tokens.map(token => {
+        if (!token.isToGuess) return token;
+        if (isWon || guessedWords.has(token.value.toLowerCase())) {
+          return token;
+        }
+        return { ...token, value: '_'.repeat(token.value.length) };
+      });
+    }
+
     let songWithTitleArtist: typeof game.song & { title?: string; artist?: string } | undefined = undefined;
     if (isWon) {
       const geniusData = game.song.geniusData as { title?: string; artist?: string } | undefined;
@@ -64,7 +78,11 @@ export class GameStateService {
     return {
       id: game.id,
       date: game.date,
-      masked,
+      masked: {
+        title: maskTokens(masked.title),
+        artist: maskTokens(masked.artist),
+        lyrics: maskTokens(masked.lyrics)
+      },
       guesses: game.guesses,
       song: songWithTitleArtist
     };
@@ -97,4 +115,7 @@ export class GameStateService {
 // Export factory function
 export function createGameStateService(client: PrismaClient) {
   return new GameStateService(client);
-} 
+}
+
+// Export singleton instance
+export const gameStateService = new GameStateService(prisma); 

@@ -13,7 +13,7 @@ import {
   startOfWeek,
   endOfWeek
 } from "date-fns";
-import type { GameState } from "@/app/api/lib/types/game";
+import type { GameState } from "@/app/api/lib/types/game-state";
 
 interface CalendarViewProps {
   month: string;
@@ -46,9 +46,44 @@ export function CalendarView({ month, games }: CalendarViewProps) {
           const game = gamesMap.get(dateStr);
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isGameDay = Boolean(game);
-          const isComplete = game && (
-            game.guesses.length / game.masked.lyrics.split(" ").length >= 0.8
-          );
+          
+          // Calculate proper progress if game exists
+          let progressPercent = 0;
+          let isComplete = false;
+          
+          if (game) {
+            // Calculate lyrics progress using masked parts
+            const lyricsTokens = Array.isArray(game.masked.lyrics) 
+              ? game.masked.lyrics 
+              : [];
+            const hiddenWords = lyricsTokens
+              .filter((token: any) => token.isToGuess)
+              .map((token: any) => token.value.toLowerCase());
+            
+            const foundWords = Array.from(new Set(
+              game.guesses
+                .filter((g: any) => g.valid)
+                .map((g: any) => g.word.toLowerCase())
+            ));
+            
+            const foundHiddenWords = hiddenWords.filter((word: string) => foundWords.includes(word));
+            progressPercent = hiddenWords.length > 0 ? Math.round((foundHiddenWords.length / hiddenWords.length) * 100) : 0;
+            
+            // Check if complete (80% lyrics OR title+artist complete)
+            const lyricsComplete = progressPercent >= 80;
+            
+            // Check title/artist completion
+            const titleTokens = Array.isArray(game.masked.title) ? game.masked.title : [];
+            const artistTokens = Array.isArray(game.masked.artist) ? game.masked.artist : [];
+            
+            const titleHidden = titleTokens.filter((t: any) => t.isToGuess).map((t: any) => t.value.toLowerCase());
+            const artistHidden = artistTokens.filter((t: any) => t.isToGuess).map((t: any) => t.value.toLowerCase());
+            
+            const titleComplete = titleHidden.length > 0 && titleHidden.every((word: string) => foundWords.includes(word));
+            const artistComplete = artistHidden.length > 0 && artistHidden.every((word: string) => foundWords.includes(word));
+            
+            isComplete = lyricsComplete || (titleComplete && artistComplete);
+          }
 
           return (
             <div
@@ -62,17 +97,17 @@ export function CalendarView({ month, games }: CalendarViewProps) {
             >
               <div className="text-sm">{format(day, "d")}</div>
               {game && (
-                <Link href={`/${dateStr}`} className="absolute inset-0 p-2">
+                <Link href={`/game/${dateStr}` as any} className="absolute inset-0 p-2">
                   <div className="mt-4 flex items-center gap-2">
                     {isComplete ? (
-                      <Check className="w-4 h-4 text-accent-mint" />
+                      <Check className="w-4 h-4 text-accent-success" />
                     ) : (
                       <div className="text-xs text-primary-muted">
-                        {Math.round((game.guesses.length / game.masked.lyrics.split(" ").length) * 100)}%
+                        {progressPercent}%
                       </div>
                     )}
                     <div className="text-xs text-primary-muted">
-                      {game.guesses.length} guesses
+                      {game.guesses.filter((g: any) => g.valid).length} guesses
                     </div>
                   </div>
                 </Link>

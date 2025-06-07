@@ -5,6 +5,7 @@ import { ValidationError } from '@/app/api/lib/errors/base';
 import { handleError } from '@/app/api/lib/utils/error-handler';
 import { gameService, type GameWithSong } from '@/app/api/lib/services/game';
 import { schemas, validateSchema } from '@/app/api/lib/validation';
+import { songService } from '@/app/api/lib/services/song';
 
 type ErrorResponse = { error: string };
 type SuccessResponse<T> = T;
@@ -52,7 +53,8 @@ export const POST: Handler<PostResponse> = async (request) => {
     const validatedDate = validateSchema(schemas.date, date);
     const validatedSpotifyId = validateSchema(schemas.spotifyId, spotifyId);
     
-    const result = await gameService.createOrUpdate(validatedDate, validatedSpotifyId);
+    const song = await songService.create(validatedSpotifyId);
+    const result = await gameService.createOrUpdate(validatedDate, song.id);
     return NextResponse.json(result);
   } catch (error) {
     return handleError(error);

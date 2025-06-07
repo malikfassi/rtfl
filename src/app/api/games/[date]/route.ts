@@ -11,11 +11,24 @@ type ErrorResponse = { error: string };
 type SuccessResponse<T> = T;
 type GetResponse = SuccessResponse<GameState> | ErrorResponse;
 
-export const GET = (prisma: PrismaClient) =>
-  async (request: NextRequest, { params }: { params: { date: string } }) => {
+const prisma = new PrismaClient();
+
+export const makeGET = (prisma: PrismaClient) =>
+  async (request: NextRequest, context: { params: { date: string } }) => {
     try {
-      const { date } = params;
+      const { params } = context;
+      const { date } = await params;
       const validatedDate = validateSchema(schemas.date, date);
+      
+      // Prevent accessing future games
+      const today = new Date().toISOString().split('T')[0];
+      if (validatedDate > today) {
+        return NextResponse.json(
+          { error: 'Cannot access games in the future' }, 
+          { status: 403 }
+        );
+      }
+      
       const userId = request.headers.get('x-user-id')!;
       const gameStateService = createGameStateService(prisma);
       const result = await gameStateService.getGameState(validatedDate, userId);
@@ -23,4 +36,6 @@ export const GET = (prisma: PrismaClient) =>
     } catch (error) {
       return handleError(error);
     }
-  }; 
+  };
+
+export const GET = makeGET(prisma); 

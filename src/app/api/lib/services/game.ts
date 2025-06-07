@@ -27,6 +27,8 @@ export class GameService {
     if (!song) {
       throw new SongNotFoundError(songId);
     }
+    // Debug logging
+    console.log('[GameService.createOrUpdate] Upserting game:', { validatedDate, songId });
     return await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const game = await tx.game.upsert({
         where: { date: validatedDate },
@@ -58,8 +60,8 @@ export class GameService {
     const monthNum = parseInt(validatedMonth.split('-')[1], 10);
     const year = validatedMonth.split('-')[0];
     
-    const startDate = new Date(parseInt(year), monthNum - 1, 1);
-    const endDate = new Date(parseInt(year), monthNum, 0);
+    const startDate = new Date(Date.UTC(parseInt(year), monthNum - 1, 1));
+    const endDate = new Date(Date.UTC(parseInt(year), monthNum, 0));
 
     const games = await this.prisma.game.findMany({
       where: {

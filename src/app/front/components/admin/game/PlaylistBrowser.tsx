@@ -2,6 +2,7 @@ import type { SimplifiedPlaylist,Track } from '@spotify/web-api-ts-sdk';
 import React, { useEffect, useRef,useState } from 'react';
 
 import { Input } from '@/app/front/components/ui/Input';
+import { Button } from '@/app/front/components/ui/Button';
 import { useDebounce } from '@/app/front/hooks/useDebounce';
 import { usePlaylists, usePlaylistTracks } from '@/app/front/hooks/use-playlists';
 
@@ -9,23 +10,39 @@ import { PlaylistSongsList } from './PlaylistSongsList';
 
 interface PlaylistBrowserProps {
   onPlaylistSelect: (playlist: { tracks: Track[] }) => void;
+  onReshuffle?: () => void;
+  songAssignments?: Record<string, string[]>;
 }
 
 function LoadingState() {
   return <div>Loading...</div>;
 }
 
-function SelectedPlaylistView({ playlist, tracks, isLoading }: { 
+function SelectedPlaylistView({ playlist, tracks, isLoading, onReshuffle, songAssignments }: { 
   playlist: SimplifiedPlaylist; 
   tracks: Track[]; 
   isLoading: boolean; 
+  onReshuffle?: () => void;
+  songAssignments?: Record<string, string[]>;
 }) {
   return (
     <div>
-      <h3 className="text-sm font-medium">{playlist.name}</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-medium">{playlist.name}</h3>
+        {onReshuffle && (
+          <Button 
+            onClick={onReshuffle}
+            variant="secondary"
+            size="sm"
+          >
+            Reshuffle Songs
+          </Button>
+        )}
+      </div>
       <PlaylistSongsList
         tracks={tracks}
         isLoading={isLoading}
+        songAssignments={songAssignments}
       />
     </div>
   );
@@ -58,7 +75,7 @@ function PlaylistList({ playlists, onSelect }: {
   );
 }
 
-export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
+export function PlaylistBrowser({ onPlaylistSelect, onReshuffle, songAssignments }: PlaylistBrowserProps) {
   const [query, setQuery] = useState('');
   const [selectedPlaylist, setSelectedPlaylist] = useState<SimplifiedPlaylist | null>(null);
   const debouncedQuery = useDebounce(query, 300);
@@ -87,6 +104,8 @@ export function PlaylistBrowser({ onPlaylistSelect }: PlaylistBrowserProps) {
           playlist={selectedPlaylist} 
           tracks={tracks} 
           isLoading={isLoadingTracks} 
+          onReshuffle={onReshuffle}
+          songAssignments={songAssignments}
         />
       );
     }

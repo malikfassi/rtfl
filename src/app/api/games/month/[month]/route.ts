@@ -11,7 +11,9 @@ type ErrorResponse = { error: string };
 type SuccessResponse<T> = T;
 type GetResponse = SuccessResponse<GameState[]> | ErrorResponse;
 
-export const GET = (prisma: PrismaClient) =>
+const prisma = new PrismaClient();
+
+export const makeGET = (prisma: PrismaClient) =>
   async (request: NextRequest, { params }: { params: { month: string } }) => {
     try {
       const { month } = params;
@@ -23,4 +25,6 @@ export const GET = (prisma: PrismaClient) =>
     } catch (error) {
       return handleError(error);
     }
-  }; 
+  };
+
+export const GET = makeGET(prisma); 

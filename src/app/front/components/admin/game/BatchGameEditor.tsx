@@ -1,6 +1,7 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
-import { format } from 'date-fns';
-import React, { useCallback, useState } from 'react';
+import { format, addMonths } from 'date-fns';
+import React, { useCallback, useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/app/front/components/ui/Button';
 import { useAdminGameMutations } from '@/app/front/hooks/useAdmin';
@@ -38,12 +39,30 @@ export function BatchGameEditor({
   const [selectedPlaylist, setSelectedPlaylist] = useState<{ tracks: Track[] } | null>(null);
   const { createGame } = useAdminGameMutations();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handlePlaylistSelect = useCallback((playlist: { tracks: Track[] }) => {
     console.log('BatchGameEditor: Selected playlist with tracks:', playlist.tracks.length);
     setSelectedPlaylist(playlist);
     onPlaylistChange?.(playlist);
   }, [onPlaylistChange]);
+
+  // Calculate song assignments based on pending changes
+  const songAssignments = useMemo(() => {
+    const assignments: Record<string, string[]> = {};
+    
+    Object.entries(pendingChanges).forEach(([date, change]) => {
+      if (change.newSong?.id) {
+        const songId = change.newSong.id;
+        if (!assignments[songId]) {
+          assignments[songId] = [];
+        }
+        assignments[songId].push(date);
+      }
+    });
+    
+    return assignments;
+  }, [pendingChanges]);
 
   const handleCreate = useCallback(async () => {
     if (!selectedPlaylist?.tracks.length) {
@@ -57,6 +76,7 @@ export function BatchGameEditor({
 
     setIsUpdating(true);
     let hasErrors = false;
+    let hasSuccess = false;
 
     try {
       // Process each date independently
@@ -107,6 +127,7 @@ export function BatchGameEditor({
             title: "Success",
             description: `Game created for ${dateStr}`,
           });
+          hasSuccess = true;
         } catch (error) {
           hasErrors = true;
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -130,28 +151,30 @@ export function BatchGameEditor({
       }));
     } finally {
       setIsUpdating(false);
+      if (hasSuccess) {
+        // Invalidate queries for current, previous, and next months
+        const months = [0, -1, 1].map(offset => format(addMonths(selectedDates[0], offset), 'yyyy-MM'));
+        months.forEach(month => {
+          queryClient.invalidateQueries({ queryKey: ['games', 'surrounding', month] });
+        });
+      }
       if (!hasErrors) {
         onComplete();
       }
     }
-  }, [selectedDates, pendingChanges, onPendingChanges, onComplete, createGame, toast, selectedPlaylist]);
+  }, [selectedDates, pendingChanges, onPendingChanges, onComplete, createGame, toast, selectedPlaylist, queryClient]);
 
   return (
     <div className="p-4">
       <h2 className="text-xl font-mono mb-4">Batch Edit</h2>
       
-      <PlaylistBrowser onPlaylistSelect={handlePlaylistSelect} />
+      <PlaylistBrowser 
+        onPlaylistSelect={handlePlaylistSelect} 
+        onReshuffle={onReshuffle}
+        songAssignments={songAssignments}
+      />
       
-      <div className="mt-4 space-y-4">
-        <Button 
-          onClick={onReshuffle}
-          variant="secondary"
-          className="w-full"
-          disabled={isUpdating}
-        >
-          Reshuffle Songs
-        </Button>
-        
+      <div className="mt-4">
         <Button
           onClick={handleCreate}
           variant="primary"
