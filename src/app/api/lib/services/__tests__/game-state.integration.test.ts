@@ -101,18 +101,25 @@ describe('GameStateService Integration - Realistic Scenario', () => {
     integration_validator.game_state_service.getGameState(state2);
     expect(state1.guesses.map(g => g.word)).toContain('party');
     expect(state2.guesses).toHaveLength(0);
+    // Player 1 should see "party" revealed, Player 2 should not
+    expect(state1.masked.title[0].value).toBe('Party');
+    expect(state2.masked.title[0].value).toBe('_____');
 
     // Step 4: Player 2 makes a wrong guess
     await submitGuesses(guessService, testDate, player2, ['wrongword']);
     state2 = await service.getGameState(testDate, player2);
     expect(state2.guesses.map(g => g.word)).toContain('wrongword');
-    // Masked should not reveal anything new
-    expect(state2.masked).toEqual(state1.masked); // since wrong guess
+    // Masked should still show "party" as masked since it hasn't been guessed by player 2
+    expect(state2.masked.title[0].value).toBe('_____');
 
-    // Step 5: Player 2 makes a valid guess
-    await submitGuesses(guessService, testDate, player2, ['usa']);
+    // Step 5: Player 2 makes valid guesses for 'u', 's', and 'a'
+    await submitGuesses(guessService, testDate, player2, ['u', 's', 'a']);
     state2 = await service.getGameState(testDate, player2);
-    expect(state2.guesses.map(g => g.word)).toContain('usa');
+    expect(state2.guesses.map(g => g.word)).toEqual(expect.arrayContaining(['u', 's', 'a']));
+    // Should now see only 'U', 'S', and 'A' revealed, rest masked
+    const guessableTitleTokens = state2.masked.title.filter(t => t.isToGuess);
+    expect(guessableTitleTokens.slice(-3).map(t => t.value)).toEqual(['U', 'S', 'A']);
+    expect(guessableTitleTokens.slice(0, -3).every(t => /^_+$/.test(t.value))).toBe(true);
 
     // Step 6: Player 1 wins by guessing all title and artist words
     const titleWords = ['party', 'in', 'the', 'u', 's', 'a'];

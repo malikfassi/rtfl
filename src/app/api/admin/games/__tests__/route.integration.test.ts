@@ -7,7 +7,7 @@ import { fixtures } from '@/app/api/lib/test/fixtures';
 import { integration_validator } from '@/app/api/lib/test/validators';
 import { ErrorCode } from '@/app/api/lib/errors/codes';
 import { ErrorMessage } from '@/app/api/lib/errors/messages';
-import { GET, POST, DELETE } from '../[date]/route';
+import { makeGET, makePOST, makeDELETE } from '../[date]/route';
 
 const date = new Date().toISOString().split('T')[0];
 const validTrackKey = TRACK_KEYS.PARTY_IN_THE_USA;
@@ -38,7 +38,8 @@ describe('GET /api/admin/games/[date]', () => {
       new URL(`http://localhost:3000/api/admin/games/${date}`),
       { method: 'GET' }
     );
-    const response = await GET(context.prisma)(request, { params: Promise.resolve({ date }) });
+    const GET = makeGET(context.prisma);
+    const response = await GET(request, { params: { date } });
     const data = await response.json();
     expect(response.status).toBe(200);
     integration_validator.game_service.createOrUpdate(data);
@@ -50,7 +51,8 @@ describe('GET /api/admin/games/[date]', () => {
       new URL(`http://localhost:3000/api/admin/games/${nonexistentDate}`),
       { method: 'GET' }
     );
-    const response = await GET(context.prisma)(request, { params: Promise.resolve({ date: nonexistentDate }) });
+    const GET = makeGET(context.prisma);
+    const response = await GET(request, { params: { date: nonexistentDate } });
     const data = await response.json();
     expect(response.status).toBe(404);
     expect(data.error).toBe(ErrorCode.GameNotFound);
@@ -67,7 +69,8 @@ describe('POST /api/admin/games/[date]', () => {
         body: JSON.stringify({ spotifyId: validTrackId })
       }
     );
-    const response = await POST(context.prisma)(request, { params: Promise.resolve({ date }) });
+    const POST = makePOST(context.prisma);
+    const response = await POST(request, { params: { date } });
     const data = await response.json();
     expect(response.status).toBe(200);
     integration_validator.game_service.createOrUpdate(data);
@@ -85,7 +88,8 @@ describe('POST /api/admin/games/[date]', () => {
         body: JSON.stringify({ spotifyId: validTrackId })
       }
     );
-    const response = await POST(context.prisma)(request, { params: Promise.resolve({ date: 'invalid-date' }) });
+    const POST = makePOST(context.prisma);
+    const response = await POST(request, { params: { date: 'invalid-date' } });
     const data = await response.json();
     expect(response.status).toBe(400);
     expect(data.error).toBe(ErrorCode.ValidationError);
@@ -100,7 +104,8 @@ describe('POST /api/admin/games/[date]', () => {
         body: JSON.stringify({})
       }
     );
-    const response = await POST(context.prisma)(request, { params: Promise.resolve({ date }) });
+    const POST = makePOST(context.prisma);
+    const response = await POST(request, { params: { date } });
     const data = await response.json();
     expect(response.status).toBe(400);
     expect(data.error).toBe(ErrorCode.ValidationError);
@@ -123,7 +128,8 @@ describe('DELETE /api/admin/games', () => {
       new URL(`http://localhost:3000/api/admin/games/${date}`),
       { method: 'DELETE' }
     );
-    const response = await DELETE(context.prisma)(request, { params: Promise.resolve({ date }) });
+    const DELETE = makeDELETE(context.prisma);
+    const response = await DELETE(request, { params: { date } });
     const data = await response.json();
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
@@ -138,7 +144,8 @@ describe('DELETE /api/admin/games', () => {
       new URL(`http://localhost:3000/api/admin/games/${nonexistentDate}`),
       { method: 'DELETE' }
     );
-    const response = await DELETE(context.prisma)(request, { params: Promise.resolve({ date: nonexistentDate }) });
+    const DELETE = makeDELETE(context.prisma);
+    const response = await DELETE(request, { params: { date: nonexistentDate } });
     const data = await response.json();
     expect(response.status).toBe(404);
     expect(data.error).toBe(ErrorCode.GameNotFound);
@@ -150,7 +157,8 @@ describe('DELETE /api/admin/games', () => {
       new URL('http://localhost:3000/api/admin/games'),
       { method: 'DELETE' }
     );
-    const response = await DELETE(context.prisma)(request, { params: Promise.resolve({ date: '' }) });
+    const DELETE = makeDELETE(context.prisma);
+    const response = await DELETE(request, { params: { date: '' } });
     const data = await response.json();
     expect(response.status).toBe(400);
     expect(data.error).toBe(ErrorCode.ValidationError);

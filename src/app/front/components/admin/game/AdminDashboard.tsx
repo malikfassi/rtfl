@@ -90,44 +90,38 @@ export function AdminDashboard({
   // Auto-assign songs when playlist is selected and dates are chosen
   useEffect(() => {
     if (selectedPlaylist?.tracks.length && selectedDates.length > 1) {
-      // Only auto-assign to dates that don't already have pending changes
       setPendingChanges(prev => {
-        // First, filter out changes for dates that are no longer selected
         const selectedDateStrs = new Set(selectedDates.map(date => format(date, 'yyyy-MM-dd')));
         const filteredChanges: Record<string, GameStatusInfo> = {};
-        
         Object.entries(prev).forEach(([dateStr, change]) => {
           if (selectedDateStrs.has(dateStr)) {
             filteredChanges[dateStr] = change;
           }
         });
-
         const datesToAssign = selectedDates.filter(date => {
           const dateStr = format(date, 'yyyy-MM-dd');
           return !filteredChanges[dateStr];
         });
-
         if (datesToAssign.length === 0) return filteredChanges;
-
         const newChanges: Record<string, GameStatusInfo> = {};
-        
         datesToAssign.forEach(date => {
           const dateStr = format(date, 'yyyy-MM-dd');
           const game = games.find(g => format(new Date(g.date), 'yyyy-MM-dd') === dateStr);
           const randomTrack = selectedPlaylist.tracks[Math.floor(Math.random() * selectedPlaylist.tracks.length)];
-          
           newChanges[dateStr] = {
             status: game ? 'to-edit' : 'to-create',
             newSong: randomTrack,
             currentSong: game?.song.spotifyData as Track | undefined
           };
         });
-
         return { ...filteredChanges, ...newChanges };
       });
     } else if (selectedDates.length <= 1) {
-      // Clear all pending changes when single date or no dates selected
-      setPendingChanges({});
+      // Only clear if not already empty
+      setPendingChanges(prev => {
+        if (Object.keys(prev).length === 0) return prev;
+        return {};
+      });
     }
   }, [selectedPlaylist, selectedDates, games]);
 

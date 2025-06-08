@@ -7,6 +7,8 @@ import { env } from '@/app/api/lib/env';
 import { constructSpotifySearchQuery, getSpotifySearchQueryForTrackKey } from '@/app/api/lib/utils/spotify';
 import { TEST_IDS, getErrorCaseKeyById, TRACK_KEYS, PLAYLIST_KEYS, TRACK_URIS, PLAYLIST_URIS } from '@/app/api/lib/test/constants';
 import { SpotifyMocks } from '@/app/api/lib/test/mocks/spotify';
+import { fixtures } from '@/app/api/lib/test/fixtures';
+import { describe, expect, it } from '@jest/globals';
 
 describe('SpotifyClient', () => {
   let client: import('../spotify').SpotifyClient;
@@ -98,17 +100,10 @@ describe('SpotifyClient', () => {
 
   describe('searchPlaylists', () => {
     it('should return playlists for valid query', async () => {
-      const playlistId = PLAYLIST_URIS.ROCK_CLASSICS;
-      const playlists = await client.searchPlaylists(playlistId);
-      try {
-        integration_validator.spotify_client.search(PLAYLIST_KEYS.ROCK_CLASSICS, { playlists: { items: playlists.items } });
-      } catch (error) {
-        console.log('Playlist search validation failed. Debug info:');
-        console.log('Key:', playlistId);
-        console.log('Results:', JSON.stringify(playlists, null, 2));
-        console.log('Error:', error);
-        throw error;
-      }
+      const key = PLAYLIST_KEYS.NINETIES_ROCK;
+      const playlist = fixtures.spotify.playlists[key];
+      const results = await client.searchPlaylists(playlist.name);
+      integration_validator.spotify_client.search(key, { playlists: results });
     });
 
     it('should throw SpotifyApiError for empty query', async () => {

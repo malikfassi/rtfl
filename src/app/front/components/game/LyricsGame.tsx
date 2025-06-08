@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useGameState, useGuess } from "@/app/front/hooks/usePlayer";
 import { getOrCreatePlayerId } from "@/app/front/lib/utils";
 import { cn } from "@/app/front/lib/utils";
@@ -53,6 +53,94 @@ export function LyricsGame({ date, game, disabled = false, isAdmin = false, onCh
   
   // Setup guess mutation
   const guessMutation = useGuess(playerId, date);
+
+  // Track if share popup has been shown for this win
+  const hasSharedRef = useRef(false);
+
+  // Get total words to find (only masked words)
+  const lyrics = typeof gameState?.masked?.lyrics === 'string' ? gameState.masked.lyrics : '';
+  const totalWords = Array.from(lyrics.matchAll(/_{2,}/g)).length;
+  
+  // Get total found word occurrences (not unique)
+  const foundWordsCount = gameState?.guesses
+    ?.filter((g: { valid: boolean }) => g.valid)
+    .reduce((count: number, g: { id: string; valid: boolean; word: string }) => {
+      const words = Array.from(lyrics.matchAll(/\p{L}+|\p{N}+/gu), (m: RegExpMatchArray) => m[0]) as string[];
+      const hits = words.filter((word: string) => 
+        word.toLowerCase() === g.word.toLowerCase()
+      ).length;
+      return count + hits;
+    }, 0) || 0;
+  
+  const wordsFoundPercentage = Math.round((foundWordsCount / totalWords) * 100);
+  
+  // Calculate segments for each valid guess
+  const guessSegments = gameState?.guesses
+    ?.filter((g: { valid: boolean }) => g.valid)
+    .map((g: { id: string; valid: boolean; word: string }) => {
+      const words = Array.from(lyrics.matchAll(/\p{L}+|\p{N}+/gu), (m: RegExpMatchArray) => m[0]) as string[];
+      const hits = words.filter((word: string) => 
+        word.toLowerCase() === g.word.toLowerCase()
+      ).length;
+      return {
+        id: g.id,
+        hits,
+        colorIndex: gameState.guesses.findIndex((g: { id: string }) => g.id === g.id) % colors.length
+      };
+    })
+    .filter((segment: { hits: number }) => segment.hits > 0) || [];
+
+  // Calculate completion percentages
+  const foundWords: string[] = Array.from(new Set(
+    gameState?.guesses
+      ?.filter((g: { valid: boolean }) => g.valid)
+      .map((g: { word: string }) => g.word.toLowerCase()) || []
+  ));
+
+  // Convert masked fields from arrays to strings if needed
+  const maskedTitle = Array.isArray(gameState?.masked?.title)
+    ? gameState.masked.title.map((part: { value: string }) => part.value).join('')
+    : (typeof gameState?.masked?.title === 'string' ? gameState.masked.title : '');
+  const maskedArtist = Array.isArray(gameState?.masked?.artist)
+    ? gameState.masked.artist.map((part: { value: string }) => part.value).join('')
+    : (typeof gameState?.masked?.artist === 'string' ? gameState.masked.artist : '');
+  const maskedLyrics = Array.isArray(gameState?.masked?.lyrics)
+    ? gameState.masked.lyrics.map((part: { value: string }) => part.value).join('')
+    : (typeof gameState?.masked?.lyrics === 'string' ? gameState.masked.lyrics : '');
+
+  // Pass the raw arrays for masking logic
+  const maskedTitleParts = Array.isArray(gameState?.masked?.title) ? gameState.masked.title : undefined;
+  const maskedArtistParts = Array.isArray(gameState?.masked?.artist) ? gameState.masked.artist : undefined;
+  const maskedLyricsParts = Array.isArray(gameState?.masked?.lyrics) ? gameState.masked.lyrics : undefined;
+
+  // Partitioned progress calculation
+  const getProgress = (maskedParts: Array<{ value: string; isToGuess: boolean }> | undefined) => {
+    if (!maskedParts) return { found: 0, total: 0 };
+    const hiddenWords = maskedParts.filter(token => token.isToGuess).map(token => token.value.toLowerCase());
+    const total = hiddenWords.length;
+    const found = hiddenWords.filter(word => foundWords.includes(word)).length;
+    return { found, total };
+  };
+
+  const lyricsProgressData = getProgress(maskedLyricsParts);
+  const titleProgressData = getProgress(maskedTitleParts);
+  const artistProgressData = getProgress(maskedArtistParts);
+
+  // Winning conditions
+  const lyricsWin = lyricsProgressData.total > 0 && lyricsProgressData.found / lyricsProgressData.total >= 0.8;
+  const titleWin = titleProgressData.total > 0 && titleProgressData.found === titleProgressData.total;
+  const artistWin = artistProgressData.total > 0 && artistProgressData.found === artistProgressData.total;
+  const isGameComplete = lyricsWin || (titleWin && artistWin);
+
+  useEffect(() => {
+    if (isGameComplete && !hasSharedRef.current) {
+      hasSharedRef.current = true;
+      handleShare();
+    }
+    if (!isGameComplete) {
+      hasSharedRef.current = false;
+    }
+  }, [isGameComplete]);
 
   if (!isValidDate) {
     return (
@@ -213,88 +301,13 @@ export function LyricsGame({ date, game, disabled = false, isAdmin = false, onCh
     }
   };
 
-  // Get total words to find (only masked words)
-  const lyrics = typeof gameState.masked.lyrics === 'string' ? gameState.masked.lyrics : '';
-  const totalWords = Array.from(lyrics.matchAll(/_{2,}/g)).length;
-  
-  // Get total found word occurrences (not unique)
-  const foundWordsCount = gameState.guesses
-    .filter((g: { valid: boolean }) => g.valid)
-    .reduce((count: number, g: { id: string; valid: boolean; word: string }) => {
-      const words = Array.from(lyrics.matchAll(/\p{L}+|\p{N}+/gu), (m: RegExpMatchArray) => m[0]) as string[];
-      const hits = words.filter((word: string) => 
-        word.toLowerCase() === g.word.toLowerCase()
-      ).length;
-      return count + hits;
-    }, 0);
-  
-  const wordsFoundPercentage = Math.round((foundWordsCount / totalWords) * 100);
-  
-  // Calculate segments for each valid guess
-  const guessSegments = gameState.guesses
-    .filter((g: { valid: boolean }) => g.valid)
-    .map((g: { id: string; valid: boolean; word: string }) => {
-      const words = Array.from(lyrics.matchAll(/\p{L}+|\p{N}+/gu), (m: RegExpMatchArray) => m[0]) as string[];
-      const hits = words.filter((word: string) => 
-        word.toLowerCase() === g.word.toLowerCase()
-      ).length;
-      return {
-        id: g.id,
-        hits,
-        colorIndex: gameState.guesses.findIndex((g: { id: string }) => g.id === g.id) % colors.length
-      };
-    })
-    .filter((segment: { hits: number }) => segment.hits > 0);
-
   // Calculate completion percentages - simplified
-  const foundWords: string[] = Array.from(new Set(
-    gameState.guesses
-      .filter((g: { valid: boolean }) => g.valid)
-      .map((g: { word: string }) => g.word.toLowerCase())
-  ));
-
-  // Simplified completion calculation
   const foundArtistWords = 0;
   const foundTitleWords = 0;
   const artistCompleteGuess = undefined;
   const titleCompleteGuess = undefined;
 
   const lyricsProgress = foundWordsCount / totalWords;
-
-  // Convert masked fields from arrays to strings if needed
-  const maskedTitle = Array.isArray(gameState.masked.title)
-    ? gameState.masked.title.map((part: { value: string }) => part.value).join('')
-    : (typeof gameState.masked.title === 'string' ? gameState.masked.title : '');
-  const maskedArtist = Array.isArray(gameState.masked.artist)
-    ? gameState.masked.artist.map((part: { value: string }) => part.value).join('')
-    : (typeof gameState.masked.artist === 'string' ? gameState.masked.artist : '');
-  const maskedLyrics = Array.isArray(gameState.masked.lyrics)
-    ? gameState.masked.lyrics.map((part: { value: string }) => part.value).join('')
-    : (typeof gameState.masked.lyrics === 'string' ? gameState.masked.lyrics : '');
-
-  // Pass the raw arrays for masking logic
-  const maskedTitleParts = Array.isArray(gameState.masked.title) ? gameState.masked.title : undefined;
-  const maskedArtistParts = Array.isArray(gameState.masked.artist) ? gameState.masked.artist : undefined;
-  const maskedLyricsParts = Array.isArray(gameState.masked.lyrics) ? gameState.masked.lyrics : undefined;
-
-  // Partitioned progress calculation
-  const getProgress = (maskedParts: Array<{ value: string; isToGuess: boolean }> | undefined) => {
-    if (!maskedParts) return { found: 0, total: 0 };
-    const hiddenWords = maskedParts.filter(token => token.isToGuess).map(token => token.value.toLowerCase());
-    const total = hiddenWords.length;
-    const found = hiddenWords.filter(word => foundWords.includes(word)).length;
-    return { found, total };
-  };
-
-  const lyricsProgressData = getProgress(maskedLyricsParts);
-  const titleProgressData = getProgress(maskedTitleParts);
-  const artistProgressData = getProgress(maskedArtistParts);
-
-  // Winning conditions
-  const lyricsWin = lyricsProgressData.total > 0 && lyricsProgressData.found / lyricsProgressData.total >= 0.8;
-  const titleWin = titleProgressData.total > 0 && titleProgressData.found === titleProgressData.total;
-  const artistWin = artistProgressData.total > 0 && artistProgressData.found === artistProgressData.total;
-  const isGameComplete = lyricsWin || (titleWin && artistWin);
 
   // Share functionality
   const handleShare = () => {
@@ -310,7 +323,7 @@ export function LyricsGame({ date, game, disabled = false, isAdmin = false, onCh
         `👤 Artist: ${artistPercent}%`,
         `💭 Guesses: ${guessCount}`
       ].join('\n');
-      shareText = `🎯 Just played RTFL - Guess the F***ing Lyrics!\n\n${stats}\n\nCan you beat my score? 🎯`;
+      shareText = `🎯  Just played RTFL - Read the F***ing Lyrics!\n\n${stats}\n\nThink you can do better? 🎯`;
     } else {
       shareText = `I'm trying to solve today's RTFL lyrics challenge! Can you help me?\n\nPlay here:`;
     }
@@ -336,17 +349,13 @@ export function LyricsGame({ date, game, disabled = false, isAdmin = false, onCh
       
       shareLinks.innerHTML = `
         <div class="bg-background rounded-lg p-6 max-w-sm mx-4 space-y-4 border border-primary-muted/20">
-          <h3 class="font-bold text-lg mb-4 text-primary-dark">Share your score!</h3>
-          
-          <!-- Preview Section -->
+          <h3 class="font-bold text-lg mb-4 text-primary-dark">Challenge your friends!</h3>
           <div class="bg-primary-muted/5 rounded-lg p-3 mb-4">
-            <div class="text-xs text-primary-muted mb-2">Preview:</div>
             <div class="text-sm text-primary-dark whitespace-pre-line font-mono leading-relaxed">
 ${escapeHtml(shareText).replace(/\n/g, '<br>')}
             </div>
             <div class="text-xs text-accent-info mt-2 break-all">${escapeHtml(gameUrl)}</div>
           </div>
-          
           <div class="space-y-3">
             <a href="${twitterUrl}" target="_blank" class="block w-full px-4 py-3 bg-accent-info/10 text-accent-info rounded-lg text-center hover:bg-accent-info/20 transition-colors font-medium">
               🐦 Share on Twitter
@@ -485,7 +494,7 @@ ${escapeHtml(shareText).replace(/\n/g, '<br>')}
                   onClick={handleShare}
                   className="w-full px-4 py-3 bg-accent-info/10 hover:bg-accent-info/20 text-accent-info rounded-lg transition-colors font-medium"
                 >
-                  {isGameComplete ? 'Share Results' : 'Challenge your friends'}
+                  Challenge your friends
                 </button>
                 {/* Yesterday's Game Stats (desktop only) */}
                 <YesterdayStats 

@@ -56,13 +56,20 @@ export function GameProgress({
       {/* Lyrics Path */}
       <div className="space-y-1">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-primary-muted">Complete 80% of lyrics</span>
+          <span className="text-primary-muted">Find 80% of lyrics</span>
           <span className={cn("font-mono", lyricsWinCondition && "text-accent-success font-bold")}>
             {lyricsPct}%
           </span>
         </div>
         {/* 80% threshold marker above the bar */}
         <div className="relative">
+          {/* Glowing 80% threshold line */}
+          <div
+            className="absolute top-0 left-0 h-2 flex items-center pointer-events-none"
+            style={{ left: '80%' }}
+          >
+            <div className="w-0.5 h-2 bg-yellow-300 rounded-full shadow-[0_0_8px_2px_rgba(253,224,71,0.7)] ring-2 ring-yellow-200 animate-pulse" />
+          </div>
           <div 
             className="absolute -top-3 text-[10px] text-primary-muted/60 transform -translate-x-1/2"
             style={{ left: '80%' }}

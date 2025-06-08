@@ -11,9 +11,8 @@ import { TEST_IDS, TEST_DATES, TEST_PLAYERS } from '../constants';
 import { fixtures } from '../fixtures';
 import { createParallelTestDb } from './parallel-db';
 
-// Load environment variables from .env file
-config();
-
+// Load environment variables from .env.test file
+config({ path: '.env.test' });
 /**
  * Integration test context providing access to:
  * - Database client

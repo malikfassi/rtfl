@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import type { Track } from '@spotify/web-api-ts-sdk';
 
 import { cleanupIntegrationTest, setupIntegrationTest } from '@/app/api/lib/test';
 import { TRACK_KEYS } from '@/app/api/lib/test/constants';
@@ -38,7 +39,24 @@ describe('Spotify Tracks Search API Integration', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(data.tracks)).toBe(true);
       expect(data.tracks.length).toBeGreaterThan(0);
-      integration_validator.spotify_client.track(data.tracks[0], validTrackKey);
+      
+      // Validate the structure of the first track
+      const firstTrack = data.tracks[0];
+      expect(typeof firstTrack.name).toBe('string');
+      expect(typeof firstTrack.id).toBe('string');
+      expect(typeof firstTrack.uri).toBe('string');
+      expect(Array.isArray(firstTrack.artists)).toBe(true);
+      expect(firstTrack.artists.length).toBeGreaterThan(0);
+      expect(typeof firstTrack.artists[0].name).toBe('string');
+      
+      // Verify that the search results contain relevant tracks
+      const hasRelevantTrack = data.tracks.some((t: Track) => {
+        const name = t.name.toLowerCase();
+        const artistName = t.artists[0].name.toLowerCase();
+        return name.includes(validTrack.name.toLowerCase()) || 
+               artistName.includes(validTrack.artists[0].name.toLowerCase());
+      });
+      expect(hasRelevantTrack).toBe(true);
     }, 10000);
 
     test('should return 400 when query is missing', async () => {

@@ -25,6 +25,6 @@ export const makeGET = (prisma: PrismaClient) =>
     } catch (error) {
       return handleError(error);
     }
-  };
+  }; 
 
 export const GET = makeGET(prisma); 

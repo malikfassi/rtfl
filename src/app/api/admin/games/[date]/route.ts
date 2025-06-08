@@ -16,10 +16,10 @@ const prisma = new PrismaClient();
 export function makeGET(prisma: PrismaClient) {
   return async function handler(
     request: Request,
-    { params }: { params: Promise<{ date: string }> }
+    { params }: { params: { date: string } }
   ): Promise<NextResponse<Response>> {
     try {
-      const { date } = await params;
+      const { date } = params;
       const validatedDate = validateSchema(schemas.date, date);
       const gameService = await createGameService(undefined, prisma);
       const game = await gameService.getByDate(validatedDate);
@@ -33,10 +33,10 @@ export function makeGET(prisma: PrismaClient) {
 export function makePOST(prisma: PrismaClient) {
   return async function handler(
     request: Request,
-    { params }: { params: Promise<{ date: string }> }
+    { params }: { params: { date: string } }
   ): Promise<NextResponse<Response>> {
     try {
-      const { date } = await params;
+      const { date } = params;
       const validatedDate = validateSchema(schemas.date, date);
       const body = await request.json();
       const spotifyId = validateSchema(schemas.spotifyId, body.spotifyId);
@@ -58,10 +58,10 @@ export function makePOST(prisma: PrismaClient) {
 export function makeDELETE(prisma: PrismaClient) {
   return async function handler(
     request: Request,
-    { params }: { params: Promise<{ date: string }> }
+    { params }: { params: { date: string } }
   ): Promise<NextResponse<Response>> {
     try {
-      const { date } = await params;
+      const { date } = params;
       const validatedDate = validateSchema(schemas.date, date);
       const gameService = await createGameService(undefined, prisma);
       await gameService.delete(validatedDate);

@@ -21,9 +21,9 @@ export function YesterdayStats({ currentDate, className }: YesterdayStatsProps) 
   const m = String(yesterdayDate.getUTCMonth() + 1).padStart(2, '0');
   const d = String(yesterdayDate.getUTCDate()).padStart(2, '0');
   const yesterday = `${y}-${m}-${d}`;
-  const { data: stats, isLoading, error } = useGameStats(yesterday);
+  const { data: stats, isLoading } = useGameStats(yesterday);
 
-  if (isLoading || error || !stats) {
+  if (isLoading || !stats) {
     return null; // Don't show anything if there's no data
   }
 
@@ -58,6 +58,9 @@ export function YesterdayStats({ currentDate, className }: YesterdayStatsProps) 
 
   return (
     <div className={cn("bg-gradient-to-r from-primary-muted/5 to-accent-info/5 rounded-lg p-4 border border-primary-muted/10 relative", className)}>
+      <div className="flex justify-center mb-2">
+        <span className="inline-block bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm border border-yellow-200">Work in progress</span>
+      </div>
       <div className="flex items-center justify-between mb-3 gap-x-2">
         <div className="min-w-0">
           <h3 className="text-sm font-medium text-primary-dark mb-1 truncate">Yesterday's Challenge</h3>

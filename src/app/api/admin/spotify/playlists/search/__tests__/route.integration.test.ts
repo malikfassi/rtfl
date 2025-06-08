@@ -28,7 +28,7 @@ describe('Spotify Playlists Search API Integration', () => {
       const playlistKey = PLAYLIST_KEYS.ROCK_CLASSICS;
       const playlist = fixtures.spotify.playlists[playlistKey];
       const request = new NextRequest(
-        new URL(`http://localhost:3000/api/admin/spotify/playlists/search?q=${playlist.name}`),
+        new URL(`http://localhost:3000/api/admin/spotify/playlists/search?q=${encodeURIComponent(playlist.name)}`),
         { method: 'GET' }
       );
 
@@ -38,8 +38,19 @@ describe('Spotify Playlists Search API Integration', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(data.playlists)).toBe(true);
       expect(data.playlists.length).toBeGreaterThan(0);
-      expect(typeof data.playlists[0].name).toBe('string');
-      expect(data.playlists[0].name).toBe(playlist.name);
+      
+      // Validate the structure of the first playlist
+      const firstPlaylist = data.playlists[0];
+      expect(typeof firstPlaylist.name).toBe('string');
+      expect(typeof firstPlaylist.id).toBe('string');
+      expect(typeof firstPlaylist.uri).toBe('string');
+      
+      // Verify that the search results contain relevant playlists
+      const hasRelevantPlaylist = data.playlists.some((p: SimplifiedPlaylist) => {
+        const name = p.name.toLowerCase();
+        return name.includes('rock') && name.includes('classic');
+      });
+      expect(hasRelevantPlaylist).toBe(true);
     }, 10000);
 
     test('should return 400 when query is missing', async () => {

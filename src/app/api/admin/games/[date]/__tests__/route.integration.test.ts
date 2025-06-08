@@ -5,7 +5,7 @@ import { fixtures } from '@/app/api/lib/test/fixtures';
 import { integration_validator } from '@/app/api/lib/test/validators';
 import { ErrorCode } from '@/app/api/lib/errors/codes';
 import { ErrorMessage } from '@/app/api/lib/errors/messages';
-import { GET, POST } from '../route';
+import { makeGET, makePOST } from '../route';
 
 describe('Games by Date API Integration', () => {
   const validSongKey = TRACK_KEYS.PARTY_IN_THE_USA;
@@ -38,7 +38,8 @@ describe('Games by Date API Integration', () => {
         `http://localhost:3000/api/admin/games/${date}`
       );
 
-      const response = await GET(context.prisma)(request, { params: Promise.resolve({ date }) });
+      const GET = makeGET(context.prisma);
+      const response = await GET(request, { params: { date } });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -51,7 +52,8 @@ describe('Games by Date API Integration', () => {
         `http://localhost:3000/api/admin/games/${nonexistentDate}`
       );
 
-      const response = await GET(context.prisma)(request, { params: Promise.resolve({ date: nonexistentDate }) });
+      const GET = makeGET(context.prisma);
+      const response = await GET(request, { params: { date: nonexistentDate } });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -65,7 +67,8 @@ describe('Games by Date API Integration', () => {
         `http://localhost:3000/api/admin/games/${invalidDate}`
       );
 
-      const response = await GET(context.prisma)(request, { params: Promise.resolve({ date: invalidDate }) });
+      const GET = makeGET(context.prisma);
+      const response = await GET(request, { params: { date: invalidDate } });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -89,7 +92,8 @@ describe('Games by Date API Integration', () => {
         }
       );
 
-      const response = await POST(context.prisma)(request, { params: Promise.resolve({ date }) });
+      const POST = makePOST(context.prisma);
+      const response = await POST(request, { params: { date } });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -110,7 +114,8 @@ describe('Games by Date API Integration', () => {
         }
       );
 
-      const response = await POST(context.prisma)(request, { params: Promise.resolve({ date }) });
+      const POST = makePOST(context.prisma);
+      const response = await POST(request, { params: { date } });
       const data = await response.json();
 
       expect(response.status).toBe(200);

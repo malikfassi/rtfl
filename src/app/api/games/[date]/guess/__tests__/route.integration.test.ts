@@ -44,7 +44,7 @@ describe('POST /api/games/[date]/guess', () => {
         body: JSON.stringify({ guess })
       }
     );
-    const response = await POST(context.prisma)(request, { params: { date } });
+    const response = await POST(request, { params: Promise.resolve({ date }) });
     const data = await response.json();
     expect(response.status).toBe(200);
     integration_validator.game_state_service.getGameState(data);
@@ -59,7 +59,7 @@ describe('POST /api/games/[date]/guess', () => {
         body: JSON.stringify({})
       }
     );
-    const response = await POST(context.prisma)(request, { params: { date } });
+    const response = await POST(request, { params: Promise.resolve({ date }) });
     const data = await response.json();
     expect(response.status).toBe(400);
     expect(data.error).toBe(ErrorCode.ValidationError);
@@ -76,7 +76,7 @@ describe('POST /api/games/[date]/guess', () => {
         body: JSON.stringify({ guess: 'test' })
       }
     );
-    const response = await POST(context.prisma)(request, { params: { date: nonexistentDate } });
+    const response = await POST(request, { params: Promise.resolve({ date: nonexistentDate }) });
     const data = await response.json();
     expect(response.status).toBe(404);
     expect(data.error).toBe(ErrorCode.GameNotFoundForGuess);
@@ -92,7 +92,7 @@ describe('POST /api/games/[date]/guess', () => {
         body: JSON.stringify({ guess: 'test' })
       }
     );
-    const response = await POST(context.prisma)(request, { params: { date: 'invalid-date' } });
+    const response = await POST(request, { params: Promise.resolve({ date: 'invalid-date' }) });
     const data = await response.json();
     expect(response.status).toBe(400);
     expect(data.error).toBe(ErrorCode.ValidationError);

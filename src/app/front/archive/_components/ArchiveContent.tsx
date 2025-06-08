@@ -7,6 +7,7 @@ import { useMonthGames } from "@/app/front/hooks/usePlayer";
 import { getOrCreatePlayerId } from "@/app/front/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CalendarView } from "@/app/front/components/archive/CalendarView";
+import { ScrambleTitle } from "@/app/front/components/game/ScrambleTitle";
 
 interface ArchiveContentProps {
   month?: string;
@@ -14,17 +15,26 @@ interface ArchiveContentProps {
 
 export function ArchiveContent({ month }: ArchiveContentProps) {
   const playerId = getOrCreatePlayerId();
-  const currentMonth = month || format(startOfMonth(new Date()), "yyyy-MM");
+  // Always use the current local month as default
+  const today = new Date();
+  const defaultMonth = format(startOfMonth(today), "yyyy-MM");
+  const currentMonth = month || defaultMonth;
   const { data: games, isLoading } = useMonthGames(playerId, currentMonth);
 
-  const currentDate = new Date(currentMonth);
+  // Robust month parsing (avoid timezone bugs)
+  function parseMonthString(monthStr: string) {
+    const [year, month] = monthStr.split('-').map(Number);
+    return new Date(year, month - 1, 1);
+  }
+  const currentDate = parseMonthString(currentMonth);
   const prevMonth = format(subMonths(currentDate, 1), "yyyy-MM");
   const nextMonth = format(addMonths(currentDate, 1), "yyyy-MM");
-  
-  // Don't allow navigation to future months
-  const today = new Date();
-  const currentMonthDate = format(startOfMonth(today), "yyyy-MM");
-  const canNavigateNext = nextMonth <= currentMonthDate;
+
+  // Allow navigation to the current month, block only future months
+  const isCurrentMonth =
+    currentDate.getFullYear() === today.getFullYear() &&
+    currentDate.getMonth() === today.getMonth();
+  const canNavigateNext = !isCurrentMonth && nextMonth <= format(startOfMonth(today), "yyyy-MM");
 
   if (isLoading) {
     return (
@@ -39,7 +49,20 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
 
   return (
     <div className="min-h-screen bg-background font-mono">
-      <div className="max-w-4xl mx-auto p-8">
+      <div className="max-w-4xl mx-auto p-4 sm:p-8">
+        {/* Work in progress badge */}
+        <div className="flex justify-center mb-2">
+          <span className="inline-block bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm border border-yellow-200">Work in progress</span>
+        </div>
+        {/* Scrambled Title */}
+        <div className="flex flex-col items-center justify-center mb-6 mt-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center leading-tight">
+            <span className="inline-block align-middle"><ScrambleTitle date={currentMonth} /></span>
+          </h1>
+          <div className="mt-2 text-xs sm:text-sm text-primary-muted/70 font-mono break-all text-center">
+            User ID: <span className="select-all">{playerId}</span>
+          </div>
+        </div>
         {/* Month Navigation */}
         <div className="flex items-center justify-between mb-8">
           <Link 

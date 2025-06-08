@@ -128,7 +128,7 @@ export function ScrambleTitle({ date }: ScrambleTitleProps) {
 
   return (
     <h1 className="text-2xl font-bold uppercase tracking-wider">
-      GUESS THE{' '}
+      READ THE{' '}
       <span className="inline-flex overflow-hidden group font-mono" style={{ width: '7ch' }}>
         {letters.map((letter, index) => (
           <span

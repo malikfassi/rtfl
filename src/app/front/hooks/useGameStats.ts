@@ -1,4 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
+import { useGameState } from './usePlayer';
+import { getOrCreatePlayerId } from '@/app/front/lib/utils';
 
 interface GameStats {
   date: string;
@@ -9,17 +11,12 @@ interface GameStats {
 }
 
 export function useGameStats(date: string, enabled: boolean = true) {
-  return useQuery<GameStats>({
-    queryKey: ['gameStats', date],
-    queryFn: async () => {
-      const response = await fetch(`/api/games/stats?date=${date}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch game stats');
-      }
-      return response.json();
-    },
-    enabled: enabled && !!date,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false
-  });
+  const playerId = getOrCreatePlayerId();
+  const { data: gameState } = useGameState(playerId, date, enabled);
+
+  return {
+    data: gameState?.stats,
+    isLoading: !gameState,
+    error: null
+  };
 } 

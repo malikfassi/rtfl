@@ -58,9 +58,11 @@ export class GameStateService {
     function maskTokens(tokens: Token[]): Token[] {
       return tokens.map(token => {
         if (!token.isToGuess) return token;
+        // If the game is won or the word has been guessed, show the word
         if (isWon || guessedWords.has(token.value.toLowerCase())) {
           return token;
         }
+        // Otherwise, mask the word with underscores
         return { ...token, value: '_'.repeat(token.value.length) };
       });
     }

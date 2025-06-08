@@ -1,6 +1,14 @@
 import type { Song, Guess } from '@prisma/client';
 import type { MaskedLyrics } from './lyrics';
 
+export interface GameStats {
+  totalPlayers: number;
+  averageGuesses: number;
+  totalValidGuesses: number;
+  averageLyricsCompletionForWinners: number;
+  difficultyScore: number;
+}
+
 export interface GameState {
   id: string;
   date: string;
@@ -10,4 +18,5 @@ export interface GameState {
     title?: string;
     artist?: string;
   };  // Only included if game is won
+  stats?: GameStats;
 }
