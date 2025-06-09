@@ -3,7 +3,7 @@ import type { Prisma } from '@prisma/client';
 
 import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
 import { schemas, validateSchema } from '@/app/api/lib/validation';
-import type { GameWithSong, GameWithSongAndGuesses } from '@/app/api/lib/types/game';
+import type { GameWithSong, GameWithSongAndGuesses, GameStats } from '@/app/api/lib/types/game';
 import { ValidationError } from '@/app/api/lib/errors/base';
 import { SongNotFoundError } from '@/app/api/lib/errors/services/song';
 
@@ -15,6 +15,24 @@ export class GameService {
     private songService: SongService,
     private prisma: PrismaClient
   ) {}
+
+  private async getGameStats(gameId: string): Promise<GameStats> {
+    const guesses = await this.prisma.guess.findMany({
+      where: { gameId }
+    });
+
+    const totalGuesses = guesses.length;
+    const correctGuesses = guesses.filter(g => g.valid).length;
+    const averageAttempts = totalGuesses > 0 
+      ? guesses.reduce((acc, g) => acc + 1, 0) / totalGuesses 
+      : 0;
+
+    return {
+      totalGuesses,
+      correctGuesses,
+      averageAttempts
+    };
+  }
 
   async createOrUpdate(date: string, songId: string): Promise<GameWithSong> {
     const validatedDate = validateSchema(schemas.date, date);
@@ -36,7 +54,8 @@ export class GameService {
         update: { songId },
         include: { song: true }
       });
-      return game;
+      const stats = await this.getGameStats(game.id);
+      return { ...game, stats };
     });
   }
 
@@ -52,7 +71,8 @@ export class GameService {
       throw new GameNotFoundError(validatedDate);
     }
 
-    return game;
+    const stats = await this.getGameStats(game.id);
+    return { ...game, stats };
   }
 
   async getByMonth(month: string): Promise<GameWithSong[]> {
@@ -74,7 +94,10 @@ export class GameService {
       orderBy: { date: 'asc' }
     });
 
-    return games;
+    return Promise.all(games.map(async game => {
+      const stats = await this.getGameStats(game.id);
+      return { ...game, stats };
+    }));
   }
 
   async delete(date: string): Promise<void> {
@@ -111,7 +134,8 @@ export class GameService {
       throw new GameNotFoundError(validatedDate);
     }
 
-    return game as GameWithSongAndGuesses;
+    const stats = await this.getGameStats(game.id);
+    return { ...game, stats } as GameWithSongAndGuesses;
   }
 
   async getGamesWithGuesses(startDate: string, endDate: string, playerId: string): Promise<GameWithSongAndGuesses[]> {
@@ -135,7 +159,10 @@ export class GameService {
       orderBy: { date: 'asc' }
     });
 
-    return games.filter(game => game.song) as GameWithSongAndGuesses[];
+    return Promise.all(games.filter(game => game.song).map(async game => {
+      const stats = await this.getGameStats(game.id);
+      return { ...game, stats } as GameWithSongAndGuesses;
+    }));
   }
 }
 

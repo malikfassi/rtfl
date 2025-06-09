@@ -1,4 +1,4 @@
-import type { GameWithSong, GameWithSongAndGuesses } from '../../../types/game';
+import type { GameWithSong, GameWithSongAndGuesses, GameStats } from '../../../types/game';
 import type { Guess } from '@prisma/client';
 import { songService } from './song-service';
 import { guessService } from './guess-service';
@@ -10,6 +10,20 @@ function getTrackKeyFromSpotifyId(spotifyId: string): string | undefined {
   );
 }
 
+function validateGameStats(stats: GameStats) {
+  expect(stats).toBeDefined();
+  expect(stats).toHaveProperty('totalGuesses');
+  expect(stats).toHaveProperty('correctGuesses');
+  expect(stats).toHaveProperty('averageAttempts');
+  expect(typeof stats.totalGuesses).toBe('number');
+  expect(typeof stats.correctGuesses).toBe('number');
+  expect(typeof stats.averageAttempts).toBe('number');
+  expect(stats.totalGuesses).toBeGreaterThanOrEqual(0);
+  expect(stats.correctGuesses).toBeGreaterThanOrEqual(0);
+  expect(stats.averageAttempts).toBeGreaterThanOrEqual(0);
+  expect(stats.correctGuesses).toBeLessThanOrEqual(stats.totalGuesses);
+}
+
 export const gameService = {
   createOrUpdate: (game: GameWithSong) => {
     expect(game).toBeDefined();
@@ -19,6 +33,7 @@ export const gameService = {
     expect(game).toHaveProperty('song');
     expect(game).toHaveProperty('createdAt');
     expect(game).toHaveProperty('updatedAt');
+    expect(game).toHaveProperty('stats');
     
     // Validate data types
     expect(typeof game.id).toBe('string');
@@ -44,6 +59,9 @@ export const gameService = {
     const key = getTrackKeyFromSpotifyId(game.song.spotifyId);
     expect(key).toBeDefined();
     songService.create(key!, game.song);
+
+    // Validate stats
+    validateGameStats(game.stats);
     
     return game;
   },

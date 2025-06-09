@@ -43,6 +43,14 @@ describe('GET /api/admin/games/[date]', () => {
     const data = await response.json();
     expect(response.status).toBe(200);
     integration_validator.game_service.createOrUpdate(data);
+    // Validate game stats
+    expect(data).toHaveProperty('stats');
+    expect(data.stats).toHaveProperty('totalGuesses');
+    expect(data.stats).toHaveProperty('correctGuesses');
+    expect(data.stats).toHaveProperty('averageAttempts');
+    expect(typeof data.stats.totalGuesses).toBe('number');
+    expect(typeof data.stats.correctGuesses).toBe('number');
+    expect(typeof data.stats.averageAttempts).toBe('number');
   });
 
   test('returns 404 when game not found by date', async () => {
@@ -74,10 +82,23 @@ describe('POST /api/admin/games/[date]', () => {
     const data = await response.json();
     expect(response.status).toBe(200);
     integration_validator.game_service.createOrUpdate(data);
+    // Validate game stats
+    expect(data).toHaveProperty('stats');
+    expect(data.stats).toHaveProperty('totalGuesses');
+    expect(data.stats).toHaveProperty('correctGuesses');
+    expect(data.stats).toHaveProperty('averageAttempts');
+    expect(typeof data.stats.totalGuesses).toBe('number');
+    expect(typeof data.stats.correctGuesses).toBe('number');
+    expect(typeof data.stats.averageAttempts).toBe('number');
     // Verify game was created in database
     const game = await context.prisma.game.findUnique({ where: { date }, include: { song: true } });
     expect(game).toBeTruthy();
-    integration_validator.game_service.createOrUpdate(game!);
+    const stats = {
+      totalGuesses: 0,
+      correctGuesses: 0,
+      averageAttempts: 0
+    };
+    integration_validator.game_service.createOrUpdate({ ...game!, stats });
   });
 
   test('returns 400 when date is invalid', async () => {
