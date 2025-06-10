@@ -19,12 +19,15 @@ export class GameService {
   private async getGameStats(gameId: string): Promise<GameStats> {
     const guesses = await this.prisma.guess.findMany({
       where: { gameId }
-    });
+    }) || [];
 
     const totalGuesses = guesses.length;
     const correctGuesses = guesses.filter(g => g.valid).length;
-    const averageAttempts = totalGuesses > 0 
-      ? guesses.reduce((acc, g) => acc + 1, 0) / totalGuesses 
+
+    // Calculate average guesses per user
+    const uniqueUsers = new Set(guesses.map(g => g.playerId));
+    const averageAttempts = uniqueUsers.size > 0 
+      ? totalGuesses / uniqueUsers.size 
       : 0;
 
     return {
