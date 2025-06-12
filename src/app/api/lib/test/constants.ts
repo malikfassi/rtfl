@@ -19,6 +19,8 @@ export const TEST_IDS = {
         NE_ME_QUITTE_PAS: 'spotify:track:6IRA4KOVbtiGiTdYoEThJN',
         LA_BOHEME: 'spotify:track:1WvvmEowf7hiz5EnyAwtTj',
         NON_JE_NE_REGRETTE_RIEN: 'spotify:track:3dkIE8P7hvl3tHl9KSb6dA',
+        // New track with lyrics
+        NEVER_GONNA_GIVE_YOU_UP: 'spotify:track:4uLU6hMCjMI75M1A2tKUQC',
       },
       
       // Real tracks without lyrics (instrumentals)

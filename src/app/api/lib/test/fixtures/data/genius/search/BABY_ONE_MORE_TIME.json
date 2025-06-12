@@ -33,9 +33,9 @@
           "song_art_image_url": "https://images.genius.com/266bc126700ae7c3f3c9a2ee80401d4b.1000x1000x1.png",
           "stats": {
             "unreviewed_annotations": 0,
-            "concurrents": 6,
+            "concurrents": 2,
             "hot": false,
-            "pageviews": 2051102
+            "pageviews": 2067510
           },
           "title": "...Baby One More Time",
           "title_with_featured": "...Baby One More Time",
@@ -91,7 +91,7 @@
           "stats": {
             "unreviewed_annotations": 17,
             "hot": false,
-            "pageviews": 5689
+            "pageviews": 5694
           },
           "title": "A list of all their YouTube videos",
           "title_with_featured": "A list of all their YouTube videos",
@@ -158,9 +158,9 @@
           "featured_artists": [],
           "primary_artist": {
             "api_path": "/artists/4381087",
-            "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1748460275",
+            "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1749488875",
             "id": 4381087,
-            "image_url": "https://assets.genius.com/images/default_avatar_300.png?1748460275",
+            "image_url": "https://assets.genius.com/images/default_avatar_300.png?1749488875",
             "is_meme_verified": false,
             "is_verified": false,
             "name": "b1rd75",
@@ -169,9 +169,9 @@
           "primary_artists": [
             {
               "api_path": "/artists/4381087",
-              "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1748460275",
+              "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1749488875",
               "id": 4381087,
-              "image_url": "https://assets.genius.com/images/default_avatar_300.png?1748460275",
+              "image_url": "https://assets.genius.com/images/default_avatar_300.png?1749488875",
               "is_meme_verified": false,
               "is_verified": false,
               "name": "b1rd75",
@@ -393,7 +393,7 @@
             "is_verified": false,
             "name": "‎marcswig",
             "url": "https://genius.com/artists/Marcswig",
-            "iq": 15548
+            "iq": 15591
           },
           "primary_artists": [
             {
@@ -405,7 +405,7 @@
               "is_verified": false,
               "name": "‎marcswig",
               "url": "https://genius.com/artists/Marcswig",
-              "iq": 15548
+              "iq": 15591
             }
           ]
         }

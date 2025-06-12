@@ -33,9 +33,9 @@
           "song_art_image_url": "https://images.genius.com/4c7feb9569afbe13c2bec39d2ba3fbba.600x593x1.jpg",
           "stats": {
             "unreviewed_annotations": 3,
-            "concurrents": 2,
+            "concurrents": 4,
             "hot": false,
-            "pageviews": 1226645
+            "pageviews": 1230520
           },
           "title": "La Vie En Rose",
           "title_with_featured": "La Vie En Rose",
@@ -91,7 +91,7 @@
           "stats": {
             "unreviewed_annotations": 0,
             "hot": false,
-            "pageviews": 11496
+            "pageviews": 11510
           },
           "title": "La vie en rose",
           "title_with_featured": "La vie en rose",
@@ -222,7 +222,7 @@
           "stats": {
             "unreviewed_annotations": 5,
             "hot": false,
-            "pageviews": 148401
+            "pageviews": 148469
           },
           "title": "Raffaello",
           "title_with_featured": "Raffaello",

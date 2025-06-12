@@ -2244,7 +2244,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "Dior Sauvage",
-        "popularity": 44,
+        "popularity": 43,
         "preview_url": null,
         "track_number": 11,
         "type": "track",
@@ -4036,7 +4036,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "La vie en rose",
-        "popularity": 52,
+        "popularity": 53,
         "preview_url": null,
         "track_number": 5,
         "type": "track",
@@ -4495,7 +4495,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "La vie en rose",
-        "popularity": 38,
+        "popularity": 39,
         "preview_url": null,
         "track_number": 8,
         "type": "track",
@@ -4519,6 +4519,7 @@
           "available_markets": [
             "AR",
             "AU",
+            "AT",
             "BE",
             "BO",
             "BR",
@@ -4531,6 +4532,7 @@
             "CZ",
             "DK",
             "DO",
+            "DE",
             "EC",
             "EE",
             "SV",
@@ -4564,6 +4566,7 @@
             "SK",
             "ES",
             "SE",
+            "CH",
             "TW",
             "TR",
             "UY",
@@ -4700,34 +4703,34 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/65DMpWjODvaMJjnsHk7VsQ"
+            "spotify": "https://open.spotify.com/album/4eVpqKPDXf0VeAAY4PulBA"
           },
-          "href": "https://api.spotify.com/v1/albums/65DMpWjODvaMJjnsHk7VsQ",
-          "id": "65DMpWjODvaMJjnsHk7VsQ",
+          "href": "https://api.spotify.com/v1/albums/4eVpqKPDXf0VeAAY4PulBA",
+          "id": "4eVpqKPDXf0VeAAY4PulBA",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273226bb9dc80b9151f4749ae97"
+              "url": "https://i.scdn.co/image/ab67616d0000b27337b5d0e5caa2d9cb966bfe3d"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02226bb9dc80b9151f4749ae97"
+              "url": "https://i.scdn.co/image/ab67616d00001e0237b5d0e5caa2d9cb966bfe3d"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851226bb9dc80b9151f4749ae97"
+              "url": "https://i.scdn.co/image/ab67616d0000485137b5d0e5caa2d9cb966bfe3d"
             }
           ],
           "is_playable": true,
-          "name": "amo, non ti ama",
-          "release_date": "2025-05-30",
+          "name": "ti penso anche quando penso ad altro",
+          "release_date": "2025-06-04",
           "release_date_precision": "day",
           "total_tracks": 20,
           "type": "album",
-          "uri": "spotify:album:65DMpWjODvaMJjnsHk7VsQ"
+          "uri": "spotify:album:4eVpqKPDXf0VeAAY4PulBA"
         },
         "artists": [
           {
@@ -4744,6 +4747,7 @@
         "available_markets": [
           "AR",
           "AU",
+          "AT",
           "BE",
           "BO",
           "BR",
@@ -4756,6 +4760,7 @@
           "CZ",
           "DK",
           "DO",
+          "DE",
           "EC",
           "EE",
           "SV",
@@ -4789,6 +4794,7 @@
           "SK",
           "ES",
           "SE",
+          "CH",
           "TW",
           "TR",
           "UY",
@@ -4931,18 +4937,18 @@
           "isrc": "ITQ002500317"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/4N8qpAIFeBq4snZnFX1vdw"
+          "spotify": "https://open.spotify.com/track/1raKYmPTATB5wGbvAd6Q6e"
         },
-        "href": "https://api.spotify.com/v1/tracks/4N8qpAIFeBq4snZnFX1vdw",
-        "id": "4N8qpAIFeBq4snZnFX1vdw",
+        "href": "https://api.spotify.com/v1/tracks/1raKYmPTATB5wGbvAd6Q6e",
+        "id": "1raKYmPTATB5wGbvAd6Q6e",
         "is_local": false,
         "is_playable": true,
         "name": "Amarcord",
         "popularity": 0,
         "preview_url": null,
-        "track_number": 12,
+        "track_number": 4,
         "type": "track",
-        "uri": "spotify:track:4N8qpAIFeBq4snZnFX1vdw"
+        "uri": "spotify:track:1raKYmPTATB5wGbvAd6Q6e"
       },
       {
         "album": {
@@ -5387,7 +5393,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "La Vida en Rosa",
-        "popularity": 46,
+        "popularity": 47,
         "preview_url": null,
         "track_number": 3,
         "type": "track",
@@ -5862,7 +5868,6 @@
           "available_markets": [
             "AR",
             "AU",
-            "AT",
             "BE",
             "BO",
             "BR",
@@ -5875,7 +5880,6 @@
             "CZ",
             "DK",
             "DO",
-            "DE",
             "EC",
             "EE",
             "SV",
@@ -5909,7 +5913,6 @@
             "SK",
             "ES",
             "SE",
-            "CH",
             "TW",
             "TR",
             "UY",
@@ -5949,6 +5952,7 @@
             "MK",
             "RS",
             "SI",
+            "KR",
             "BD",
             "PK",
             "LK",
@@ -6045,34 +6049,34 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/4Bx73MovSdOVsp9q6PU78X"
+            "spotify": "https://open.spotify.com/album/65DMpWjODvaMJjnsHk7VsQ"
           },
-          "href": "https://api.spotify.com/v1/albums/4Bx73MovSdOVsp9q6PU78X",
-          "id": "4Bx73MovSdOVsp9q6PU78X",
+          "href": "https://api.spotify.com/v1/albums/65DMpWjODvaMJjnsHk7VsQ",
+          "id": "65DMpWjODvaMJjnsHk7VsQ",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b27397cc0478d4665172d3c7656e"
+              "url": "https://i.scdn.co/image/ab67616d0000b273226bb9dc80b9151f4749ae97"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e0297cc0478d4665172d3c7656e"
+              "url": "https://i.scdn.co/image/ab67616d00001e02226bb9dc80b9151f4749ae97"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d0000485197cc0478d4665172d3c7656e"
+              "url": "https://i.scdn.co/image/ab67616d00004851226bb9dc80b9151f4749ae97"
             }
           ],
           "is_playable": true,
-          "name": "In attesa dell'estate 2025",
-          "release_date": "2025-05-24",
+          "name": "amo, non ti ama",
+          "release_date": "2025-05-30",
           "release_date_precision": "day",
-          "total_tracks": 50,
+          "total_tracks": 20,
           "type": "album",
-          "uri": "spotify:album:4Bx73MovSdOVsp9q6PU78X"
+          "uri": "spotify:album:65DMpWjODvaMJjnsHk7VsQ"
         },
         "artists": [
           {
@@ -6089,7 +6093,6 @@
         "available_markets": [
           "AR",
           "AU",
-          "AT",
           "BE",
           "BO",
           "BR",
@@ -6102,7 +6105,6 @@
           "CZ",
           "DK",
           "DO",
-          "DE",
           "EC",
           "EE",
           "SV",
@@ -6136,7 +6138,6 @@
           "SK",
           "ES",
           "SE",
-          "CH",
           "TW",
           "TR",
           "UY",
@@ -6176,6 +6177,7 @@
           "MK",
           "RS",
           "SI",
+          "KR",
           "BD",
           "PK",
           "LK",
@@ -6278,10 +6280,10 @@
           "isrc": "ITQ002500317"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/2jnrNPMSRoecO4qDvqJz97"
+          "spotify": "https://open.spotify.com/track/4N8qpAIFeBq4snZnFX1vdw"
         },
-        "href": "https://api.spotify.com/v1/tracks/2jnrNPMSRoecO4qDvqJz97",
-        "id": "2jnrNPMSRoecO4qDvqJz97",
+        "href": "https://api.spotify.com/v1/tracks/4N8qpAIFeBq4snZnFX1vdw",
+        "id": "4N8qpAIFeBq4snZnFX1vdw",
         "is_local": false,
         "is_playable": true,
         "name": "Amarcord",
@@ -6289,7 +6291,7 @@
         "preview_url": null,
         "track_number": 12,
         "type": "track",
-        "uri": "spotify:track:2jnrNPMSRoecO4qDvqJz97"
+        "uri": "spotify:track:4N8qpAIFeBq4snZnFX1vdw"
       },
       {
         "album": {
@@ -7195,7 +7197,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "La Vie en rose",
-        "popularity": 29,
+        "popularity": 30,
         "preview_url": null,
         "track_number": 3,
         "type": "track",
@@ -7644,7 +7646,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "Amarcord",
-        "popularity": 73,
+        "popularity": 72,
         "preview_url": null,
         "track_number": 1,
         "type": "track",
@@ -8095,7 +8097,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "La Vida en Rosa",
-        "popularity": 43,
+        "popularity": 44,
         "preview_url": null,
         "track_number": 1,
         "type": "track",

@@ -1356,7 +1356,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "Easy Lover",
-        "popularity": 47,
+        "popularity": 83,
         "preview_url": null,
         "track_number": 6,
         "type": "track",
@@ -2088,13 +2088,13 @@
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
+                "spotify": "https://open.spotify.com/artist/0th5G3uzu7mi4Co4BEMLLZ"
               },
-              "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
-              "id": "5YGY8feqx7naU7z4HrwZM6",
-              "name": "Miley Cyrus",
+              "href": "https://api.spotify.com/v1/artists/0th5G3uzu7mi4Co4BEMLLZ",
+              "id": "0th5G3uzu7mi4Co4BEMLLZ",
+              "name": "Autocontrol",
               "type": "artist",
-              "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
+              "uri": "spotify:artist:0th5G3uzu7mi4Co4BEMLLZ"
             }
           ],
           "available_markets": [
@@ -2285,45 +2285,45 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/5DvJgsMLbaR1HmAI6VhfcQ"
+            "spotify": "https://open.spotify.com/album/43Py5L7PwKFmNnouXrdpk6"
           },
-          "href": "https://api.spotify.com/v1/albums/5DvJgsMLbaR1HmAI6VhfcQ",
-          "id": "5DvJgsMLbaR1HmAI6VhfcQ",
+          "href": "https://api.spotify.com/v1/albums/43Py5L7PwKFmNnouXrdpk6",
+          "id": "43Py5L7PwKFmNnouXrdpk6",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273cd222052a2594be29a6616b5"
+              "url": "https://i.scdn.co/image/ab67616d0000b2735bc48b5c75de4f1a3e052ea0"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02cd222052a2594be29a6616b5"
+              "url": "https://i.scdn.co/image/ab67616d00001e025bc48b5c75de4f1a3e052ea0"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851cd222052a2594be29a6616b5"
+              "url": "https://i.scdn.co/image/ab67616d000048515bc48b5c75de4f1a3e052ea0"
             }
           ],
           "is_playable": true,
-          "name": "Endless Summer Vacation",
-          "release_date": "2023-08-18",
+          "name": "Sueños",
+          "release_date": "2014-05-23",
           "release_date_precision": "day",
-          "total_tracks": 14,
+          "total_tracks": 10,
           "type": "album",
-          "uri": "spotify:album:5DvJgsMLbaR1HmAI6VhfcQ"
+          "uri": "spotify:album:43Py5L7PwKFmNnouXrdpk6"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
+              "spotify": "https://open.spotify.com/artist/0th5G3uzu7mi4Co4BEMLLZ"
             },
-            "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
-            "id": "5YGY8feqx7naU7z4HrwZM6",
-            "name": "Miley Cyrus",
+            "href": "https://api.spotify.com/v1/artists/0th5G3uzu7mi4Co4BEMLLZ",
+            "id": "0th5G3uzu7mi4Co4BEMLLZ",
+            "name": "Autocontrol",
             "type": "artist",
-            "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
+            "uri": "spotify:artist:0th5G3uzu7mi4Co4BEMLLZ"
           }
         ],
         "available_markets": [
@@ -2514,24 +2514,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 200600,
+        "duration_ms": 336266,
         "explicit": false,
         "external_ids": {
-          "isrc": "USSM12209777"
+          "isrc": "USSDH1200012"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/7DSAEUvxU8FajXtRloy8M0"
+          "spotify": "https://open.spotify.com/track/55DYe6xT4pKxhhjFnbhZZh"
         },
-        "href": "https://api.spotify.com/v1/tracks/7DSAEUvxU8FajXtRloy8M0",
-        "id": "7DSAEUvxU8FajXtRloy8M0",
+        "href": "https://api.spotify.com/v1/tracks/55DYe6xT4pKxhhjFnbhZZh",
+        "id": "55DYe6xT4pKxhhjFnbhZZh",
         "is_local": false,
         "is_playable": true,
-        "name": "Flowers",
-        "popularity": 89,
+        "name": "Fantasy (Spanish)",
+        "popularity": 49,
         "preview_url": null,
-        "track_number": 1,
+        "track_number": 5,
         "type": "track",
-        "uri": "spotify:track:7DSAEUvxU8FajXtRloy8M0"
+        "uri": "spotify:track:55DYe6xT4pKxhhjFnbhZZh"
       },
       {
         "album": {
@@ -3429,7 +3429,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "Miley Cyrus vs Joan of Arc",
-        "popularity": 31,
+        "popularity": 32,
         "preview_url": null,
         "track_number": 1,
         "type": "track",
@@ -3437,17 +3437,17 @@
       },
       {
         "album": {
-          "album_type": "album",
+          "album_type": "single",
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
+                "spotify": "https://open.spotify.com/artist/1P7ibSNMQ2VTi5YDBvwBO1"
               },
-              "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
-              "id": "5YGY8feqx7naU7z4HrwZM6",
-              "name": "Miley Cyrus",
+              "href": "https://api.spotify.com/v1/artists/1P7ibSNMQ2VTi5YDBvwBO1",
+              "id": "1P7ibSNMQ2VTi5YDBvwBO1",
+              "name": "SAICO",
               "type": "artist",
-              "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
+              "uri": "spotify:artist:1P7ibSNMQ2VTi5YDBvwBO1"
             }
           ],
           "available_markets": [
@@ -3638,45 +3638,45 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/7h7smPzBYx8LOLI3ncM3vQ"
+            "spotify": "https://open.spotify.com/album/09p1Q0EffPS9bA8gsUgk8V"
           },
-          "href": "https://api.spotify.com/v1/albums/7h7smPzBYx8LOLI3ncM3vQ",
-          "id": "7h7smPzBYx8LOLI3ncM3vQ",
+          "href": "https://api.spotify.com/v1/albums/09p1Q0EffPS9bA8gsUgk8V",
+          "id": "09p1Q0EffPS9bA8gsUgk8V",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d0000b273218d7af9ef5ccd43a33aa60c"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d00001e02218d7af9ef5ccd43a33aa60c"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d00004851218d7af9ef5ccd43a33aa60c"
             }
           ],
           "is_playable": true,
-          "name": "Something Beautiful",
-          "release_date": "2025-05-30",
+          "name": "Primer Amor",
+          "release_date": "2022-06-24",
           "release_date_precision": "day",
-          "total_tracks": 13,
+          "total_tracks": 1,
           "type": "album",
-          "uri": "spotify:album:7h7smPzBYx8LOLI3ncM3vQ"
+          "uri": "spotify:album:09p1Q0EffPS9bA8gsUgk8V"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
+              "spotify": "https://open.spotify.com/artist/1P7ibSNMQ2VTi5YDBvwBO1"
             },
-            "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
-            "id": "5YGY8feqx7naU7z4HrwZM6",
-            "name": "Miley Cyrus",
+            "href": "https://api.spotify.com/v1/artists/1P7ibSNMQ2VTi5YDBvwBO1",
+            "id": "1P7ibSNMQ2VTi5YDBvwBO1",
+            "name": "SAICO",
             "type": "artist",
-            "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
+            "uri": "spotify:artist:1P7ibSNMQ2VTi5YDBvwBO1"
           }
         ],
         "available_markets": [
@@ -3867,24 +3867,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 90006,
+        "duration_ms": 227353,
         "explicit": false,
         "external_ids": {
-          "isrc": "USSM12501023"
+          "isrc": "QZNJV2273242"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/7qI8JlsqM2UuAWJu1Ps5GV"
+          "spotify": "https://open.spotify.com/track/41GgpyCBbOfXbUkn8tleEy"
         },
-        "href": "https://api.spotify.com/v1/tracks/7qI8JlsqM2UuAWJu1Ps5GV",
-        "id": "7qI8JlsqM2UuAWJu1Ps5GV",
+        "href": "https://api.spotify.com/v1/tracks/41GgpyCBbOfXbUkn8tleEy",
+        "id": "41GgpyCBbOfXbUkn8tleEy",
         "is_local": false,
         "is_playable": true,
-        "name": "Interlude 2",
-        "popularity": 36,
+        "name": "Primer Amor",
+        "popularity": 48,
         "preview_url": null,
-        "track_number": 7,
+        "track_number": 1,
         "type": "track",
-        "uri": "spotify:track:7qI8JlsqM2UuAWJu1Ps5GV"
+        "uri": "spotify:track:41GgpyCBbOfXbUkn8tleEy"
       },
       {
         "album": {
@@ -3999,7 +3999,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "Party In The U.S.A.",
-        "popularity": 22,
+        "popularity": 23,
         "preview_url": null,
         "track_number": 23,
         "type": "track",
@@ -4458,17 +4458,17 @@
       },
       {
         "album": {
-          "album_type": "album",
+          "album_type": "compilation",
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
+                "spotify": "https://open.spotify.com/artist/0LyfQWJT6nXafLPZqxe9Of"
               },
-              "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
-              "id": "5YGY8feqx7naU7z4HrwZM6",
-              "name": "Miley Cyrus",
+              "href": "https://api.spotify.com/v1/artists/0LyfQWJT6nXafLPZqxe9Of",
+              "id": "0LyfQWJT6nXafLPZqxe9Of",
+              "name": "Various Artists",
               "type": "artist",
-              "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
+              "uri": "spotify:artist:0LyfQWJT6nXafLPZqxe9Of"
             }
           ],
           "available_markets": [
@@ -4659,45 +4659,45 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/7h7smPzBYx8LOLI3ncM3vQ"
+            "spotify": "https://open.spotify.com/album/4I6jpcAOwZ59ViImYWjrgA"
           },
-          "href": "https://api.spotify.com/v1/albums/7h7smPzBYx8LOLI3ncM3vQ",
-          "id": "7h7smPzBYx8LOLI3ncM3vQ",
+          "href": "https://api.spotify.com/v1/albums/4I6jpcAOwZ59ViImYWjrgA",
+          "id": "4I6jpcAOwZ59ViImYWjrgA",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d0000b2733114e27cf271fdad296e9370"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d00001e023114e27cf271fdad296e9370"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d000048513114e27cf271fdad296e9370"
             }
           ],
           "is_playable": true,
-          "name": "Something Beautiful",
-          "release_date": "2025-05-30",
+          "name": "Dance Floor Virus, Vol. 1",
+          "release_date": "2012-01-06",
           "release_date_precision": "day",
-          "total_tracks": 13,
+          "total_tracks": 15,
           "type": "album",
-          "uri": "spotify:album:7h7smPzBYx8LOLI3ncM3vQ"
+          "uri": "spotify:album:4I6jpcAOwZ59ViImYWjrgA"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
+              "spotify": "https://open.spotify.com/artist/4mVHS1Oa3TcgHg0X73k658"
             },
-            "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
-            "id": "5YGY8feqx7naU7z4HrwZM6",
-            "name": "Miley Cyrus",
+            "href": "https://api.spotify.com/v1/artists/4mVHS1Oa3TcgHg0X73k658",
+            "id": "4mVHS1Oa3TcgHg0X73k658",
+            "name": "Patricio Suarez Vertiz",
             "type": "artist",
-            "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
+            "uri": "spotify:artist:4mVHS1Oa3TcgHg0X73k658"
           }
         ],
         "available_markets": [
@@ -4888,24 +4888,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 74868,
+        "duration_ms": 278560,
         "explicit": false,
         "external_ids": {
-          "isrc": "USSM12501021"
+          "isrc": "PEMG99615011"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/1PGdPa85RzJyi6Bz9maRW9"
+          "spotify": "https://open.spotify.com/track/3Id3uyGH0QcTo2zLjbyOYA"
         },
-        "href": "https://api.spotify.com/v1/tracks/1PGdPa85RzJyi6Bz9maRW9",
-        "id": "1PGdPa85RzJyi6Bz9maRW9",
+        "href": "https://api.spotify.com/v1/tracks/3Id3uyGH0QcTo2zLjbyOYA",
+        "id": "3Id3uyGH0QcTo2zLjbyOYA",
         "is_local": false,
         "is_playable": true,
-        "name": "Interlude 1",
+        "name": "Disco Bar - Edit",
         "popularity": 36,
         "preview_url": null,
-        "track_number": 5,
+        "track_number": 11,
         "type": "track",
-        "uri": "spotify:track:1PGdPa85RzJyi6Bz9maRW9"
+        "uri": "spotify:track:3Id3uyGH0QcTo2zLjbyOYA"
       },
       {
         "album": {
@@ -5815,13 +5815,13 @@
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
+                "spotify": "https://open.spotify.com/artist/1Y08JdtP0X185Yk0tjjc2E"
               },
-              "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
-              "id": "5YGY8feqx7naU7z4HrwZM6",
-              "name": "Miley Cyrus",
+              "href": "https://api.spotify.com/v1/artists/1Y08JdtP0X185Yk0tjjc2E",
+              "id": "1Y08JdtP0X185Yk0tjjc2E",
+              "name": "Rio",
               "type": "artist",
-              "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
+              "uri": "spotify:artist:1Y08JdtP0X185Yk0tjjc2E"
             }
           ],
           "available_markets": [
@@ -6012,45 +6012,45 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/7h7smPzBYx8LOLI3ncM3vQ"
+            "spotify": "https://open.spotify.com/album/6tGrXhKGXL2ygPo2EwI5qs"
           },
-          "href": "https://api.spotify.com/v1/albums/7h7smPzBYx8LOLI3ncM3vQ",
-          "id": "7h7smPzBYx8LOLI3ncM3vQ",
+          "href": "https://api.spotify.com/v1/albums/6tGrXhKGXL2ygPo2EwI5qs",
+          "id": "6tGrXhKGXL2ygPo2EwI5qs",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d0000b2731462e5770d5b7b6018fa391a"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d00001e021462e5770d5b7b6018fa391a"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d000048511462e5770d5b7b6018fa391a"
             }
           ],
           "is_playable": true,
-          "name": "Something Beautiful",
-          "release_date": "2025-05-30",
+          "name": "Rock And Qué",
+          "release_date": "1992-05-23",
           "release_date_precision": "day",
-          "total_tracks": 13,
+          "total_tracks": 15,
           "type": "album",
-          "uri": "spotify:album:7h7smPzBYx8LOLI3ncM3vQ"
+          "uri": "spotify:album:6tGrXhKGXL2ygPo2EwI5qs"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
+              "spotify": "https://open.spotify.com/artist/1Y08JdtP0X185Yk0tjjc2E"
             },
-            "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
-            "id": "5YGY8feqx7naU7z4HrwZM6",
-            "name": "Miley Cyrus",
+            "href": "https://api.spotify.com/v1/artists/1Y08JdtP0X185Yk0tjjc2E",
+            "id": "1Y08JdtP0X185Yk0tjjc2E",
+            "name": "Rio",
             "type": "artist",
-            "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
+            "uri": "spotify:artist:1Y08JdtP0X185Yk0tjjc2E"
           }
         ],
         "available_markets": [
@@ -6241,24 +6241,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 279330,
+        "duration_ms": 278173,
         "explicit": false,
         "external_ids": {
-          "isrc": "USSM12501026"
+          "isrc": "PERP39205001"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/0D7ptTqe5bFfHPn2PWJWoC"
+          "spotify": "https://open.spotify.com/track/2KC0gekyXoj4Rn5S7WApIL"
         },
-        "href": "https://api.spotify.com/v1/tracks/0D7ptTqe5bFfHPn2PWJWoC",
-        "id": "0D7ptTqe5bFfHPn2PWJWoC",
+        "href": "https://api.spotify.com/v1/tracks/2KC0gekyXoj4Rn5S7WApIL",
+        "id": "2KC0gekyXoj4Rn5S7WApIL",
         "is_local": false,
         "is_playable": true,
-        "name": "Pretend You're God",
-        "popularity": 36,
+        "name": "Al Norte de América",
+        "popularity": 38,
         "preview_url": null,
-        "track_number": 10,
+        "track_number": 8,
         "type": "track",
-        "uri": "spotify:track:0D7ptTqe5bFfHPn2PWJWoC"
+        "uri": "spotify:track:2KC0gekyXoj4Rn5S7WApIL"
       },
       {
         "album": {
@@ -6521,7 +6521,7 @@
         "is_local": false,
         "is_playable": true,
         "name": "Party In The U.S.A.",
-        "popularity": 41,
+        "popularity": 42,
         "preview_url": null,
         "track_number": 16,
         "type": "track",
@@ -6980,17 +6980,17 @@
       },
       {
         "album": {
-          "album_type": "album",
+          "album_type": "single",
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
+                "spotify": "https://open.spotify.com/artist/3EeG9gmLAb3hmLtB5zhE4f"
               },
-              "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
-              "id": "5YGY8feqx7naU7z4HrwZM6",
-              "name": "Miley Cyrus",
+              "href": "https://api.spotify.com/v1/artists/3EeG9gmLAb3hmLtB5zhE4f",
+              "id": "3EeG9gmLAb3hmLtB5zhE4f",
+              "name": "Arianna",
               "type": "artist",
-              "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
+              "uri": "spotify:artist:3EeG9gmLAb3hmLtB5zhE4f"
             }
           ],
           "available_markets": [
@@ -7181,45 +7181,45 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/7h7smPzBYx8LOLI3ncM3vQ"
+            "spotify": "https://open.spotify.com/album/1w6ecvOOMnBQpKoo8jCh5d"
           },
-          "href": "https://api.spotify.com/v1/albums/7h7smPzBYx8LOLI3ncM3vQ",
-          "id": "7h7smPzBYx8LOLI3ncM3vQ",
+          "href": "https://api.spotify.com/v1/albums/1w6ecvOOMnBQpKoo8jCh5d",
+          "id": "1w6ecvOOMnBQpKoo8jCh5d",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d0000b27343735635ac36364a2d4cdd4a"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d00001e0243735635ac36364a2d4cdd4a"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851309dc809182edea19bcf268d"
+              "url": "https://i.scdn.co/image/ab67616d0000485143735635ac36364a2d4cdd4a"
             }
           ],
           "is_playable": true,
-          "name": "Something Beautiful",
-          "release_date": "2025-05-30",
+          "name": "Fantasy",
+          "release_date": "2019-11-15",
           "release_date_precision": "day",
-          "total_tracks": 13,
+          "total_tracks": 1,
           "type": "album",
-          "uri": "spotify:album:7h7smPzBYx8LOLI3ncM3vQ"
+          "uri": "spotify:album:1w6ecvOOMnBQpKoo8jCh5d"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
+              "spotify": "https://open.spotify.com/artist/3EeG9gmLAb3hmLtB5zhE4f"
             },
-            "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
-            "id": "5YGY8feqx7naU7z4HrwZM6",
-            "name": "Miley Cyrus",
+            "href": "https://api.spotify.com/v1/artists/3EeG9gmLAb3hmLtB5zhE4f",
+            "id": "3EeG9gmLAb3hmLtB5zhE4f",
+            "name": "Arianna",
             "type": "artist",
-            "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
+            "uri": "spotify:artist:3EeG9gmLAb3hmLtB5zhE4f"
           }
         ],
         "available_markets": [
@@ -7410,250 +7410,132 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 342960,
+        "duration_ms": 218383,
         "explicit": false,
         "external_ids": {
-          "isrc": "USSM12501028"
+          "isrc": "QZHZ51907425"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/2xFFRS87enopWS13zvcwwT"
+          "spotify": "https://open.spotify.com/track/5WyHtD7mPLyZaR4jWmYjwE"
         },
-        "href": "https://api.spotify.com/v1/tracks/2xFFRS87enopWS13zvcwwT",
-        "id": "2xFFRS87enopWS13zvcwwT",
+        "href": "https://api.spotify.com/v1/tracks/5WyHtD7mPLyZaR4jWmYjwE",
+        "id": "5WyHtD7mPLyZaR4jWmYjwE",
         "is_local": false,
         "is_playable": true,
-        "name": "Reborn",
-        "popularity": 36,
+        "name": "Fantasy",
+        "popularity": 35,
         "preview_url": null,
-        "track_number": 12,
+        "track_number": 1,
         "type": "track",
-        "uri": "spotify:track:2xFFRS87enopWS13zvcwwT"
+        "uri": "spotify:track:5WyHtD7mPLyZaR4jWmYjwE"
       },
       {
         "album": {
-          "album_type": "compilation",
+          "album_type": "single",
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/0LyfQWJT6nXafLPZqxe9Of"
+                "spotify": "https://open.spotify.com/artist/5YGY8feqx7naU7z4HrwZM6"
               },
-              "href": "https://api.spotify.com/v1/artists/0LyfQWJT6nXafLPZqxe9Of",
-              "id": "0LyfQWJT6nXafLPZqxe9Of",
-              "name": "Various Artists",
+              "href": "https://api.spotify.com/v1/artists/5YGY8feqx7naU7z4HrwZM6",
+              "id": "5YGY8feqx7naU7z4HrwZM6",
+              "name": "Miley Cyrus",
               "type": "artist",
-              "uri": "spotify:artist:0LyfQWJT6nXafLPZqxe9Of"
+              "uri": "spotify:artist:5YGY8feqx7naU7z4HrwZM6"
             }
           ],
           "available_markets": [
             "AR",
-            "AU",
             "AT",
+            "BA",
+            "BD",
             "BE",
+            "BG",
             "BO",
             "BR",
-            "BG",
-            "CA",
+            "CH",
+            "CI",
             "CL",
+            "CM",
             "CO",
-            "CR",
             "CY",
             "CZ",
-            "DK",
-            "DO",
             "DE",
+            "DK",
             "EC",
             "EE",
-            "SV",
+            "ES",
             "FI",
             "FR",
+            "GN",
             "GR",
-            "GT",
-            "HN",
             "HK",
+            "HR",
             "HU",
+            "IL",
             "IS",
-            "IE",
             "IT",
-            "LV",
+            "KR",
+            "LK",
             "LT",
             "LU",
-            "MY",
+            "LV",
+            "ME",
+            "MK",
             "MT",
-            "MX",
-            "NL",
-            "NZ",
-            "NI",
+            "MU",
+            "NG",
             "NO",
-            "PA",
-            "PY",
+            "NZ",
             "PE",
             "PH",
             "PL",
             "PT",
-            "SG",
-            "SK",
-            "ES",
-            "SE",
-            "CH",
-            "TW",
-            "TR",
-            "UY",
-            "US",
-            "GB",
-            "AD",
-            "LI",
-            "MC",
-            "ID",
-            "JP",
-            "TH",
-            "VN",
+            "PY",
             "RO",
-            "IL",
-            "ZA",
-            "SA",
-            "AE",
-            "BH",
-            "QA",
-            "OM",
-            "KW",
-            "EG",
-            "MA",
-            "DZ",
-            "TN",
-            "LB",
-            "JO",
-            "PS",
-            "IN",
-            "KZ",
-            "MD",
-            "UA",
-            "AL",
-            "BA",
-            "HR",
-            "ME",
-            "MK",
             "RS",
-            "SI",
-            "KR",
-            "BD",
-            "PK",
-            "LK",
-            "GH",
-            "KE",
-            "NG",
-            "TZ",
-            "UG",
-            "AG",
-            "AM",
-            "BS",
-            "BB",
-            "BZ",
-            "BT",
-            "BW",
-            "CV",
-            "CW",
-            "DM",
-            "FJ",
-            "GM",
-            "GE",
-            "GD",
-            "GW",
-            "GY",
-            "HT",
-            "JM",
-            "KI",
-            "LS",
-            "LR",
-            "MW",
-            "MV",
-            "ML",
-            "MH",
-            "FM",
-            "NA",
-            "NR",
-            "NE",
-            "PW",
-            "PG",
-            "WS",
-            "SM",
-            "ST",
-            "SN",
-            "SC",
-            "SL",
-            "SB",
-            "KN",
-            "LC",
-            "VC",
-            "SR",
-            "TL",
-            "TO",
-            "TT",
-            "TV",
-            "VU",
-            "AZ",
-            "BI",
-            "KH",
-            "CM",
-            "TD",
-            "KM",
-            "GQ",
-            "SZ",
-            "GA",
-            "GN",
-            "KG",
-            "LA",
-            "MO",
-            "MR",
-            "MN",
             "RW",
-            "TG",
-            "ZW",
-            "BJ",
-            "MG",
-            "MU",
-            "MZ",
-            "AO",
-            "CI",
-            "DJ",
-            "ZM",
-            "CD",
-            "CG",
-            "IQ",
-            "LY",
-            "TJ",
+            "SE",
+            "SG",
+            "SI",
+            "SK",
+            "SN",
+            "TR",
+            "TZ",
+            "UA",
             "VE",
-            "ET",
-            "XK"
+            "XK",
+            "ZA"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/23dOSX3k9eTyyQIm6KHX52"
+            "spotify": "https://open.spotify.com/album/20luXQ6bzvXEI7VKHZO3lq"
           },
-          "href": "https://api.spotify.com/v1/albums/23dOSX3k9eTyyQIm6KHX52",
-          "id": "23dOSX3k9eTyyQIm6KHX52",
+          "href": "https://api.spotify.com/v1/albums/20luXQ6bzvXEI7VKHZO3lq",
+          "id": "20luXQ6bzvXEI7VKHZO3lq",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273a73d0dbf65700083ede70726"
+              "url": "https://i.scdn.co/image/ab67616d0000b2733a26726a17f1018cb54e7611"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02a73d0dbf65700083ede70726"
+              "url": "https://i.scdn.co/image/ab67616d00001e023a26726a17f1018cb54e7611"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851a73d0dbf65700083ede70726"
+              "url": "https://i.scdn.co/image/ab67616d000048513a26726a17f1018cb54e7611"
             }
           ],
           "is_playable": true,
-          "name": "Pop Nostalgia",
-          "release_date": "2018-01-26",
+          "name": "When I Look At You",
+          "release_date": "2010-01-01",
           "release_date_precision": "day",
-          "total_tracks": 23,
+          "total_tracks": 2,
           "type": "album",
-          "uri": "spotify:album:23dOSX3k9eTyyQIm6KHX52"
+          "uri": "spotify:album:20luXQ6bzvXEI7VKHZO3lq"
         },
         "artists": [
           {
@@ -7669,204 +7551,86 @@
         ],
         "available_markets": [
           "AR",
-          "AU",
           "AT",
+          "BA",
+          "BD",
           "BE",
+          "BG",
           "BO",
           "BR",
-          "BG",
-          "CA",
+          "CH",
+          "CI",
           "CL",
+          "CM",
           "CO",
-          "CR",
           "CY",
           "CZ",
-          "DK",
-          "DO",
           "DE",
+          "DK",
           "EC",
           "EE",
-          "SV",
+          "ES",
           "FI",
           "FR",
+          "GN",
           "GR",
-          "GT",
-          "HN",
           "HK",
+          "HR",
           "HU",
+          "IL",
           "IS",
-          "IE",
           "IT",
-          "LV",
+          "KR",
+          "LK",
           "LT",
           "LU",
-          "MY",
+          "LV",
+          "ME",
+          "MK",
           "MT",
-          "MX",
-          "NL",
-          "NZ",
-          "NI",
+          "MU",
+          "NG",
           "NO",
-          "PA",
-          "PY",
+          "NZ",
           "PE",
           "PH",
           "PL",
           "PT",
-          "SG",
-          "SK",
-          "ES",
-          "SE",
-          "CH",
-          "TW",
-          "TR",
-          "UY",
-          "US",
-          "GB",
-          "AD",
-          "LI",
-          "MC",
-          "ID",
-          "JP",
-          "TH",
-          "VN",
+          "PY",
           "RO",
-          "IL",
-          "ZA",
-          "SA",
-          "AE",
-          "BH",
-          "QA",
-          "OM",
-          "KW",
-          "EG",
-          "MA",
-          "DZ",
-          "TN",
-          "LB",
-          "JO",
-          "PS",
-          "IN",
-          "KZ",
-          "MD",
-          "UA",
-          "AL",
-          "BA",
-          "HR",
-          "ME",
-          "MK",
           "RS",
-          "SI",
-          "KR",
-          "BD",
-          "PK",
-          "LK",
-          "GH",
-          "KE",
-          "NG",
-          "TZ",
-          "UG",
-          "AG",
-          "AM",
-          "BS",
-          "BB",
-          "BZ",
-          "BT",
-          "BW",
-          "CV",
-          "CW",
-          "DM",
-          "FJ",
-          "GM",
-          "GE",
-          "GD",
-          "GW",
-          "GY",
-          "HT",
-          "JM",
-          "KI",
-          "LS",
-          "LR",
-          "MW",
-          "MV",
-          "ML",
-          "MH",
-          "FM",
-          "NA",
-          "NR",
-          "NE",
-          "PW",
-          "PG",
-          "WS",
-          "SM",
-          "ST",
-          "SN",
-          "SC",
-          "SL",
-          "SB",
-          "KN",
-          "LC",
-          "VC",
-          "SR",
-          "TL",
-          "TO",
-          "TT",
-          "TV",
-          "VU",
-          "AZ",
-          "BI",
-          "KH",
-          "CM",
-          "TD",
-          "KM",
-          "GQ",
-          "SZ",
-          "GA",
-          "GN",
-          "KG",
-          "LA",
-          "MO",
-          "MR",
-          "MN",
           "RW",
-          "TG",
-          "ZW",
-          "BJ",
-          "MG",
-          "MU",
-          "MZ",
-          "AO",
-          "CI",
-          "DJ",
-          "ZM",
-          "CD",
-          "CG",
-          "IQ",
-          "LY",
-          "TJ",
+          "SE",
+          "SG",
+          "SI",
+          "SK",
+          "SN",
+          "TR",
+          "TZ",
+          "UA",
           "VE",
-          "ET",
-          "XK"
+          "XK",
+          "ZA"
         ],
         "disc_number": 1,
-        "duration_ms": 203760,
+        "duration_ms": 345093,
         "explicit": false,
         "external_ids": {
-          "isrc": "USHR10924519"
+          "isrc": "USHR10924658"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/0CuXna1jGiOfCBIUZGu1eB"
+          "spotify": "https://open.spotify.com/track/7uwiIRlp1bOdYyHGJY1syt"
         },
-        "href": "https://api.spotify.com/v1/tracks/0CuXna1jGiOfCBIUZGu1eB",
-        "id": "0CuXna1jGiOfCBIUZGu1eB",
+        "href": "https://api.spotify.com/v1/tracks/7uwiIRlp1bOdYyHGJY1syt",
+        "id": "7uwiIRlp1bOdYyHGJY1syt",
         "is_local": false,
         "is_playable": true,
-        "name": "Party In The U.S.A.",
-        "popularity": 36,
+        "name": "Party In The U.S.A. - Cahill Club Mix",
+        "popularity": 24,
         "preview_url": null,
-        "track_number": 12,
+        "track_number": 2,
         "type": "track",
-        "uri": "spotify:track:0CuXna1jGiOfCBIUZGu1eB"
+        "uri": "spotify:track:7uwiIRlp1bOdYyHGJY1syt"
       },
       {
         "album": {

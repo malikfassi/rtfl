@@ -33,9 +33,8 @@
           "song_art_image_url": "https://images.genius.com/1a4545c150afe6dcc02bcd59d1efef18.900x900x1.png",
           "stats": {
             "unreviewed_annotations": 0,
-            "concurrents": 3,
             "hot": false,
-            "pageviews": 1182048
+            "pageviews": 1185902
           },
           "title": "Party in the U.S.A.",
           "title_with_featured": "Party in the U.S.A.",
@@ -235,7 +234,7 @@
             "is_verified": false,
             "name": "franco_mp3",
             "url": "https://genius.com/artists/Franco-mp3",
-            "iq": 28548
+            "iq": 28695
           },
           "primary_artists": [
             {
@@ -247,7 +246,7 @@
               "is_verified": false,
               "name": "franco_mp3",
               "url": "https://genius.com/artists/Franco-mp3",
-              "iq": 28548
+              "iq": 28695
             }
           ]
         }
@@ -355,7 +354,7 @@
             "is_verified": false,
             "name": "Luke Hanna",
             "url": "https://genius.com/artists/Luke-hanna",
-            "iq": 62307
+            "iq": 62312
           },
           "primary_artists": [
             {
@@ -367,7 +366,7 @@
               "is_verified": false,
               "name": "Luke Hanna",
               "url": "https://genius.com/artists/Luke-hanna",
-              "iq": 62307
+              "iq": 62312
             }
           ]
         }

@@ -6,14 +6,14 @@
   },
   "followers": {
     "href": null,
-    "total": 138270
+    "total": 139238
   },
   "href": "https://api.spotify.com/v1/playlists/141guhSLUNzE58MqlIC4zT?locale=*",
   "id": "141guhSLUNzE58MqlIC4zT",
   "images": [
     {
       "height": null,
-      "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84b848c3db342bfe6cf4f62301",
+      "url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72cb848c3db342bfe6cf4f62301",
       "width": null
     }
   ],
@@ -30,7 +30,7 @@
   },
   "primary_color": null,
   "public": true,
-  "snapshot_id": "AAAXCmqfnoNEvTplnjoLUVwzcjk/eD9/",
+  "snapshot_id": "AAAXIVNSleHIUBTZ+piuZAtWB2vYUPsc",
   "tracks": {
     "href": "https://api.spotify.com/v1/playlists/141guhSLUNzE58MqlIC4zT/tracks?offset=0&limit=100&locale=*",
     "items": [
@@ -494,7 +494,7 @@
           "href": "https://api.spotify.com/v1/tracks/2bCQHF9gdG5BNDVuEIEnNk",
           "id": "2bCQHF9gdG5BNDVuEIEnNk",
           "name": "Smooth Criminal - 2012 Remaster",
-          "popularity": 75,
+          "popularity": 76,
           "uri": "spotify:track:2bCQHF9gdG5BNDVuEIEnNk",
           "is_local": false
         },
@@ -960,7 +960,7 @@
           "href": "https://api.spotify.com/v1/tracks/37ZJ0p5Jm13JPevGcx4SkF",
           "id": "37ZJ0p5Jm13JPevGcx4SkF",
           "name": "Livin' On A Prayer",
-          "popularity": 83,
+          "popularity": 84,
           "uri": "spotify:track:37ZJ0p5Jm13JPevGcx4SkF",
           "is_local": false
         },
@@ -1152,7 +1152,7 @@
           "href": "https://api.spotify.com/v1/tracks/4uLU6hMCjMI75M1A2tKUQC",
           "id": "4uLU6hMCjMI75M1A2tKUQC",
           "name": "Never Gonna Give You Up",
-          "popularity": 9,
+          "popularity": 8,
           "uri": "spotify:track:4uLU6hMCjMI75M1A2tKUQC",
           "is_local": false
         },
@@ -2554,7 +2554,7 @@
           "href": "https://api.spotify.com/v1/tracks/1i3jPowCNmyemFeiJtvLSA",
           "id": "1i3jPowCNmyemFeiJtvLSA",
           "name": "Desert Roll",
-          "popularity": 3,
+          "popularity": 33,
           "uri": "spotify:track:1i3jPowCNmyemFeiJtvLSA",
           "is_local": false
         },
@@ -3488,7 +3488,7 @@
           "href": "https://api.spotify.com/v1/tracks/0Ph6L4l8dYUuXFmb71Ajnd",
           "id": "0Ph6L4l8dYUuXFmb71Ajnd",
           "name": "Livin' la Vida Loca",
-          "popularity": 79,
+          "popularity": 80,
           "uri": "spotify:track:0Ph6L4l8dYUuXFmb71Ajnd",
           "is_local": false
         },
@@ -3956,7 +3956,7 @@
           "href": "https://api.spotify.com/v1/tracks/23xT9G3QRHwQghzDWRWszZ",
           "id": "23xT9G3QRHwQghzDWRWszZ",
           "name": "Lost Together",
-          "popularity": 38,
+          "popularity": 40,
           "uri": "spotify:track:23xT9G3QRHwQghzDWRWszZ",
           "is_local": false
         },
@@ -4520,7 +4520,7 @@
           "href": "https://api.spotify.com/v1/tracks/1arJHhz6TxMV50SNvSmGnV",
           "id": "1arJHhz6TxMV50SNvSmGnV",
           "name": "Ecuador - Original Radio Edit",
-          "popularity": 71,
+          "popularity": 72,
           "uri": "spotify:track:1arJHhz6TxMV50SNvSmGnV",
           "is_local": false
         },
@@ -4616,7 +4616,7 @@
           "href": "https://api.spotify.com/v1/tracks/0Xd1XT0mlPMTK5uslC6pzl",
           "id": "0Xd1XT0mlPMTK5uslC6pzl",
           "name": "Man! I Feel Like A Woman!",
-          "popularity": 0,
+          "popularity": 1,
           "uri": "spotify:track:0Xd1XT0mlPMTK5uslC6pzl",
           "is_local": false
         },
@@ -5093,7 +5093,7 @@
         }
       },
       {
-        "added_at": "2025-04-25T07:45:43Z",
+        "added_at": "2025-06-09T08:09:06Z",
         "added_by": {
           "external_urls": {
             "spotify": "https://open.spotify.com/user/tsouwer"
@@ -5488,72 +5488,72 @@
             ],
             "type": "album",
             "album_type": "single",
-            "href": "https://api.spotify.com/v1/albums/35iVrnvJ1X0UK3XgcRG32l",
-            "id": "35iVrnvJ1X0UK3XgcRG32l",
+            "href": "https://api.spotify.com/v1/albums/2mhDZAgUgOULUF69inFDvL",
+            "id": "2mhDZAgUgOULUF69inFDvL",
             "images": [
               {
-                "url": "https://i.scdn.co/image/ab67616d0000b273553b8daef17a0003426fa3e2",
+                "url": "https://i.scdn.co/image/ab67616d0000b27358468d5c169439c8040cb0b2",
                 "width": 640,
                 "height": 640
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00001e02553b8daef17a0003426fa3e2",
+                "url": "https://i.scdn.co/image/ab67616d00001e0258468d5c169439c8040cb0b2",
                 "width": 300,
                 "height": 300
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00004851553b8daef17a0003426fa3e2",
+                "url": "https://i.scdn.co/image/ab67616d0000485158468d5c169439c8040cb0b2",
                 "width": 64,
                 "height": 64
               }
             ],
-            "name": "Lil' Bit Of Jesus, Lil' Bit Of Hank",
-            "release_date": "2025-02-07",
+            "name": "Impermanence",
+            "release_date": "2025-06-03",
             "release_date_precision": "day",
-            "uri": "spotify:album:35iVrnvJ1X0UK3XgcRG32l",
+            "uri": "spotify:album:2mhDZAgUgOULUF69inFDvL",
             "artists": [
               {
                 "external_urls": {
-                  "spotify": "https://open.spotify.com/artist/36XyconBGiSvtl2e9NZuei"
+                  "spotify": "https://open.spotify.com/artist/2b4We50bPQWCLRRsXnNKjC"
                 },
-                "href": "https://api.spotify.com/v1/artists/36XyconBGiSvtl2e9NZuei",
-                "id": "36XyconBGiSvtl2e9NZuei",
-                "name": "Laura Bryna",
+                "href": "https://api.spotify.com/v1/artists/2b4We50bPQWCLRRsXnNKjC",
+                "id": "2b4We50bPQWCLRRsXnNKjC",
+                "name": "Upland",
                 "type": "artist",
-                "uri": "spotify:artist:36XyconBGiSvtl2e9NZuei"
+                "uri": "spotify:artist:2b4We50bPQWCLRRsXnNKjC"
               }
             ],
             "external_urls": {
-              "spotify": "https://open.spotify.com/album/35iVrnvJ1X0UK3XgcRG32l"
+              "spotify": "https://open.spotify.com/album/2mhDZAgUgOULUF69inFDvL"
             },
-            "total_tracks": 1
+            "total_tracks": 4
           },
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/36XyconBGiSvtl2e9NZuei"
+                "spotify": "https://open.spotify.com/artist/2b4We50bPQWCLRRsXnNKjC"
               },
-              "href": "https://api.spotify.com/v1/artists/36XyconBGiSvtl2e9NZuei",
-              "id": "36XyconBGiSvtl2e9NZuei",
-              "name": "Laura Bryna",
+              "href": "https://api.spotify.com/v1/artists/2b4We50bPQWCLRRsXnNKjC",
+              "id": "2b4We50bPQWCLRRsXnNKjC",
+              "name": "Upland",
               "type": "artist",
-              "uri": "spotify:artist:36XyconBGiSvtl2e9NZuei"
+              "uri": "spotify:artist:2b4We50bPQWCLRRsXnNKjC"
             }
           ],
           "disc_number": 1,
-          "track_number": 1,
-          "duration_ms": 156085,
+          "track_number": 2,
+          "duration_ms": 208560,
           "external_ids": {
-            "isrc": "QZSYP2499333"
+            "isrc": "QZTAX2596679"
           },
           "external_urls": {
-            "spotify": "https://open.spotify.com/track/2uLt4YsuiOsSrLPQ616F0a"
+            "spotify": "https://open.spotify.com/track/5LtuSj4euHwoRGv48Xl9mx"
           },
-          "href": "https://api.spotify.com/v1/tracks/2uLt4YsuiOsSrLPQ616F0a",
-          "id": "2uLt4YsuiOsSrLPQ616F0a",
-          "name": "Lil' Bit Of Jesus, Lil' Bit Of Hank",
-          "popularity": 48,
-          "uri": "spotify:track:2uLt4YsuiOsSrLPQ616F0a",
+          "href": "https://api.spotify.com/v1/tracks/5LtuSj4euHwoRGv48Xl9mx",
+          "id": "5LtuSj4euHwoRGv48Xl9mx",
+          "name": "The Final Time",
+          "popularity": 0,
+          "uri": "spotify:track:5LtuSj4euHwoRGv48Xl9mx",
           "is_local": false
         },
         "video_thumbnail": {
@@ -6029,7 +6029,7 @@
         }
       },
       {
-        "added_at": "2025-04-07T15:57:30Z",
+        "added_at": "2025-06-01T10:22:39Z",
         "added_by": {
           "external_urls": {
             "spotify": "https://open.spotify.com/user/tsouwer"
@@ -6123,7 +6123,6 @@
             "JO",
             "PS",
             "IN",
-            "BY",
             "KZ",
             "MD",
             "UA",
@@ -6315,7 +6314,6 @@
               "JO",
               "PS",
               "IN",
-              "BY",
               "KZ",
               "MD",
               "UA",
@@ -6423,73 +6421,93 @@
               "XK"
             ],
             "type": "album",
-            "album_type": "album",
-            "href": "https://api.spotify.com/v1/albums/2uGNH29Q7cUahIQAHVs7ks",
-            "id": "2uGNH29Q7cUahIQAHVs7ks",
+            "album_type": "single",
+            "href": "https://api.spotify.com/v1/albums/3LAev0tQ4Faa7tRobbXEzX",
+            "id": "3LAev0tQ4Faa7tRobbXEzX",
             "images": [
               {
-                "url": "https://i.scdn.co/image/ab67616d0000b273f71ae3bac101a6b2ed73c81c",
+                "url": "https://i.scdn.co/image/ab67616d0000b273be26140432780e8c57e0793a",
                 "width": 640,
                 "height": 640
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00001e02f71ae3bac101a6b2ed73c81c",
+                "url": "https://i.scdn.co/image/ab67616d00001e02be26140432780e8c57e0793a",
                 "width": 300,
                 "height": 300
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00004851f71ae3bac101a6b2ed73c81c",
+                "url": "https://i.scdn.co/image/ab67616d00004851be26140432780e8c57e0793a",
                 "width": 64,
                 "height": 64
               }
             ],
-            "name": "Aurora Borealis",
-            "release_date": "2025-03-21",
+            "name": "Touch Me There",
+            "release_date": "2025-03-28",
             "release_date_precision": "day",
-            "uri": "spotify:album:2uGNH29Q7cUahIQAHVs7ks",
+            "uri": "spotify:album:3LAev0tQ4Faa7tRobbXEzX",
             "artists": [
               {
                 "external_urls": {
-                  "spotify": "https://open.spotify.com/artist/71WabaM6Ha5ZqQjdoBRTkO"
+                  "spotify": "https://open.spotify.com/artist/6CnCjQXjKiV9Ro5GGA8ztB"
                 },
-                "href": "https://api.spotify.com/v1/artists/71WabaM6Ha5ZqQjdoBRTkO",
-                "id": "71WabaM6Ha5ZqQjdoBRTkO",
-                "name": "Seize The Fire",
+                "href": "https://api.spotify.com/v1/artists/6CnCjQXjKiV9Ro5GGA8ztB",
+                "id": "6CnCjQXjKiV9Ro5GGA8ztB",
+                "name": "DJ Fluke",
                 "type": "artist",
-                "uri": "spotify:artist:71WabaM6Ha5ZqQjdoBRTkO"
+                "uri": "spotify:artist:6CnCjQXjKiV9Ro5GGA8ztB"
+              },
+              {
+                "external_urls": {
+                  "spotify": "https://open.spotify.com/artist/5NcdmGRGHbjCHY5yU4tzPE"
+                },
+                "href": "https://api.spotify.com/v1/artists/5NcdmGRGHbjCHY5yU4tzPE",
+                "id": "5NcdmGRGHbjCHY5yU4tzPE",
+                "name": "URBANO",
+                "type": "artist",
+                "uri": "spotify:artist:5NcdmGRGHbjCHY5yU4tzPE"
               }
             ],
             "external_urls": {
-              "spotify": "https://open.spotify.com/album/2uGNH29Q7cUahIQAHVs7ks"
+              "spotify": "https://open.spotify.com/album/3LAev0tQ4Faa7tRobbXEzX"
             },
-            "total_tracks": 7
+            "total_tracks": 1
           },
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/71WabaM6Ha5ZqQjdoBRTkO"
+                "spotify": "https://open.spotify.com/artist/6CnCjQXjKiV9Ro5GGA8ztB"
               },
-              "href": "https://api.spotify.com/v1/artists/71WabaM6Ha5ZqQjdoBRTkO",
-              "id": "71WabaM6Ha5ZqQjdoBRTkO",
-              "name": "Seize The Fire",
+              "href": "https://api.spotify.com/v1/artists/6CnCjQXjKiV9Ro5GGA8ztB",
+              "id": "6CnCjQXjKiV9Ro5GGA8ztB",
+              "name": "DJ Fluke",
               "type": "artist",
-              "uri": "spotify:artist:71WabaM6Ha5ZqQjdoBRTkO"
+              "uri": "spotify:artist:6CnCjQXjKiV9Ro5GGA8ztB"
+            },
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/artist/5NcdmGRGHbjCHY5yU4tzPE"
+              },
+              "href": "https://api.spotify.com/v1/artists/5NcdmGRGHbjCHY5yU4tzPE",
+              "id": "5NcdmGRGHbjCHY5yU4tzPE",
+              "name": "URBANO",
+              "type": "artist",
+              "uri": "spotify:artist:5NcdmGRGHbjCHY5yU4tzPE"
             }
           ],
           "disc_number": 1,
-          "track_number": 2,
-          "duration_ms": 221280,
+          "track_number": 1,
+          "duration_ms": 114857,
           "external_ids": {
-            "isrc": "QZLL92537124"
+            "isrc": "US38Y2504934"
           },
           "external_urls": {
-            "spotify": "https://open.spotify.com/track/4ivwuE3mG8zSg1naLW9hdM"
+            "spotify": "https://open.spotify.com/track/3WXulOP77aG1AegMXRoUs3"
           },
-          "href": "https://api.spotify.com/v1/tracks/4ivwuE3mG8zSg1naLW9hdM",
-          "id": "4ivwuE3mG8zSg1naLW9hdM",
-          "name": "Rumination",
-          "popularity": 38,
-          "uri": "spotify:track:4ivwuE3mG8zSg1naLW9hdM",
+          "href": "https://api.spotify.com/v1/tracks/3WXulOP77aG1AegMXRoUs3",
+          "id": "3WXulOP77aG1AegMXRoUs3",
+          "name": "Touch Me There",
+          "popularity": 34,
+          "uri": "spotify:track:3WXulOP77aG1AegMXRoUs3",
           "is_local": false
         },
         "video_thumbnail": {
@@ -7424,7 +7442,7 @@
           "href": "https://api.spotify.com/v1/tracks/0tTC67dz52fc0MRoaplZ5C",
           "id": "0tTC67dz52fc0MRoaplZ5C",
           "name": "Old Fashioned Rhyme",
-          "popularity": 38,
+          "popularity": 41,
           "uri": "spotify:track:0tTC67dz52fc0MRoaplZ5C",
           "is_local": false
         },
@@ -7890,7 +7908,7 @@
           "href": "https://api.spotify.com/v1/tracks/2M9ro2krNb7nr7HSprkEgo",
           "id": "2M9ro2krNb7nr7HSprkEgo",
           "name": "Fast Car",
-          "popularity": 83,
+          "popularity": 84,
           "uri": "spotify:track:2M9ro2krNb7nr7HSprkEgo",
           "is_local": false
         },
@@ -8184,7 +8202,7 @@
           "href": "https://api.spotify.com/v1/tracks/4caiYv89C9GZdDD1RzshWd",
           "id": "4caiYv89C9GZdDD1RzshWd",
           "name": "It's Raining Men - Single Version",
-          "popularity": 50,
+          "popularity": 51,
           "uri": "spotify:track:4caiYv89C9GZdDD1RzshWd",
           "is_local": false
         },
@@ -8193,7 +8211,7 @@
         }
       },
       {
-        "added_at": "2025-05-05T18:47:12Z",
+        "added_at": "2025-06-02T14:57:47Z",
         "added_by": {
           "external_urls": {
             "spotify": "https://open.spotify.com/user/tsouwer"
@@ -8207,81 +8225,453 @@
         "primary_color": null,
         "track": {
           "preview_url": null,
-          "available_markets": [],
+          "available_markets": [
+            "AR",
+            "AU",
+            "AT",
+            "BE",
+            "BO",
+            "BR",
+            "BG",
+            "CA",
+            "CL",
+            "CO",
+            "CR",
+            "CY",
+            "CZ",
+            "DK",
+            "DO",
+            "DE",
+            "EC",
+            "EE",
+            "SV",
+            "FI",
+            "FR",
+            "GR",
+            "GT",
+            "HN",
+            "HK",
+            "HU",
+            "IS",
+            "IE",
+            "IT",
+            "LV",
+            "LT",
+            "LU",
+            "MY",
+            "MT",
+            "MX",
+            "NL",
+            "NZ",
+            "NI",
+            "NO",
+            "PA",
+            "PY",
+            "PE",
+            "PH",
+            "PL",
+            "PT",
+            "SG",
+            "SK",
+            "ES",
+            "SE",
+            "CH",
+            "TW",
+            "TR",
+            "UY",
+            "US",
+            "GB",
+            "AD",
+            "LI",
+            "MC",
+            "ID",
+            "JP",
+            "TH",
+            "VN",
+            "RO",
+            "IL",
+            "ZA",
+            "SA",
+            "AE",
+            "BH",
+            "QA",
+            "OM",
+            "KW",
+            "EG",
+            "MA",
+            "DZ",
+            "TN",
+            "LB",
+            "JO",
+            "PS",
+            "IN",
+            "BY",
+            "KZ",
+            "MD",
+            "UA",
+            "AL",
+            "BA",
+            "HR",
+            "ME",
+            "MK",
+            "RS",
+            "SI",
+            "KR",
+            "BD",
+            "PK",
+            "LK",
+            "GH",
+            "KE",
+            "NG",
+            "TZ",
+            "UG",
+            "AG",
+            "AM",
+            "BS",
+            "BB",
+            "BZ",
+            "BT",
+            "BW",
+            "BF",
+            "CV",
+            "CW",
+            "DM",
+            "FJ",
+            "GM",
+            "GE",
+            "GD",
+            "GW",
+            "GY",
+            "HT",
+            "JM",
+            "KI",
+            "LS",
+            "LR",
+            "MW",
+            "MV",
+            "ML",
+            "MH",
+            "FM",
+            "NA",
+            "NR",
+            "NE",
+            "PW",
+            "PG",
+            "PR",
+            "WS",
+            "SM",
+            "ST",
+            "SN",
+            "SC",
+            "SL",
+            "SB",
+            "KN",
+            "LC",
+            "VC",
+            "SR",
+            "TL",
+            "TO",
+            "TT",
+            "TV",
+            "VU",
+            "AZ",
+            "BN",
+            "BI",
+            "KH",
+            "CM",
+            "TD",
+            "KM",
+            "GQ",
+            "SZ",
+            "GA",
+            "GN",
+            "KG",
+            "LA",
+            "MO",
+            "MR",
+            "MN",
+            "NP",
+            "RW",
+            "TG",
+            "UZ",
+            "ZW",
+            "BJ",
+            "MG",
+            "MU",
+            "MZ",
+            "AO",
+            "CI",
+            "DJ",
+            "ZM",
+            "CD",
+            "CG",
+            "IQ",
+            "LY",
+            "TJ",
+            "VE",
+            "ET",
+            "XK"
+          ],
           "explicit": false,
           "type": "track",
           "episode": false,
           "track": true,
           "album": {
-            "available_markets": [],
+            "available_markets": [
+              "AR",
+              "AU",
+              "AT",
+              "BE",
+              "BO",
+              "BR",
+              "BG",
+              "CA",
+              "CL",
+              "CO",
+              "CR",
+              "CY",
+              "CZ",
+              "DK",
+              "DO",
+              "DE",
+              "EC",
+              "EE",
+              "SV",
+              "FI",
+              "FR",
+              "GR",
+              "GT",
+              "HN",
+              "HK",
+              "HU",
+              "IS",
+              "IE",
+              "IT",
+              "LV",
+              "LT",
+              "LU",
+              "MY",
+              "MT",
+              "MX",
+              "NL",
+              "NZ",
+              "NI",
+              "NO",
+              "PA",
+              "PY",
+              "PE",
+              "PH",
+              "PL",
+              "PT",
+              "SG",
+              "SK",
+              "ES",
+              "SE",
+              "CH",
+              "TW",
+              "TR",
+              "UY",
+              "US",
+              "GB",
+              "AD",
+              "LI",
+              "MC",
+              "ID",
+              "JP",
+              "TH",
+              "VN",
+              "RO",
+              "IL",
+              "ZA",
+              "SA",
+              "AE",
+              "BH",
+              "QA",
+              "OM",
+              "KW",
+              "EG",
+              "MA",
+              "DZ",
+              "TN",
+              "LB",
+              "JO",
+              "PS",
+              "IN",
+              "BY",
+              "KZ",
+              "MD",
+              "UA",
+              "AL",
+              "BA",
+              "HR",
+              "ME",
+              "MK",
+              "RS",
+              "SI",
+              "KR",
+              "BD",
+              "PK",
+              "LK",
+              "GH",
+              "KE",
+              "NG",
+              "TZ",
+              "UG",
+              "AG",
+              "AM",
+              "BS",
+              "BB",
+              "BZ",
+              "BT",
+              "BW",
+              "BF",
+              "CV",
+              "CW",
+              "DM",
+              "FJ",
+              "GM",
+              "GE",
+              "GD",
+              "GW",
+              "GY",
+              "HT",
+              "JM",
+              "KI",
+              "LS",
+              "LR",
+              "MW",
+              "MV",
+              "ML",
+              "MH",
+              "FM",
+              "NA",
+              "NR",
+              "NE",
+              "PW",
+              "PG",
+              "PR",
+              "WS",
+              "SM",
+              "ST",
+              "SN",
+              "SC",
+              "SL",
+              "SB",
+              "KN",
+              "LC",
+              "VC",
+              "SR",
+              "TL",
+              "TO",
+              "TT",
+              "TV",
+              "VU",
+              "AZ",
+              "BN",
+              "BI",
+              "KH",
+              "CM",
+              "TD",
+              "KM",
+              "GQ",
+              "SZ",
+              "GA",
+              "GN",
+              "KG",
+              "LA",
+              "MO",
+              "MR",
+              "MN",
+              "NP",
+              "RW",
+              "TG",
+              "UZ",
+              "ZW",
+              "BJ",
+              "MG",
+              "MU",
+              "MZ",
+              "AO",
+              "CI",
+              "DJ",
+              "ZM",
+              "CD",
+              "CG",
+              "IQ",
+              "LY",
+              "TJ",
+              "VE",
+              "ET",
+              "XK"
+            ],
             "type": "album",
             "album_type": "single",
-            "href": "https://api.spotify.com/v1/albums/3My5FRKIldK9RP9xaZ9hUL",
-            "id": "3My5FRKIldK9RP9xaZ9hUL",
+            "href": "https://api.spotify.com/v1/albums/2n8lNxFOwR7twt4Fvou1xS",
+            "id": "2n8lNxFOwR7twt4Fvou1xS",
             "images": [
               {
-                "url": "https://i.scdn.co/image/ab67616d0000b273dbd6a6be713914bb691565b9",
+                "url": "https://i.scdn.co/image/ab67616d0000b2735da360dac4e72a29a548701f",
                 "width": 640,
                 "height": 640
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00001e02dbd6a6be713914bb691565b9",
+                "url": "https://i.scdn.co/image/ab67616d00001e025da360dac4e72a29a548701f",
                 "width": 300,
                 "height": 300
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00004851dbd6a6be713914bb691565b9",
+                "url": "https://i.scdn.co/image/ab67616d000048515da360dac4e72a29a548701f",
                 "width": 64,
                 "height": 64
               }
             ],
-            "name": "Let The Boy Watch",
-            "release_date": "2024-01-12",
+            "name": "Jenny",
+            "release_date": "2025-06-02",
             "release_date_precision": "day",
-            "uri": "spotify:album:3My5FRKIldK9RP9xaZ9hUL",
+            "uri": "spotify:album:2n8lNxFOwR7twt4Fvou1xS",
             "artists": [
               {
                 "external_urls": {
-                  "spotify": "https://open.spotify.com/artist/0pH0ynK8vJxGZfyP8ZHJvF"
+                  "spotify": "https://open.spotify.com/artist/7K2tUK90LoQbCVX2ERDExy"
                 },
-                "href": "https://api.spotify.com/v1/artists/0pH0ynK8vJxGZfyP8ZHJvF",
-                "id": "0pH0ynK8vJxGZfyP8ZHJvF",
-                "name": "Ghost Man On Third",
+                "href": "https://api.spotify.com/v1/artists/7K2tUK90LoQbCVX2ERDExy",
+                "id": "7K2tUK90LoQbCVX2ERDExy",
+                "name": "Working Royals",
                 "type": "artist",
-                "uri": "spotify:artist:0pH0ynK8vJxGZfyP8ZHJvF"
+                "uri": "spotify:artist:7K2tUK90LoQbCVX2ERDExy"
               }
             ],
             "external_urls": {
-              "spotify": "https://open.spotify.com/album/3My5FRKIldK9RP9xaZ9hUL"
+              "spotify": "https://open.spotify.com/album/2n8lNxFOwR7twt4Fvou1xS"
             },
-            "total_tracks": 6
+            "total_tracks": 1
           },
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/0pH0ynK8vJxGZfyP8ZHJvF"
+                "spotify": "https://open.spotify.com/artist/7K2tUK90LoQbCVX2ERDExy"
               },
-              "href": "https://api.spotify.com/v1/artists/0pH0ynK8vJxGZfyP8ZHJvF",
-              "id": "0pH0ynK8vJxGZfyP8ZHJvF",
-              "name": "Ghost Man On Third",
+              "href": "https://api.spotify.com/v1/artists/7K2tUK90LoQbCVX2ERDExy",
+              "id": "7K2tUK90LoQbCVX2ERDExy",
+              "name": "Working Royals",
               "type": "artist",
-              "uri": "spotify:artist:0pH0ynK8vJxGZfyP8ZHJvF"
+              "uri": "spotify:artist:7K2tUK90LoQbCVX2ERDExy"
             }
           ],
           "disc_number": 1,
-          "track_number": 5,
-          "duration_ms": 285095,
+          "track_number": 1,
+          "duration_ms": 228123,
           "external_ids": {
-            "isrc": "QZTBC2323107"
+            "isrc": "QZTAX2516334"
           },
           "external_urls": {
-            "spotify": "https://open.spotify.com/track/4oxDqAzTHdJMh08jT9X76p"
+            "spotify": "https://open.spotify.com/track/3ZZGnDRMcJU0JNRFKbH09d"
           },
-          "href": "https://api.spotify.com/v1/tracks/4oxDqAzTHdJMh08jT9X76p",
-          "id": "4oxDqAzTHdJMh08jT9X76p",
-          "name": "Let The Boy Watch",
-          "popularity": 0,
-          "uri": "spotify:track:4oxDqAzTHdJMh08jT9X76p",
+          "href": "https://api.spotify.com/v1/tracks/3ZZGnDRMcJU0JNRFKbH09d",
+          "id": "3ZZGnDRMcJU0JNRFKbH09d",
+          "name": "Jenny",
+          "popularity": 37,
+          "uri": "spotify:track:3ZZGnDRMcJU0JNRFKbH09d",
           "is_local": false
         },
         "video_thumbnail": {
@@ -8844,7 +9234,7 @@
           "href": "https://api.spotify.com/v1/tracks/5VVwwfK6Cp9IydkhKfJUEq",
           "id": "5VVwwfK6Cp9IydkhKfJUEq",
           "name": "You Give Love A Bad Name",
-          "popularity": 6,
+          "popularity": 5,
           "uri": "spotify:track:5VVwwfK6Cp9IydkhKfJUEq",
           "is_local": false
         },
@@ -9787,7 +10177,7 @@
         }
       },
       {
-        "added_at": "2025-05-12T07:50:27Z",
+        "added_at": "2025-06-02T08:52:02Z",
         "added_by": {
           "external_urls": {
             "spotify": "https://open.spotify.com/user/tsouwer"
@@ -10182,72 +10572,82 @@
             ],
             "type": "album",
             "album_type": "single",
-            "href": "https://api.spotify.com/v1/albums/3Kp1wU98SAEnUSnAs1gsJ5",
-            "id": "3Kp1wU98SAEnUSnAs1gsJ5",
+            "href": "https://api.spotify.com/v1/albums/2qtbdwhIf4NQsNRNspilfJ",
+            "id": "2qtbdwhIf4NQsNRNspilfJ",
             "images": [
               {
-                "url": "https://i.scdn.co/image/ab67616d0000b2736a983a86471fb3b6aff57840",
+                "url": "https://i.scdn.co/image/ab67616d0000b273bbce4cbd2728ee026ee2fdc5",
                 "width": 640,
                 "height": 640
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00001e026a983a86471fb3b6aff57840",
+                "url": "https://i.scdn.co/image/ab67616d00001e02bbce4cbd2728ee026ee2fdc5",
                 "width": 300,
                 "height": 300
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d000048516a983a86471fb3b6aff57840",
+                "url": "https://i.scdn.co/image/ab67616d00004851bbce4cbd2728ee026ee2fdc5",
                 "width": 64,
                 "height": 64
               }
             ],
-            "name": "Lost and Found",
-            "release_date": "2025-04-15",
+            "name": "Dreams",
+            "release_date": "2025-05-08",
             "release_date_precision": "day",
-            "uri": "spotify:album:3Kp1wU98SAEnUSnAs1gsJ5",
+            "uri": "spotify:album:2qtbdwhIf4NQsNRNspilfJ",
             "artists": [
               {
                 "external_urls": {
-                  "spotify": "https://open.spotify.com/artist/2PdP0pvIefKBmQbWZVmuIn"
+                  "spotify": "https://open.spotify.com/artist/5X4K22D0O0WSiIXpYiJNl3"
                 },
-                "href": "https://api.spotify.com/v1/artists/2PdP0pvIefKBmQbWZVmuIn",
-                "id": "2PdP0pvIefKBmQbWZVmuIn",
-                "name": "Cul De Sac Kings",
+                "href": "https://api.spotify.com/v1/artists/5X4K22D0O0WSiIXpYiJNl3",
+                "id": "5X4K22D0O0WSiIXpYiJNl3",
+                "name": "RISE",
                 "type": "artist",
-                "uri": "spotify:artist:2PdP0pvIefKBmQbWZVmuIn"
+                "uri": "spotify:artist:5X4K22D0O0WSiIXpYiJNl3"
               }
             ],
             "external_urls": {
-              "spotify": "https://open.spotify.com/album/3Kp1wU98SAEnUSnAs1gsJ5"
+              "spotify": "https://open.spotify.com/album/2qtbdwhIf4NQsNRNspilfJ"
             },
             "total_tracks": 1
           },
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/2PdP0pvIefKBmQbWZVmuIn"
+                "spotify": "https://open.spotify.com/artist/5X4K22D0O0WSiIXpYiJNl3"
               },
-              "href": "https://api.spotify.com/v1/artists/2PdP0pvIefKBmQbWZVmuIn",
-              "id": "2PdP0pvIefKBmQbWZVmuIn",
-              "name": "Cul De Sac Kings",
+              "href": "https://api.spotify.com/v1/artists/5X4K22D0O0WSiIXpYiJNl3",
+              "id": "5X4K22D0O0WSiIXpYiJNl3",
+              "name": "RISE",
               "type": "artist",
-              "uri": "spotify:artist:2PdP0pvIefKBmQbWZVmuIn"
+              "uri": "spotify:artist:5X4K22D0O0WSiIXpYiJNl3"
+            },
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/artist/1ZbOoAHK8Xyn2ZWb11wkI9"
+              },
+              "href": "https://api.spotify.com/v1/artists/1ZbOoAHK8Xyn2ZWb11wkI9",
+              "id": "1ZbOoAHK8Xyn2ZWb11wkI9",
+              "name": "stayMellow",
+              "type": "artist",
+              "uri": "spotify:artist:1ZbOoAHK8Xyn2ZWb11wkI9"
             }
           ],
           "disc_number": 1,
           "track_number": 1,
-          "duration_ms": 228565,
+          "duration_ms": 288063,
           "external_ids": {
-            "isrc": "QZZ7U2402666"
+            "isrc": "QZK6L2554608"
           },
           "external_urls": {
-            "spotify": "https://open.spotify.com/track/7CrpeIOaTBJNHdNpbprDh2"
+            "spotify": "https://open.spotify.com/track/6Jy4MUMCVihVdip0682Kbi"
           },
-          "href": "https://api.spotify.com/v1/tracks/7CrpeIOaTBJNHdNpbprDh2",
-          "id": "7CrpeIOaTBJNHdNpbprDh2",
-          "name": "Lost and Found",
+          "href": "https://api.spotify.com/v1/tracks/6Jy4MUMCVihVdip0682Kbi",
+          "id": "6Jy4MUMCVihVdip0682Kbi",
+          "name": "Dreams",
           "popularity": 34,
-          "uri": "spotify:track:7CrpeIOaTBJNHdNpbprDh2",
+          "uri": "spotify:track:6Jy4MUMCVihVdip0682Kbi",
           "is_local": false
         },
         "video_thumbnail": {
@@ -11372,7 +11772,7 @@
           "href": "https://api.spotify.com/v1/tracks/7o2CTH4ctstm8TNelqjb51",
           "id": "7o2CTH4ctstm8TNelqjb51",
           "name": "Sweet Child O' Mine",
-          "popularity": 18,
+          "popularity": 19,
           "uri": "spotify:track:7o2CTH4ctstm8TNelqjb51",
           "is_local": false
         },
@@ -11381,7 +11781,7 @@
         }
       },
       {
-        "added_at": "2025-05-13T12:03:42Z",
+        "added_at": "2025-06-05T08:37:18Z",
         "added_by": {
           "external_urls": {
             "spotify": "https://open.spotify.com/user/tsouwer"
@@ -11775,73 +12175,73 @@
               "XK"
             ],
             "type": "album",
-            "album_type": "single",
-            "href": "https://api.spotify.com/v1/albums/3qu6HKVu2KZSmAFJSHy7Fw",
-            "id": "3qu6HKVu2KZSmAFJSHy7Fw",
+            "album_type": "album",
+            "href": "https://api.spotify.com/v1/albums/2MkloMACLsw6RQfDSEvbEY",
+            "id": "2MkloMACLsw6RQfDSEvbEY",
             "images": [
               {
-                "url": "https://i.scdn.co/image/ab67616d0000b273d0453b02e1865f41123ab6a2",
+                "url": "https://i.scdn.co/image/ab67616d0000b273024708399fd5b81b5b3ebd5e",
                 "width": 640,
                 "height": 640
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00001e02d0453b02e1865f41123ab6a2",
+                "url": "https://i.scdn.co/image/ab67616d00001e02024708399fd5b81b5b3ebd5e",
                 "width": 300,
                 "height": 300
               },
               {
-                "url": "https://i.scdn.co/image/ab67616d00004851d0453b02e1865f41123ab6a2",
+                "url": "https://i.scdn.co/image/ab67616d00004851024708399fd5b81b5b3ebd5e",
                 "width": 64,
                 "height": 64
               }
             ],
-            "name": "Shades",
-            "release_date": "2024-09-02",
+            "name": "Thoughts of a Lover",
+            "release_date": "2025-04-04",
             "release_date_precision": "day",
-            "uri": "spotify:album:3qu6HKVu2KZSmAFJSHy7Fw",
+            "uri": "spotify:album:2MkloMACLsw6RQfDSEvbEY",
             "artists": [
               {
                 "external_urls": {
-                  "spotify": "https://open.spotify.com/artist/1YfKK6jPW3BrDxS2fTaWEf"
+                  "spotify": "https://open.spotify.com/artist/0CVPnxBP6HcsJQ2U99SHBF"
                 },
-                "href": "https://api.spotify.com/v1/artists/1YfKK6jPW3BrDxS2fTaWEf",
-                "id": "1YfKK6jPW3BrDxS2fTaWEf",
-                "name": "SYNTETIK",
+                "href": "https://api.spotify.com/v1/artists/0CVPnxBP6HcsJQ2U99SHBF",
+                "id": "0CVPnxBP6HcsJQ2U99SHBF",
+                "name": "D.i.D & Tha Cosmos",
                 "type": "artist",
-                "uri": "spotify:artist:1YfKK6jPW3BrDxS2fTaWEf"
+                "uri": "spotify:artist:0CVPnxBP6HcsJQ2U99SHBF"
               }
             ],
             "external_urls": {
-              "spotify": "https://open.spotify.com/album/3qu6HKVu2KZSmAFJSHy7Fw"
+              "spotify": "https://open.spotify.com/album/2MkloMACLsw6RQfDSEvbEY"
             },
-            "total_tracks": 1
+            "total_tracks": 10
           },
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/1YfKK6jPW3BrDxS2fTaWEf"
+                "spotify": "https://open.spotify.com/artist/0CVPnxBP6HcsJQ2U99SHBF"
               },
-              "href": "https://api.spotify.com/v1/artists/1YfKK6jPW3BrDxS2fTaWEf",
-              "id": "1YfKK6jPW3BrDxS2fTaWEf",
-              "name": "SYNTETIK",
+              "href": "https://api.spotify.com/v1/artists/0CVPnxBP6HcsJQ2U99SHBF",
+              "id": "0CVPnxBP6HcsJQ2U99SHBF",
+              "name": "D.i.D & Tha Cosmos",
               "type": "artist",
-              "uri": "spotify:artist:1YfKK6jPW3BrDxS2fTaWEf"
+              "uri": "spotify:artist:0CVPnxBP6HcsJQ2U99SHBF"
             }
           ],
           "disc_number": 1,
-          "track_number": 1,
-          "duration_ms": 257026,
+          "track_number": 2,
+          "duration_ms": 176589,
           "external_ids": {
-            "isrc": "GBMA22364097"
+            "isrc": "QZHN42577941"
           },
           "external_urls": {
-            "spotify": "https://open.spotify.com/track/3oJScnk3XI5hQRmzb89klx"
+            "spotify": "https://open.spotify.com/track/7cCijzbqdgFJqWivh5xKSJ"
           },
-          "href": "https://api.spotify.com/v1/tracks/3oJScnk3XI5hQRmzb89klx",
-          "id": "3oJScnk3XI5hQRmzb89klx",
-          "name": "Shades",
-          "popularity": 32,
-          "uri": "spotify:track:3oJScnk3XI5hQRmzb89klx",
+          "href": "https://api.spotify.com/v1/tracks/7cCijzbqdgFJqWivh5xKSJ",
+          "id": "7cCijzbqdgFJqWivh5xKSJ",
+          "name": "Call Me Cray",
+          "popularity": 23,
+          "uri": "spotify:track:7cCijzbqdgFJqWivh5xKSJ",
           "is_local": false
         },
         "video_thumbnail": {
@@ -14212,7 +14612,7 @@
           "href": "https://api.spotify.com/v1/tracks/4k4UqdNIGQJ8dCiss0cnZt",
           "id": "4k4UqdNIGQJ8dCiss0cnZt",
           "name": "Never Look Back",
-          "popularity": 37,
+          "popularity": 41,
           "uri": "spotify:track:4k4UqdNIGQJ8dCiss0cnZt",
           "is_local": false
         },
@@ -15246,7 +15646,7 @@
           "href": "https://api.spotify.com/v1/tracks/2PnNomkEqlg9ADKCVG0Wt0",
           "id": "2PnNomkEqlg9ADKCVG0Wt0",
           "name": "Every Breath You Take",
-          "popularity": 1,
+          "popularity": 2,
           "uri": "spotify:track:2PnNomkEqlg9ADKCVG0Wt0",
           "is_local": false
         },
@@ -15820,7 +16220,7 @@
           "href": "https://api.spotify.com/v1/tracks/7lQWRAjyhTpCWFC0jmclT4",
           "id": "7lQWRAjyhTpCWFC0jmclT4",
           "name": "Gangsta's Paradise",
-          "popularity": 10,
+          "popularity": 11,
           "uri": "spotify:track:7lQWRAjyhTpCWFC0jmclT4",
           "is_local": false
         },
@@ -16288,7 +16688,7 @@
           "href": "https://api.spotify.com/v1/tracks/7DFawVSjI88xR9mjnWwURg",
           "id": "7DFawVSjI88xR9mjnWwURg",
           "name": "If You Don't Know Me by Now - 2008 Remaster",
-          "popularity": 75,
+          "popularity": 76,
           "uri": "spotify:track:7DFawVSjI88xR9mjnWwURg",
           "is_local": false
         },
@@ -17334,7 +17734,7 @@
           "href": "https://api.spotify.com/v1/tracks/0GONea6G2XdnHWjNZd6zt3",
           "id": "0GONea6G2XdnHWjNZd6zt3",
           "name": "Summer Of '69",
-          "popularity": 85,
+          "popularity": 86,
           "uri": "spotify:track:0GONea6G2XdnHWjNZd6zt3",
           "is_local": false
         },
@@ -17914,7 +18314,7 @@
           "href": "https://api.spotify.com/v1/tracks/6mz1fBdKATx6qP4oP1I65G",
           "id": "6mz1fBdKATx6qP4oP1I65G",
           "name": "Pony",
-          "popularity": 73,
+          "popularity": 74,
           "uri": "spotify:track:6mz1fBdKATx6qP4oP1I65G",
           "is_local": false
         },
@@ -21950,7 +22350,7 @@
           "href": "https://api.spotify.com/v1/tracks/41tTCXOzxSWAoVrfeIIh8x",
           "id": "41tTCXOzxSWAoVrfeIIh8x",
           "name": "Wonderwall",
-          "popularity": 57,
+          "popularity": 58,
           "uri": "spotify:track:41tTCXOzxSWAoVrfeIIh8x",
           "is_local": false
         },
@@ -22610,7 +23010,7 @@
           "href": "https://api.spotify.com/v1/tracks/3GpdNg7Krt9vjc6tgDoKe1",
           "id": "3GpdNg7Krt9vjc6tgDoKe1",
           "name": "Breakfast At Tiffany's",
-          "popularity": 1,
+          "popularity": 2,
           "uri": "spotify:track:3GpdNg7Krt9vjc6tgDoKe1",
           "is_local": false
         },
@@ -23140,7 +23540,7 @@
           "href": "https://api.spotify.com/v1/tracks/4wtR6HB3XekEengMX17cpc",
           "id": "4wtR6HB3XekEengMX17cpc",
           "name": "Children",
-          "popularity": 75,
+          "popularity": 76,
           "uri": "spotify:track:4wtR6HB3XekEengMX17cpc",
           "is_local": false
         },
@@ -24016,7 +24416,7 @@
           "href": "https://api.spotify.com/v1/tracks/48UPSzbZjgc449aqz8bxox",
           "id": "48UPSzbZjgc449aqz8bxox",
           "name": "Californication",
-          "popularity": 87,
+          "popularity": 88,
           "uri": "spotify:track:48UPSzbZjgc449aqz8bxox",
           "is_local": false
         },
@@ -26106,7 +26506,7 @@
           "href": "https://api.spotify.com/v1/tracks/2HAVFycrhtbmLxyyxpm6JI",
           "id": "2HAVFycrhtbmLxyyxpm6JI",
           "name": "Killing Me Softly With His Song",
-          "popularity": 55,
+          "popularity": 56,
           "uri": "spotify:track:2HAVFycrhtbmLxyyxpm6JI",
           "is_local": false
         },
@@ -26670,7 +27070,7 @@
           "href": "https://api.spotify.com/v1/tracks/6x4tKaOzfNJpEJHySoiJcs",
           "id": "6x4tKaOzfNJpEJHySoiJcs",
           "name": "Mambo No. 5 (a Little Bit of...)",
-          "popularity": 80,
+          "popularity": 81,
           "uri": "spotify:track:6x4tKaOzfNJpEJHySoiJcs",
           "is_local": false
         },
@@ -27340,7 +27740,7 @@
           "href": "https://api.spotify.com/v1/tracks/1o3MncVxP3tLVSN00uZt02",
           "id": "1o3MncVxP3tLVSN00uZt02",
           "name": "Can't Fight The Moonlight",
-          "popularity": 48,
+          "popularity": 49,
           "uri": "spotify:track:1o3MncVxP3tLVSN00uZt02",
           "is_local": false
         },
@@ -28726,7 +29126,7 @@
           "href": "https://api.spotify.com/v1/tracks/7cv28LXcjAC3GsXbUvXKbX",
           "id": "7cv28LXcjAC3GsXbUvXKbX",
           "name": "I Will Survive - Single Version",
-          "popularity": 69,
+          "popularity": 70,
           "uri": "spotify:track:7cv28LXcjAC3GsXbUvXKbX",
           "is_local": false
         },
@@ -29412,7 +29812,7 @@
           "href": "https://api.spotify.com/v1/tracks/6uQKuonTU8VKBz5SHZuQXD",
           "id": "6uQKuonTU8VKBz5SHZuQXD",
           "name": "This Is How We Do It",
-          "popularity": 70,
+          "popularity": 71,
           "uri": "spotify:track:6uQKuonTU8VKBz5SHZuQXD",
           "is_local": false
         },
@@ -31404,7 +31804,7 @@
           "href": "https://api.spotify.com/v1/tracks/2WfaOiMkCvy7F5fcp2zZ8L",
           "id": "2WfaOiMkCvy7F5fcp2zZ8L",
           "name": "Take on Me",
-          "popularity": 89,
+          "popularity": 90,
           "uri": "spotify:track:2WfaOiMkCvy7F5fcp2zZ8L",
           "is_local": false
         },
@@ -33462,7 +33862,7 @@
           "href": "https://api.spotify.com/v1/tracks/0pMUR7Uvp6vxlbG0qBFvgM",
           "id": "0pMUR7Uvp6vxlbG0qBFvgM",
           "name": "Better Off Alone",
-          "popularity": 13,
+          "popularity": 14,
           "uri": "spotify:track:0pMUR7Uvp6vxlbG0qBFvgM",
           "is_local": false
         },
@@ -33930,7 +34330,7 @@
           "href": "https://api.spotify.com/v1/tracks/46T7WAIHdt9v6xsqtWU6CH",
           "id": "46T7WAIHdt9v6xsqtWU6CH",
           "name": "Because The Night (Radio Edit)",
-          "popularity": 56,
+          "popularity": 57,
           "uri": "spotify:track:46T7WAIHdt9v6xsqtWU6CH",
           "is_local": false
         },
@@ -34394,7 +34794,7 @@
           "href": "https://api.spotify.com/v1/tracks/3L9ClO1W5KmebIXTrlKShF",
           "id": "3L9ClO1W5KmebIXTrlKShF",
           "name": "Jump (For My Love)",
-          "popularity": 62,
+          "popularity": 63,
           "uri": "spotify:track:3L9ClO1W5KmebIXTrlKShF",
           "is_local": false
         },
@@ -34952,7 +35352,7 @@
           "href": "https://api.spotify.com/v1/tracks/6kQz6t5z1FK4uohPh8Kd73",
           "id": "6kQz6t5z1FK4uohPh8Kd73",
           "name": "Let's Get Loud",
-          "popularity": 76,
+          "popularity": 77,
           "uri": "spotify:track:6kQz6t5z1FK4uohPh8Kd73",
           "is_local": false
         },

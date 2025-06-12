@@ -9,14 +9,14 @@
         },
         "followers": {
           "href": null,
-          "total": 187722
+          "total": 190133
         },
         "href": "https://api.spotify.com/v1/playlists/2HfFccisPxQfprhgIHM7XH?locale=*",
         "id": "2HfFccisPxQfprhgIHM7XH",
         "images": [
           {
             "height": null,
-            "url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da847e680b551fb61cbc60a97dda",
+            "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c7e680b551fb61cbc60a97dda",
             "width": null
           }
         ],
@@ -1629,7 +1629,7 @@
                 "href": "https://api.spotify.com/v1/tracks/6Qyc6fS4DsZjB2mRW9DsQs",
                 "id": "6Qyc6fS4DsZjB2mRW9DsQs",
                 "name": "Iris",
-                "popularity": 93,
+                "popularity": 94,
                 "uri": "spotify:track:6Qyc6fS4DsZjB2mRW9DsQs",
                 "is_local": false
               },
@@ -1725,7 +1725,7 @@
                 "href": "https://api.spotify.com/v1/tracks/6b2oQwSGFkzsMtQruIWm2p",
                 "id": "6b2oQwSGFkzsMtQruIWm2p",
                 "name": "Creep",
-                "popularity": 11,
+                "popularity": 10,
                 "uri": "spotify:track:6b2oQwSGFkzsMtQruIWm2p",
                 "is_local": false
               },
@@ -2287,7 +2287,7 @@
                 "href": "https://api.spotify.com/v1/tracks/0nLiqZ6A27jJri2VCalIUs",
                 "id": "0nLiqZ6A27jJri2VCalIUs",
                 "name": "Nothing Else Matters",
-                "popularity": 60,
+                "popularity": 57,
                 "uri": "spotify:track:0nLiqZ6A27jJri2VCalIUs",
                 "is_local": false
               },
@@ -2485,7 +2485,7 @@
                 "href": "https://api.spotify.com/v1/tracks/1hyuZzPDnSpBBPVztdGDWr",
                 "id": "1hyuZzPDnSpBBPVztdGDWr",
                 "name": "I Don't Want To Miss A Thing",
-                "popularity": 0,
+                "popularity": 1,
                 "uri": "spotify:track:1hyuZzPDnSpBBPVztdGDWr",
                 "is_local": false
               },
@@ -2945,7 +2945,7 @@
                 "href": "https://api.spotify.com/v1/tracks/57iDDD9N9tTWe75x6qhStw",
                 "id": "57iDDD9N9tTWe75x6qhStw",
                 "name": "Bitter Sweet Symphony - Remastered 2016",
-                "popularity": 85,
+                "popularity": 86,
                 "uri": "spotify:track:57iDDD9N9tTWe75x6qhStw",
                 "is_local": false
               },
@@ -4591,7 +4591,7 @@
                 "href": "https://api.spotify.com/v1/tracks/0smyCrJiibi2uwCiq5R1vj",
                 "id": "0smyCrJiibi2uwCiq5R1vj",
                 "name": "Save Tonight",
-                "popularity": 76,
+                "popularity": 77,
                 "uri": "spotify:track:0smyCrJiibi2uwCiq5R1vj",
                 "is_local": false
               },
@@ -5057,7 +5057,7 @@
                 "href": "https://api.spotify.com/v1/tracks/0jWgAnTrNZmOGmqgvHhZEm",
                 "id": "0jWgAnTrNZmOGmqgvHhZEm",
                 "name": "What's Up?",
-                "popularity": 84,
+                "popularity": 85,
                 "uri": "spotify:track:0jWgAnTrNZmOGmqgvHhZEm",
                 "is_local": false
               },
@@ -7071,7 +7071,7 @@
                 "href": "https://api.spotify.com/v1/tracks/2SbsvihBJmgNKZ4qkXFWrp",
                 "id": "2SbsvihBJmgNKZ4qkXFWrp",
                 "name": "More Than Words",
-                "popularity": 3,
+                "popularity": 2,
                 "uri": "spotify:track:2SbsvihBJmgNKZ4qkXFWrp",
                 "is_local": false
               },
@@ -7537,7 +7537,7 @@
                 "href": "https://api.spotify.com/v1/tracks/2RChe0r2cMoyOvuKobZy44",
                 "id": "2RChe0r2cMoyOvuKobZy44",
                 "name": "Always",
-                "popularity": 80,
+                "popularity": 81,
                 "uri": "spotify:track:2RChe0r2cMoyOvuKobZy44",
                 "is_local": false
               },
@@ -8003,7 +8003,7 @@
                 "href": "https://api.spotify.com/v1/tracks/3ovjw5HZZv43SxTwApooCM",
                 "id": "3ovjw5HZZv43SxTwApooCM",
                 "name": "Wind Of Change",
-                "popularity": 83,
+                "popularity": 84,
                 "uri": "spotify:track:3ovjw5HZZv43SxTwApooCM",
                 "is_local": false
               },
@@ -8119,7 +8119,7 @@
                 "href": "https://api.spotify.com/v1/tracks/1YwNlWLf8auhazSQUDQLFU",
                 "id": "1YwNlWLf8auhazSQUDQLFU",
                 "name": "Enjoy the Silence - Single Mix",
-                "popularity": 3,
+                "popularity": 4,
                 "uri": "spotify:track:1YwNlWLf8auhazSQUDQLFU",
                 "is_local": false
               },
@@ -8681,7 +8681,7 @@
                 "href": "https://api.spotify.com/v1/tracks/0gEyKnHvgkrkBM6fbeHdwK",
                 "id": "0gEyKnHvgkrkBM6fbeHdwK",
                 "name": "Linger",
-                "popularity": 86,
+                "popularity": 87,
                 "uri": "spotify:track:0gEyKnHvgkrkBM6fbeHdwK",
                 "is_local": false
               },
@@ -9589,7 +9589,7 @@
                 "href": "https://api.spotify.com/v1/tracks/42et6fnHCw1HIPSrdPprMl",
                 "id": "42et6fnHCw1HIPSrdPprMl",
                 "name": "Semi-Charmed Life",
-                "popularity": 80,
+                "popularity": 81,
                 "uri": "spotify:track:42et6fnHCw1HIPSrdPprMl",
                 "is_local": false
               },
@@ -10315,7 +10315,7 @@
                 "href": "https://api.spotify.com/v1/tracks/7aQjPecQdIuNd1sz3KCDhD",
                 "id": "7aQjPecQdIuNd1sz3KCDhD",
                 "name": "Lovefool",
-                "popularity": 83,
+                "popularity": 84,
                 "uri": "spotify:track:7aQjPecQdIuNd1sz3KCDhD",
                 "is_local": false
               },
@@ -11631,7 +11631,7 @@
                 "href": "https://api.spotify.com/v1/tracks/1Dr1fXbc2IxaK1Mu8P8Khz",
                 "id": "1Dr1fXbc2IxaK1Mu8P8Khz",
                 "name": "When I Come Around",
-                "popularity": 81,
+                "popularity": 82,
                 "uri": "spotify:track:1Dr1fXbc2IxaK1Mu8P8Khz",
                 "is_local": false
               },
@@ -12097,7 +12097,7 @@
                 "href": "https://api.spotify.com/v1/tracks/2N2yrmodOnVF10mKvItC9P",
                 "id": "2N2yrmodOnVF10mKvItC9P",
                 "name": "Don't Cry (Original)",
-                "popularity": 81,
+                "popularity": 82,
                 "uri": "spotify:track:2N2yrmodOnVF10mKvItC9P",
                 "is_local": false
               },
@@ -12193,7 +12193,7 @@
                 "href": "https://api.spotify.com/v1/tracks/4fXGWiVhlOLdhwRDP6pIFG",
                 "id": "4fXGWiVhlOLdhwRDP6pIFG",
                 "name": "Lemon Tree",
-                "popularity": 3,
+                "popularity": 4,
                 "uri": "spotify:track:4fXGWiVhlOLdhwRDP6pIFG",
                 "is_local": false
               },
@@ -13127,7 +13127,7 @@
                 "href": "https://api.spotify.com/v1/tracks/6PypGyiu0Y2lCDBN1XZEnP",
                 "id": "6PypGyiu0Y2lCDBN1XZEnP",
                 "name": "Everybody Hurts",
-                "popularity": 77,
+                "popularity": 78,
                 "uri": "spotify:track:6PypGyiu0Y2lCDBN1XZEnP",
                 "is_local": false
               },
@@ -15289,7 +15289,7 @@
                 "href": "https://api.spotify.com/v1/tracks/391CwgcBxvUHmEKda2b5In",
                 "id": "391CwgcBxvUHmEKda2b5In",
                 "name": "I'd Do Anything For Love (But I Won't Do That) - Single Edit",
-                "popularity": 63,
+                "popularity": 64,
                 "uri": "spotify:track:391CwgcBxvUHmEKda2b5In",
                 "is_local": false
               },
@@ -16319,7 +16319,7 @@
                 "href": "https://api.spotify.com/v1/tracks/36bOT34EdRNrNhCWMwNJKu",
                 "id": "36bOT34EdRNrNhCWMwNJKu",
                 "name": "Just A Girl",
-                "popularity": 0,
+                "popularity": 1,
                 "uri": "spotify:track:36bOT34EdRNrNhCWMwNJKu",
                 "is_local": false
               },
@@ -16785,7 +16785,7 @@
                 "href": "https://api.spotify.com/v1/tracks/1bKQ48M9onID2kbSpRy8kK",
                 "id": "1bKQ48M9onID2kbSpRy8kK",
                 "name": "Send Me An Angel",
-                "popularity": 75,
+                "popularity": 76,
                 "uri": "spotify:track:1bKQ48M9onID2kbSpRy8kK",
                 "is_local": false
               },
@@ -17353,7 +17353,7 @@
                 "href": "https://api.spotify.com/v1/tracks/5qgBvugGSAnKWCpWAiwusi",
                 "id": "5qgBvugGSAnKWCpWAiwusi",
                 "name": "Lullaby",
-                "popularity": 45,
+                "popularity": 46,
                 "uri": "spotify:track:5qgBvugGSAnKWCpWAiwusi",
                 "is_local": false
               },
@@ -17449,7 +17449,7 @@
                 "href": "https://api.spotify.com/v1/tracks/4ACxa9buEUnOdYEoPcnMpi",
                 "id": "4ACxa9buEUnOdYEoPcnMpi",
                 "name": "Your Woman",
-                "popularity": 4,
+                "popularity": 3,
                 "uri": "spotify:track:4ACxa9buEUnOdYEoPcnMpi",
                 "is_local": false
               },
@@ -18009,7 +18009,7 @@
                 "href": "https://api.spotify.com/v1/tracks/0ZLBD6hHGN9LYOtNlu2n8e",
                 "id": "0ZLBD6hHGN9LYOtNlu2n8e",
                 "name": "This Ain't A Love Song",
-                "popularity": 65,
+                "popularity": 66,
                 "uri": "spotify:track:0ZLBD6hHGN9LYOtNlu2n8e",
                 "is_local": false
               },

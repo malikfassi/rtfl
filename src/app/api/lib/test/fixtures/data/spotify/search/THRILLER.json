@@ -915,13 +915,13 @@
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/7cOkK8AkHEuPjIRhycNt3P"
+                "spotify": "https://open.spotify.com/artist/4OgbQT8E2mFbXTJAYIUFTp"
               },
-              "href": "https://api.spotify.com/v1/artists/7cOkK8AkHEuPjIRhycNt3P",
-              "id": "7cOkK8AkHEuPjIRhycNt3P",
-              "name": "La Caro Band",
+              "href": "https://api.spotify.com/v1/artists/4OgbQT8E2mFbXTJAYIUFTp",
+              "id": "4OgbQT8E2mFbXTJAYIUFTp",
+              "name": "Amén",
               "type": "artist",
-              "uri": "spotify:artist:7cOkK8AkHEuPjIRhycNt3P"
+              "uri": "spotify:artist:4OgbQT8E2mFbXTJAYIUFTp"
             }
           ],
           "available_markets": [
@@ -1112,45 +1112,45 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/3Elnd422KIW79au5a0bmPg"
+            "spotify": "https://open.spotify.com/album/2zAl9NEyqqhmupC1MFtlHK"
           },
-          "href": "https://api.spotify.com/v1/albums/3Elnd422KIW79au5a0bmPg",
-          "id": "3Elnd422KIW79au5a0bmPg",
+          "href": "https://api.spotify.com/v1/albums/2zAl9NEyqqhmupC1MFtlHK",
+          "id": "2zAl9NEyqqhmupC1MFtlHK",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273bb2ef4f4ceb5b169232f257c"
+              "url": "https://i.scdn.co/image/ab67616d0000b273b4c1a6f824555ebffef09bab"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02bb2ef4f4ceb5b169232f257c"
+              "url": "https://i.scdn.co/image/ab67616d00001e02b4c1a6f824555ebffef09bab"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851bb2ef4f4ceb5b169232f257c"
+              "url": "https://i.scdn.co/image/ab67616d00004851b4c1a6f824555ebffef09bab"
             }
           ],
           "is_playable": true,
-          "name": "Vale La Pena (It's Worth It)",
-          "release_date": "1999",
-          "release_date_precision": "year",
-          "total_tracks": 10,
+          "name": "Infectado",
+          "release_date": "2017-11-12",
+          "release_date_precision": "day",
+          "total_tracks": 21,
           "type": "album",
-          "uri": "spotify:album:3Elnd422KIW79au5a0bmPg"
+          "uri": "spotify:album:2zAl9NEyqqhmupC1MFtlHK"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/7cOkK8AkHEuPjIRhycNt3P"
+              "spotify": "https://open.spotify.com/artist/4OgbQT8E2mFbXTJAYIUFTp"
             },
-            "href": "https://api.spotify.com/v1/artists/7cOkK8AkHEuPjIRhycNt3P",
-            "id": "7cOkK8AkHEuPjIRhycNt3P",
-            "name": "La Caro Band",
+            "href": "https://api.spotify.com/v1/artists/4OgbQT8E2mFbXTJAYIUFTp",
+            "id": "4OgbQT8E2mFbXTJAYIUFTp",
+            "name": "Amén",
             "type": "artist",
-            "uri": "spotify:artist:7cOkK8AkHEuPjIRhycNt3P"
+            "uri": "spotify:artist:4OgbQT8E2mFbXTJAYIUFTp"
           }
         ],
         "available_markets": [
@@ -1341,24 +1341,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 291906,
+        "duration_ms": 206840,
         "explicit": false,
         "external_ids": {
-          "isrc": "ushm80680495"
+          "isrc": "ES71G1761909"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/2O1EHaqGqQjAqshMGOBfyB"
+          "spotify": "https://open.spotify.com/track/3jzpdDnLaQcsuGCw4JwVYS"
         },
-        "href": "https://api.spotify.com/v1/tracks/2O1EHaqGqQjAqshMGOBfyB",
-        "id": "2O1EHaqGqQjAqshMGOBfyB",
+        "href": "https://api.spotify.com/v1/tracks/3jzpdDnLaQcsuGCw4JwVYS",
+        "id": "3jzpdDnLaQcsuGCw4JwVYS",
         "is_local": false,
         "is_playable": true,
-        "name": "Amor De Etiqueta",
+        "name": "La Chata",
         "popularity": 55,
         "preview_url": null,
-        "track_number": 9,
+        "track_number": 11,
         "type": "track",
-        "uri": "spotify:track:2O1EHaqGqQjAqshMGOBfyB"
+        "uri": "spotify:track:3jzpdDnLaQcsuGCw4JwVYS"
       },
       {
         "album": {
@@ -1902,13 +1902,13 @@
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/6cu8qsCgvrKHDLzHOHSeBi"
+                "spotify": "https://open.spotify.com/artist/4HIOOPiZCJm2MPRU8Cs4MK"
               },
-              "href": "https://api.spotify.com/v1/artists/6cu8qsCgvrKHDLzHOHSeBi",
-              "id": "6cu8qsCgvrKHDLzHOHSeBi",
-              "name": "Michel Robles",
+              "href": "https://api.spotify.com/v1/artists/4HIOOPiZCJm2MPRU8Cs4MK",
+              "id": "4HIOOPiZCJm2MPRU8Cs4MK",
+              "name": "Los 4",
               "type": "artist",
-              "uri": "spotify:artist:6cu8qsCgvrKHDLzHOHSeBi"
+              "uri": "spotify:artist:4HIOOPiZCJm2MPRU8Cs4MK"
             }
           ],
           "available_markets": [
@@ -2099,45 +2099,55 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/5twEcvLCw7YYD80asJEE8b"
+            "spotify": "https://open.spotify.com/album/1zlov16FYkQLRgAAGOXfWZ"
           },
-          "href": "https://api.spotify.com/v1/albums/5twEcvLCw7YYD80asJEE8b",
-          "id": "5twEcvLCw7YYD80asJEE8b",
+          "href": "https://api.spotify.com/v1/albums/1zlov16FYkQLRgAAGOXfWZ",
+          "id": "1zlov16FYkQLRgAAGOXfWZ",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b2736e00ac56a93010151328d75f"
+              "url": "https://i.scdn.co/image/ab67616d0000b2738bdcbecac9716214d3029430"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e026e00ac56a93010151328d75f"
+              "url": "https://i.scdn.co/image/ab67616d00001e028bdcbecac9716214d3029430"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d000048516e00ac56a93010151328d75f"
+              "url": "https://i.scdn.co/image/ab67616d000048518bdcbecac9716214d3029430"
             }
           ],
           "is_playable": true,
-          "name": "Mi Rumba Light",
-          "release_date": "2018-03-28",
+          "name": "Privilegio",
+          "release_date": "2016-03-18",
           "release_date_precision": "day",
-          "total_tracks": 14,
+          "total_tracks": 11,
           "type": "album",
-          "uri": "spotify:album:5twEcvLCw7YYD80asJEE8b"
+          "uri": "spotify:album:1zlov16FYkQLRgAAGOXfWZ"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/6cu8qsCgvrKHDLzHOHSeBi"
+              "spotify": "https://open.spotify.com/artist/4HIOOPiZCJm2MPRU8Cs4MK"
             },
-            "href": "https://api.spotify.com/v1/artists/6cu8qsCgvrKHDLzHOHSeBi",
-            "id": "6cu8qsCgvrKHDLzHOHSeBi",
-            "name": "Michel Robles",
+            "href": "https://api.spotify.com/v1/artists/4HIOOPiZCJm2MPRU8Cs4MK",
+            "id": "4HIOOPiZCJm2MPRU8Cs4MK",
+            "name": "Los 4",
             "type": "artist",
-            "uri": "spotify:artist:6cu8qsCgvrKHDLzHOHSeBi"
+            "uri": "spotify:artist:4HIOOPiZCJm2MPRU8Cs4MK"
+          },
+          {
+            "external_urls": {
+              "spotify": "https://open.spotify.com/artist/08f6dwwotzJpot4Tn9U3KD"
+            },
+            "href": "https://api.spotify.com/v1/artists/08f6dwwotzJpot4Tn9U3KD",
+            "id": "08f6dwwotzJpot4Tn9U3KD",
+            "name": "Mayco D' Alma",
+            "type": "artist",
+            "uri": "spotify:artist:08f6dwwotzJpot4Tn9U3KD"
           }
         ],
         "available_markets": [
@@ -2328,24 +2338,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 288501,
+        "duration_ms": 285837,
         "explicit": false,
         "external_ids": {
-          "isrc": "PEMR21818018"
+          "isrc": "ITAC21600058"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/4Q6IyEq2oS9ggHBwYatzey"
+          "spotify": "https://open.spotify.com/track/7sAnp0nDeHtrKpXKVMH21Y"
         },
-        "href": "https://api.spotify.com/v1/tracks/4Q6IyEq2oS9ggHBwYatzey",
-        "id": "4Q6IyEq2oS9ggHBwYatzey",
+        "href": "https://api.spotify.com/v1/tracks/7sAnp0nDeHtrKpXKVMH21Y",
+        "id": "7sAnp0nDeHtrKpXKVMH21Y",
         "is_local": false,
         "is_playable": true,
-        "name": "Lo Que No Fue No Será",
-        "popularity": 53,
+        "name": "Cuando Acaba el Placer",
+        "popularity": 58,
         "preview_url": null,
-        "track_number": 3,
+        "track_number": 2,
         "type": "track",
-        "uri": "spotify:track:4Q6IyEq2oS9ggHBwYatzey"
+        "uri": "spotify:track:7sAnp0nDeHtrKpXKVMH21Y"
       },
       {
         "album": {
@@ -2804,13 +2814,13 @@
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/2bIsBfbHR5YjmBUa646ZoF"
+                "spotify": "https://open.spotify.com/artist/1xqolkIzTFMmqgCuD48WNt"
               },
-              "href": "https://api.spotify.com/v1/artists/2bIsBfbHR5YjmBUa646ZoF",
-              "id": "2bIsBfbHR5YjmBUa646ZoF",
-              "name": "Weekend",
+              "href": "https://api.spotify.com/v1/artists/1xqolkIzTFMmqgCuD48WNt",
+              "id": "1xqolkIzTFMmqgCuD48WNt",
+              "name": "Shade",
               "type": "artist",
-              "uri": "spotify:artist:2bIsBfbHR5YjmBUa646ZoF"
+              "uri": "spotify:artist:1xqolkIzTFMmqgCuD48WNt"
             }
           ],
           "available_markets": [
@@ -3001,55 +3011,55 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/5CF5lXLbdRBtLFOECbwqjH"
+            "spotify": "https://open.spotify.com/album/4Zxjk7Nitaz5NmO4dFFUgW"
           },
-          "href": "https://api.spotify.com/v1/albums/5CF5lXLbdRBtLFOECbwqjH",
-          "id": "5CF5lXLbdRBtLFOECbwqjH",
+          "href": "https://api.spotify.com/v1/albums/4Zxjk7Nitaz5NmO4dFFUgW",
+          "id": "4Zxjk7Nitaz5NmO4dFFUgW",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273253eef18e354970afa00973f"
+              "url": "https://i.scdn.co/image/ab67616d0000b2731005fe8ef2fb35043b854d75"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02253eef18e354970afa00973f"
+              "url": "https://i.scdn.co/image/ab67616d00001e021005fe8ef2fb35043b854d75"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851253eef18e354970afa00973f"
+              "url": "https://i.scdn.co/image/ab67616d000048511005fe8ef2fb35043b854d75"
             }
           ],
           "is_playable": true,
-          "name": "Gorgonzola Swimming, Vol. 1",
-          "release_date": "2023-09-01",
+          "name": "Truman (Sanremo Edition)",
+          "release_date": "2019-02-08",
           "release_date_precision": "day",
-          "total_tracks": 11,
+          "total_tracks": 17,
           "type": "album",
-          "uri": "spotify:album:5CF5lXLbdRBtLFOECbwqjH"
+          "uri": "spotify:album:4Zxjk7Nitaz5NmO4dFFUgW"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/2bIsBfbHR5YjmBUa646ZoF"
+              "spotify": "https://open.spotify.com/artist/1xqolkIzTFMmqgCuD48WNt"
             },
-            "href": "https://api.spotify.com/v1/artists/2bIsBfbHR5YjmBUa646ZoF",
-            "id": "2bIsBfbHR5YjmBUa646ZoF",
-            "name": "Weekend",
+            "href": "https://api.spotify.com/v1/artists/1xqolkIzTFMmqgCuD48WNt",
+            "id": "1xqolkIzTFMmqgCuD48WNt",
+            "name": "Shade",
             "type": "artist",
-            "uri": "spotify:artist:2bIsBfbHR5YjmBUa646ZoF"
+            "uri": "spotify:artist:1xqolkIzTFMmqgCuD48WNt"
           },
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/57Yv5pZCU5qF7DELalRFXa"
+              "spotify": "https://open.spotify.com/artist/2iK8weavvfS2xJCmzNzNE5"
             },
-            "href": "https://api.spotify.com/v1/artists/57Yv5pZCU5qF7DELalRFXa",
-            "id": "57Yv5pZCU5qF7DELalRFXa",
-            "name": "Tiemo Hauer",
+            "href": "https://api.spotify.com/v1/artists/2iK8weavvfS2xJCmzNzNE5",
+            "id": "2iK8weavvfS2xJCmzNzNE5",
+            "name": "J-AX",
             "type": "artist",
-            "uri": "spotify:artist:57Yv5pZCU5qF7DELalRFXa"
+            "uri": "spotify:artist:2iK8weavvfS2xJCmzNzNE5"
           }
         ],
         "available_markets": [
@@ -3240,24 +3250,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 183712,
+        "duration_ms": 178593,
         "explicit": false,
         "external_ids": {
-          "isrc": "DGA052367103"
+          "isrc": "ITQ001800600"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/0CPNjcOO9fm5ZrENV7bEDC"
+          "spotify": "https://open.spotify.com/track/3Cp3XeiwNQfw1rO5Wacgji"
         },
-        "href": "https://api.spotify.com/v1/tracks/0CPNjcOO9fm5ZrENV7bEDC",
-        "id": "0CPNjcOO9fm5ZrENV7bEDC",
+        "href": "https://api.spotify.com/v1/tracks/3Cp3XeiwNQfw1rO5Wacgji",
+        "id": "3Cp3XeiwNQfw1rO5Wacgji",
         "is_local": false,
         "is_playable": true,
-        "name": "Alles machen was ich will",
-        "popularity": 16,
+        "name": "Tutti a casa (feat. J-AX)",
+        "popularity": 12,
         "preview_url": null,
-        "track_number": 8,
+        "track_number": 3,
         "type": "track",
-        "uri": "spotify:track:0CPNjcOO9fm5ZrENV7bEDC"
+        "uri": "spotify:track:3Cp3XeiwNQfw1rO5Wacgji"
       },
       {
         "album": {
@@ -3265,13 +3275,13 @@
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/3fMbdgg4jU18AjLCKBhRSm"
+                "spotify": "https://open.spotify.com/artist/1Y08JdtP0X185Yk0tjjc2E"
               },
-              "href": "https://api.spotify.com/v1/artists/3fMbdgg4jU18AjLCKBhRSm",
-              "id": "3fMbdgg4jU18AjLCKBhRSm",
-              "name": "Michael Jackson",
+              "href": "https://api.spotify.com/v1/artists/1Y08JdtP0X185Yk0tjjc2E",
+              "id": "1Y08JdtP0X185Yk0tjjc2E",
+              "name": "Rio",
               "type": "artist",
-              "uri": "spotify:artist:3fMbdgg4jU18AjLCKBhRSm"
+              "uri": "spotify:artist:1Y08JdtP0X185Yk0tjjc2E"
             }
           ],
           "available_markets": [
@@ -3462,45 +3472,45 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/7pomP86PUhoJpY3fsC0WDQ"
+            "spotify": "https://open.spotify.com/album/6tGrXhKGXL2ygPo2EwI5qs"
           },
-          "href": "https://api.spotify.com/v1/albums/7pomP86PUhoJpY3fsC0WDQ",
-          "id": "7pomP86PUhoJpY3fsC0WDQ",
+          "href": "https://api.spotify.com/v1/albums/6tGrXhKGXL2ygPo2EwI5qs",
+          "id": "6tGrXhKGXL2ygPo2EwI5qs",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b27384dc5d0b8018238584522562"
+              "url": "https://i.scdn.co/image/ab67616d0000b2731462e5770d5b7b6018fa391a"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e0284dc5d0b8018238584522562"
+              "url": "https://i.scdn.co/image/ab67616d00001e021462e5770d5b7b6018fa391a"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d0000485184dc5d0b8018238584522562"
+              "url": "https://i.scdn.co/image/ab67616d000048511462e5770d5b7b6018fa391a"
             }
           ],
           "is_playable": true,
-          "name": "XSCAPE",
-          "release_date": "2014-05-09",
+          "name": "Rock And Qué",
+          "release_date": "1992-05-23",
           "release_date_precision": "day",
-          "total_tracks": 17,
+          "total_tracks": 15,
           "type": "album",
-          "uri": "spotify:album:7pomP86PUhoJpY3fsC0WDQ"
+          "uri": "spotify:album:6tGrXhKGXL2ygPo2EwI5qs"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/3fMbdgg4jU18AjLCKBhRSm"
+              "spotify": "https://open.spotify.com/artist/1Y08JdtP0X185Yk0tjjc2E"
             },
-            "href": "https://api.spotify.com/v1/artists/3fMbdgg4jU18AjLCKBhRSm",
-            "id": "3fMbdgg4jU18AjLCKBhRSm",
-            "name": "Michael Jackson",
+            "href": "https://api.spotify.com/v1/artists/1Y08JdtP0X185Yk0tjjc2E",
+            "id": "1Y08JdtP0X185Yk0tjjc2E",
+            "name": "Rio",
             "type": "artist",
-            "uri": "spotify:artist:3fMbdgg4jU18AjLCKBhRSm"
+            "uri": "spotify:artist:1Y08JdtP0X185Yk0tjjc2E"
           }
         ],
         "available_markets": [
@@ -3691,24 +3701,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 235400,
+        "duration_ms": 205666,
         "explicit": false,
         "external_ids": {
-          "isrc": "USSM11401744"
+          "isrc": "PERP39205002"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/0S5EEpFAHcT7cm5XOASc29"
+          "spotify": "https://open.spotify.com/track/5TVYykPNOs7gt1urSqsEih"
         },
-        "href": "https://api.spotify.com/v1/tracks/0S5EEpFAHcT7cm5XOASc29",
-        "id": "0S5EEpFAHcT7cm5XOASc29",
+        "href": "https://api.spotify.com/v1/tracks/5TVYykPNOs7gt1urSqsEih",
+        "id": "5TVYykPNOs7gt1urSqsEih",
         "is_local": false,
         "is_playable": true,
-        "name": "Love Never Felt So Good",
-        "popularity": 64,
+        "name": "Carol Quiere un Viaje a Londres",
+        "popularity": 49,
         "preview_url": null,
-        "track_number": 1,
+        "track_number": 4,
         "type": "track",
-        "uri": "spotify:track:0S5EEpFAHcT7cm5XOASc29"
+        "uri": "spotify:track:5TVYykPNOs7gt1urSqsEih"
       },
       {
         "album": {
@@ -4260,33 +4270,13 @@
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/2MmgnRT5i0nQpq9eQDLpke"
+                "spotify": "https://open.spotify.com/artist/5H38ZMpWVdE6DtMHBbedVJ"
               },
-              "href": "https://api.spotify.com/v1/artists/2MmgnRT5i0nQpq9eQDLpke",
-              "id": "2MmgnRT5i0nQpq9eQDLpke",
-              "name": "Oscar Avilés",
+              "href": "https://api.spotify.com/v1/artists/5H38ZMpWVdE6DtMHBbedVJ",
+              "id": "5H38ZMpWVdE6DtMHBbedVJ",
+              "name": "Los Conquistadores de la Salsa",
               "type": "artist",
-              "uri": "spotify:artist:2MmgnRT5i0nQpq9eQDLpke"
-            },
-            {
-              "external_urls": {
-                "spotify": "https://open.spotify.com/artist/7ruyK2y9ppQaO6yKfIC74A"
-              },
-              "href": "https://api.spotify.com/v1/artists/7ruyK2y9ppQaO6yKfIC74A",
-              "id": "7ruyK2y9ppQaO6yKfIC74A",
-              "name": "Lucila Campos",
-              "type": "artist",
-              "uri": "spotify:artist:7ruyK2y9ppQaO6yKfIC74A"
-            },
-            {
-              "external_urls": {
-                "spotify": "https://open.spotify.com/artist/57r5TRhcLSOAxl2zntsPMM"
-              },
-              "href": "https://api.spotify.com/v1/artists/57r5TRhcLSOAxl2zntsPMM",
-              "id": "57r5TRhcLSOAxl2zntsPMM",
-              "name": "Arturo \"Zambo\" Cavero",
-              "type": "artist",
-              "uri": "spotify:artist:57r5TRhcLSOAxl2zntsPMM"
+              "uri": "spotify:artist:5H38ZMpWVdE6DtMHBbedVJ"
             }
           ],
           "available_markets": [
@@ -4477,55 +4467,45 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/73G0FbrEhkvOwFV9ihXg3u"
+            "spotify": "https://open.spotify.com/album/4lZ1dMB24my8aSnOnZCgrU"
           },
-          "href": "https://api.spotify.com/v1/albums/73G0FbrEhkvOwFV9ihXg3u",
-          "id": "73G0FbrEhkvOwFV9ihXg3u",
+          "href": "https://api.spotify.com/v1/albums/4lZ1dMB24my8aSnOnZCgrU",
+          "id": "4lZ1dMB24my8aSnOnZCgrU",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273727d8e3454e110221b465d12"
+              "url": "https://i.scdn.co/image/ab67616d0000b273c3f37459810b8bf68a0e7c7d"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02727d8e3454e110221b465d12"
+              "url": "https://i.scdn.co/image/ab67616d00001e02c3f37459810b8bf68a0e7c7d"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851727d8e3454e110221b465d12"
+              "url": "https://i.scdn.co/image/ab67616d00004851c3f37459810b8bf68a0e7c7d"
             }
           ],
           "is_playable": true,
-          "name": "Y... Siguen Festejando Juntos",
-          "release_date": "2002",
-          "release_date_precision": "year",
-          "total_tracks": 19,
+          "name": "Esto Se Pega",
+          "release_date": "1998-12-02",
+          "release_date_precision": "day",
+          "total_tracks": 8,
           "type": "album",
-          "uri": "spotify:album:73G0FbrEhkvOwFV9ihXg3u"
+          "uri": "spotify:album:4lZ1dMB24my8aSnOnZCgrU"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/2MmgnRT5i0nQpq9eQDLpke"
+              "spotify": "https://open.spotify.com/artist/5H38ZMpWVdE6DtMHBbedVJ"
             },
-            "href": "https://api.spotify.com/v1/artists/2MmgnRT5i0nQpq9eQDLpke",
-            "id": "2MmgnRT5i0nQpq9eQDLpke",
-            "name": "Oscar Avilés",
+            "href": "https://api.spotify.com/v1/artists/5H38ZMpWVdE6DtMHBbedVJ",
+            "id": "5H38ZMpWVdE6DtMHBbedVJ",
+            "name": "Los Conquistadores de la Salsa",
             "type": "artist",
-            "uri": "spotify:artist:2MmgnRT5i0nQpq9eQDLpke"
-          },
-          {
-            "external_urls": {
-              "spotify": "https://open.spotify.com/artist/57r5TRhcLSOAxl2zntsPMM"
-            },
-            "href": "https://api.spotify.com/v1/artists/57r5TRhcLSOAxl2zntsPMM",
-            "id": "57r5TRhcLSOAxl2zntsPMM",
-            "name": "Arturo \"Zambo\" Cavero",
-            "type": "artist",
-            "uri": "spotify:artist:57r5TRhcLSOAxl2zntsPMM"
+            "uri": "spotify:artist:5H38ZMpWVdE6DtMHBbedVJ"
           }
         ],
         "available_markets": [
@@ -4716,24 +4696,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 184960,
+        "duration_ms": 318734,
         "explicit": false,
         "external_ids": {
-          "isrc": "FRX871530258"
+          "isrc": "PECS10001007"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/6Q444S0YlfE71l7y3xJ5OA"
+          "spotify": "https://open.spotify.com/track/3EVERzoKyH3r51vfJym8zf"
         },
-        "href": "https://api.spotify.com/v1/tracks/6Q444S0YlfE71l7y3xJ5OA",
-        "id": "6Q444S0YlfE71l7y3xJ5OA",
+        "href": "https://api.spotify.com/v1/tracks/3EVERzoKyH3r51vfJym8zf",
+        "id": "3EVERzoKyH3r51vfJym8zf",
         "is_local": false,
         "is_playable": true,
-        "name": "El Alcatraz",
-        "popularity": 46,
+        "name": "Te Veo Fururú Farará",
+        "popularity": 44,
         "preview_url": null,
-        "track_number": 14,
+        "track_number": 1,
         "type": "track",
-        "uri": "spotify:track:6Q444S0YlfE71l7y3xJ5OA"
+        "uri": "spotify:track:3EVERzoKyH3r51vfJym8zf"
       },
       {
         "album": {
@@ -5192,13 +5172,13 @@
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/1xqolkIzTFMmqgCuD48WNt"
+                "spotify": "https://open.spotify.com/artist/61bQ4nwIioR8w6PGxzpyY3"
               },
-              "href": "https://api.spotify.com/v1/artists/1xqolkIzTFMmqgCuD48WNt",
-              "id": "1xqolkIzTFMmqgCuD48WNt",
-              "name": "Shade",
+              "href": "https://api.spotify.com/v1/artists/61bQ4nwIioR8w6PGxzpyY3",
+              "id": "61bQ4nwIioR8w6PGxzpyY3",
+              "name": "Rondodasosa",
               "type": "artist",
-              "uri": "spotify:artist:1xqolkIzTFMmqgCuD48WNt"
+              "uri": "spotify:artist:61bQ4nwIioR8w6PGxzpyY3"
             }
           ],
           "available_markets": [
@@ -5281,7 +5261,6 @@
             "JO",
             "PS",
             "IN",
-            "BY",
             "KZ",
             "MD",
             "UA",
@@ -5389,55 +5368,55 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/4Zxjk7Nitaz5NmO4dFFUgW"
+            "spotify": "https://open.spotify.com/album/79WpLPCSS0jwoYJHQjFcL7"
           },
-          "href": "https://api.spotify.com/v1/albums/4Zxjk7Nitaz5NmO4dFFUgW",
-          "id": "4Zxjk7Nitaz5NmO4dFFUgW",
+          "href": "https://api.spotify.com/v1/albums/79WpLPCSS0jwoYJHQjFcL7",
+          "id": "79WpLPCSS0jwoYJHQjFcL7",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b2731005fe8ef2fb35043b854d75"
+              "url": "https://i.scdn.co/image/ab67616d0000b2734565a5cc1ecb2195e6b87694"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e021005fe8ef2fb35043b854d75"
+              "url": "https://i.scdn.co/image/ab67616d00001e024565a5cc1ecb2195e6b87694"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d000048511005fe8ef2fb35043b854d75"
+              "url": "https://i.scdn.co/image/ab67616d000048514565a5cc1ecb2195e6b87694"
             }
           ],
           "is_playable": true,
-          "name": "Truman (Sanremo Edition)",
-          "release_date": "2019-02-08",
+          "name": "TRENCHES BABY",
+          "release_date": "2023-03-10",
           "release_date_precision": "day",
-          "total_tracks": 17,
+          "total_tracks": 19,
           "type": "album",
-          "uri": "spotify:album:4Zxjk7Nitaz5NmO4dFFUgW"
+          "uri": "spotify:album:79WpLPCSS0jwoYJHQjFcL7"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/1xqolkIzTFMmqgCuD48WNt"
+              "spotify": "https://open.spotify.com/artist/61bQ4nwIioR8w6PGxzpyY3"
             },
-            "href": "https://api.spotify.com/v1/artists/1xqolkIzTFMmqgCuD48WNt",
-            "id": "1xqolkIzTFMmqgCuD48WNt",
-            "name": "Shade",
+            "href": "https://api.spotify.com/v1/artists/61bQ4nwIioR8w6PGxzpyY3",
+            "id": "61bQ4nwIioR8w6PGxzpyY3",
+            "name": "Rondodasosa",
             "type": "artist",
-            "uri": "spotify:artist:1xqolkIzTFMmqgCuD48WNt"
+            "uri": "spotify:artist:61bQ4nwIioR8w6PGxzpyY3"
           },
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/2iK8weavvfS2xJCmzNzNE5"
+              "spotify": "https://open.spotify.com/artist/1gs79u8PKkWAW1yfymbkTt"
             },
-            "href": "https://api.spotify.com/v1/artists/2iK8weavvfS2xJCmzNzNE5",
-            "id": "2iK8weavvfS2xJCmzNzNE5",
-            "name": "J-AX",
+            "href": "https://api.spotify.com/v1/artists/1gs79u8PKkWAW1yfymbkTt",
+            "id": "1gs79u8PKkWAW1yfymbkTt",
+            "name": "MILES",
             "type": "artist",
-            "uri": "spotify:artist:2iK8weavvfS2xJCmzNzNE5"
+            "uri": "spotify:artist:1gs79u8PKkWAW1yfymbkTt"
           }
         ],
         "available_markets": [
@@ -5520,7 +5499,6 @@
           "JO",
           "PS",
           "IN",
-          "BY",
           "KZ",
           "MD",
           "UA",
@@ -5628,38 +5606,38 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 178593,
-        "explicit": false,
+        "duration_ms": 147000,
+        "explicit": true,
         "external_ids": {
-          "isrc": "ITQ001800600"
+          "isrc": "ITGGO2200097"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/3Cp3XeiwNQfw1rO5Wacgji"
+          "spotify": "https://open.spotify.com/track/5TlBIlcN428RP6OebOPfvV"
         },
-        "href": "https://api.spotify.com/v1/tracks/3Cp3XeiwNQfw1rO5Wacgji",
-        "id": "3Cp3XeiwNQfw1rO5Wacgji",
+        "href": "https://api.spotify.com/v1/tracks/5TlBIlcN428RP6OebOPfvV",
+        "id": "5TlBIlcN428RP6OebOPfvV",
         "is_local": false,
         "is_playable": true,
-        "name": "Tutti a casa (feat. J-AX)",
-        "popularity": 11,
+        "name": "OUTSIDE",
+        "popularity": 42,
         "preview_url": null,
-        "track_number": 3,
+        "track_number": 5,
         "type": "track",
-        "uri": "spotify:track:3Cp3XeiwNQfw1rO5Wacgji"
+        "uri": "spotify:track:5TlBIlcN428RP6OebOPfvV"
       },
       {
         "album": {
-          "album_type": "compilation",
+          "album_type": "album",
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/0LyfQWJT6nXafLPZqxe9Of"
+                "spotify": "https://open.spotify.com/artist/2PUyeJkrdcOntByKHmnKtv"
               },
-              "href": "https://api.spotify.com/v1/artists/0LyfQWJT6nXafLPZqxe9Of",
-              "id": "0LyfQWJT6nXafLPZqxe9Of",
-              "name": "Various Artists",
+              "href": "https://api.spotify.com/v1/artists/2PUyeJkrdcOntByKHmnKtv",
+              "id": "2PUyeJkrdcOntByKHmnKtv",
+              "name": "Cuchillazo",
               "type": "artist",
-              "uri": "spotify:artist:0LyfQWJT6nXafLPZqxe9Of"
+              "uri": "spotify:artist:2PUyeJkrdcOntByKHmnKtv"
             }
           ],
           "available_markets": [
@@ -5850,45 +5828,45 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/4I6jpcAOwZ59ViImYWjrgA"
+            "spotify": "https://open.spotify.com/album/3PEirdybTes0NQVNKlKzEv"
           },
-          "href": "https://api.spotify.com/v1/albums/4I6jpcAOwZ59ViImYWjrgA",
-          "id": "4I6jpcAOwZ59ViImYWjrgA",
+          "href": "https://api.spotify.com/v1/albums/3PEirdybTes0NQVNKlKzEv",
+          "id": "3PEirdybTes0NQVNKlKzEv",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b2733114e27cf271fdad296e9370"
+              "url": "https://i.scdn.co/image/ab67616d0000b27382c2e7f016b4fb1655a10cd6"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e023114e27cf271fdad296e9370"
+              "url": "https://i.scdn.co/image/ab67616d00001e0282c2e7f016b4fb1655a10cd6"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d000048513114e27cf271fdad296e9370"
+              "url": "https://i.scdn.co/image/ab67616d0000485182c2e7f016b4fb1655a10cd6"
             }
           ],
           "is_playable": true,
-          "name": "Dance Floor Virus, Vol. 1",
-          "release_date": "2012-01-06",
+          "name": "Días Negros",
+          "release_date": "2005-08-08",
           "release_date_precision": "day",
-          "total_tracks": 15,
+          "total_tracks": 13,
           "type": "album",
-          "uri": "spotify:album:4I6jpcAOwZ59ViImYWjrgA"
+          "uri": "spotify:album:3PEirdybTes0NQVNKlKzEv"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/4mVHS1Oa3TcgHg0X73k658"
+              "spotify": "https://open.spotify.com/artist/2PUyeJkrdcOntByKHmnKtv"
             },
-            "href": "https://api.spotify.com/v1/artists/4mVHS1Oa3TcgHg0X73k658",
-            "id": "4mVHS1Oa3TcgHg0X73k658",
-            "name": "Patricio Suarez Vertiz",
+            "href": "https://api.spotify.com/v1/artists/2PUyeJkrdcOntByKHmnKtv",
+            "id": "2PUyeJkrdcOntByKHmnKtv",
+            "name": "Cuchillazo",
             "type": "artist",
-            "uri": "spotify:artist:4mVHS1Oa3TcgHg0X73k658"
+            "uri": "spotify:artist:2PUyeJkrdcOntByKHmnKtv"
           }
         ],
         "available_markets": [
@@ -6079,24 +6057,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 278560,
+        "duration_ms": 170346,
         "explicit": false,
         "external_ids": {
-          "isrc": "PEMG99615011"
+          "isrc": "PEBQ91504643"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/3Id3uyGH0QcTo2zLjbyOYA"
+          "spotify": "https://open.spotify.com/track/1OTgiJYTDcXxp4KFeNzmgh"
         },
-        "href": "https://api.spotify.com/v1/tracks/3Id3uyGH0QcTo2zLjbyOYA",
-        "id": "3Id3uyGH0QcTo2zLjbyOYA",
+        "href": "https://api.spotify.com/v1/tracks/1OTgiJYTDcXxp4KFeNzmgh",
+        "id": "1OTgiJYTDcXxp4KFeNzmgh",
         "is_local": false,
         "is_playable": true,
-        "name": "Disco Bar - Edit",
-        "popularity": 36,
+        "name": "Máquina",
+        "popularity": 44,
         "preview_url": null,
-        "track_number": 11,
+        "track_number": 1,
         "type": "track",
-        "uri": "spotify:track:3Id3uyGH0QcTo2zLjbyOYA"
+        "uri": "spotify:track:1OTgiJYTDcXxp4KFeNzmgh"
       },
       {
         "album": {
@@ -6555,13 +6533,13 @@
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/78ujnVz1JjrhzAc6mBC2GL"
+                "spotify": "https://open.spotify.com/artist/2bIsBfbHR5YjmBUa646ZoF"
               },
-              "href": "https://api.spotify.com/v1/artists/78ujnVz1JjrhzAc6mBC2GL",
-              "id": "78ujnVz1JjrhzAc6mBC2GL",
-              "name": "Marr Grey",
+              "href": "https://api.spotify.com/v1/artists/2bIsBfbHR5YjmBUa646ZoF",
+              "id": "2bIsBfbHR5YjmBUa646ZoF",
+              "name": "Weekend",
               "type": "artist",
-              "uri": "spotify:artist:78ujnVz1JjrhzAc6mBC2GL"
+              "uri": "spotify:artist:2bIsBfbHR5YjmBUa646ZoF"
             }
           ],
           "available_markets": [
@@ -6752,45 +6730,55 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/1gq9DWLX9xo1NdElWcw7Oe"
+            "spotify": "https://open.spotify.com/album/5CF5lXLbdRBtLFOECbwqjH"
           },
-          "href": "https://api.spotify.com/v1/albums/1gq9DWLX9xo1NdElWcw7Oe",
-          "id": "1gq9DWLX9xo1NdElWcw7Oe",
+          "href": "https://api.spotify.com/v1/albums/5CF5lXLbdRBtLFOECbwqjH",
+          "id": "5CF5lXLbdRBtLFOECbwqjH",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273d369926618d005025e627011"
+              "url": "https://i.scdn.co/image/ab67616d0000b273253eef18e354970afa00973f"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02d369926618d005025e627011"
+              "url": "https://i.scdn.co/image/ab67616d00001e02253eef18e354970afa00973f"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851d369926618d005025e627011"
+              "url": "https://i.scdn.co/image/ab67616d00004851253eef18e354970afa00973f"
             }
           ],
           "is_playable": true,
-          "name": "Double Cup Love",
-          "release_date": "2022-03-18",
+          "name": "Gorgonzola Swimming, Vol. 1",
+          "release_date": "2023-09-01",
           "release_date_precision": "day",
-          "total_tracks": 17,
+          "total_tracks": 11,
           "type": "album",
-          "uri": "spotify:album:1gq9DWLX9xo1NdElWcw7Oe"
+          "uri": "spotify:album:5CF5lXLbdRBtLFOECbwqjH"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/78ujnVz1JjrhzAc6mBC2GL"
+              "spotify": "https://open.spotify.com/artist/2bIsBfbHR5YjmBUa646ZoF"
             },
-            "href": "https://api.spotify.com/v1/artists/78ujnVz1JjrhzAc6mBC2GL",
-            "id": "78ujnVz1JjrhzAc6mBC2GL",
-            "name": "Marr Grey",
+            "href": "https://api.spotify.com/v1/artists/2bIsBfbHR5YjmBUa646ZoF",
+            "id": "2bIsBfbHR5YjmBUa646ZoF",
+            "name": "Weekend",
             "type": "artist",
-            "uri": "spotify:artist:78ujnVz1JjrhzAc6mBC2GL"
+            "uri": "spotify:artist:2bIsBfbHR5YjmBUa646ZoF"
+          },
+          {
+            "external_urls": {
+              "spotify": "https://open.spotify.com/artist/57Yv5pZCU5qF7DELalRFXa"
+            },
+            "href": "https://api.spotify.com/v1/artists/57Yv5pZCU5qF7DELalRFXa",
+            "id": "57Yv5pZCU5qF7DELalRFXa",
+            "name": "Tiemo Hauer",
+            "type": "artist",
+            "uri": "spotify:artist:57Yv5pZCU5qF7DELalRFXa"
           }
         ],
         "available_markets": [
@@ -6981,24 +6969,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 160052,
-        "explicit": true,
+        "duration_ms": 183712,
+        "explicit": false,
         "external_ids": {
-          "isrc": "QZES52261615"
+          "isrc": "DGA052367103"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/0b2dyr161DaeFy9J3D29Ls"
+          "spotify": "https://open.spotify.com/track/0CPNjcOO9fm5ZrENV7bEDC"
         },
-        "href": "https://api.spotify.com/v1/tracks/0b2dyr161DaeFy9J3D29Ls",
-        "id": "0b2dyr161DaeFy9J3D29Ls",
+        "href": "https://api.spotify.com/v1/tracks/0CPNjcOO9fm5ZrENV7bEDC",
+        "id": "0CPNjcOO9fm5ZrENV7bEDC",
         "is_local": false,
         "is_playable": true,
-        "name": "Deja Vu",
-        "popularity": 2,
+        "name": "Alles machen was ich will",
+        "popularity": 16,
         "preview_url": null,
         "track_number": 8,
         "type": "track",
-        "uri": "spotify:track:0b2dyr161DaeFy9J3D29Ls"
+        "uri": "spotify:track:0CPNjcOO9fm5ZrENV7bEDC"
       },
       {
         "album": {
@@ -7203,34 +7191,34 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/0eDQe2HtPCCNwJ6DjxnDVN"
+            "spotify": "https://open.spotify.com/album/5lI2aYjpKfats9NYrNBAbl"
           },
-          "href": "https://api.spotify.com/v1/albums/0eDQe2HtPCCNwJ6DjxnDVN",
-          "id": "0eDQe2HtPCCNwJ6DjxnDVN",
+          "href": "https://api.spotify.com/v1/albums/5lI2aYjpKfats9NYrNBAbl",
+          "id": "5lI2aYjpKfats9NYrNBAbl",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273772e7a46bfe2c63344096368"
+              "url": "https://i.scdn.co/image/ab67616d0000b273ddfeac1f51c81df50c0b62e6"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02772e7a46bfe2c63344096368"
+              "url": "https://i.scdn.co/image/ab67616d00001e02ddfeac1f51c81df50c0b62e6"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851772e7a46bfe2c63344096368"
+              "url": "https://i.scdn.co/image/ab67616d00004851ddfeac1f51c81df50c0b62e6"
             }
           ],
           "is_playable": true,
-          "name": "Tiempos de Resurrección",
-          "release_date": "2008-12-12",
+          "name": "AMEN",
+          "release_date": "2008-07-31",
           "release_date_precision": "day",
           "total_tracks": 12,
           "type": "album",
-          "uri": "spotify:album:0eDQe2HtPCCNwJ6DjxnDVN"
+          "uri": "spotify:album:5lI2aYjpKfats9NYrNBAbl"
         },
         "artists": [
           {
@@ -7432,24 +7420,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 234500,
+        "duration_ms": 222133,
         "explicit": false,
         "external_ids": {
-          "isrc": "PESM10802007"
+          "isrc": "PEMM10801005"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/7EQkbWo1xv3Lf4kE1aIrXg"
+          "spotify": "https://open.spotify.com/track/4weOiHbItjLGTSB6ZHpXOA"
         },
-        "href": "https://api.spotify.com/v1/tracks/7EQkbWo1xv3Lf4kE1aIrXg",
-        "id": "7EQkbWo1xv3Lf4kE1aIrXg",
+        "href": "https://api.spotify.com/v1/tracks/4weOiHbItjLGTSB6ZHpXOA",
+        "id": "4weOiHbItjLGTSB6ZHpXOA",
         "is_local": false,
         "is_playable": true,
-        "name": "Y Solo Yo Quiero (La Chata)",
-        "popularity": 38,
+        "name": "Pan con mantequilla",
+        "popularity": 41,
         "preview_url": null,
-        "track_number": 7,
+        "track_number": 5,
         "type": "track",
-        "uri": "spotify:track:7EQkbWo1xv3Lf4kE1aIrXg"
+        "uri": "spotify:track:4weOiHbItjLGTSB6ZHpXOA"
       },
       {
         "album": {
@@ -7904,17 +7892,17 @@
       },
       {
         "album": {
-          "album_type": "album",
+          "album_type": "single",
           "artists": [
             {
               "external_urls": {
-                "spotify": "https://open.spotify.com/artist/7aBzpmFXB4WWpPl2F7RjBe"
+                "spotify": "https://open.spotify.com/artist/78ujnVz1JjrhzAc6mBC2GL"
               },
-              "href": "https://api.spotify.com/v1/artists/7aBzpmFXB4WWpPl2F7RjBe",
-              "id": "7aBzpmFXB4WWpPl2F7RjBe",
-              "name": "Wyclef Jean",
+              "href": "https://api.spotify.com/v1/artists/78ujnVz1JjrhzAc6mBC2GL",
+              "id": "78ujnVz1JjrhzAc6mBC2GL",
+              "name": "Marr Grey",
               "type": "artist",
-              "uri": "spotify:artist:7aBzpmFXB4WWpPl2F7RjBe"
+              "uri": "spotify:artist:78ujnVz1JjrhzAc6mBC2GL"
             }
           ],
           "available_markets": [
@@ -8105,45 +8093,45 @@
             "XK"
           ],
           "external_urls": {
-            "spotify": "https://open.spotify.com/album/1q422x05iJ9PzkaTHCzz4n"
+            "spotify": "https://open.spotify.com/album/74q5pMNAJie7brg5mJbJOi"
           },
-          "href": "https://api.spotify.com/v1/albums/1q422x05iJ9PzkaTHCzz4n",
-          "id": "1q422x05iJ9PzkaTHCzz4n",
+          "href": "https://api.spotify.com/v1/albums/74q5pMNAJie7brg5mJbJOi",
+          "id": "74q5pMNAJie7brg5mJbJOi",
           "images": [
             {
               "height": 640,
               "width": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273ccf9398f591a4776daac09e1"
+              "url": "https://i.scdn.co/image/ab67616d0000b273794dd07144c079d1722916c3"
             },
             {
               "height": 300,
               "width": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02ccf9398f591a4776daac09e1"
+              "url": "https://i.scdn.co/image/ab67616d00001e02794dd07144c079d1722916c3"
             },
             {
               "height": 64,
               "width": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851ccf9398f591a4776daac09e1"
+              "url": "https://i.scdn.co/image/ab67616d00004851794dd07144c079d1722916c3"
             }
           ],
           "is_playable": true,
-          "name": "J'ouvert (Deluxe Edition)",
-          "release_date": "2017-02-03",
+          "name": "Deja Vu",
+          "release_date": "2021-07-28",
           "release_date_precision": "day",
-          "total_tracks": 14,
+          "total_tracks": 1,
           "type": "album",
-          "uri": "spotify:album:1q422x05iJ9PzkaTHCzz4n"
+          "uri": "spotify:album:74q5pMNAJie7brg5mJbJOi"
         },
         "artists": [
           {
             "external_urls": {
-              "spotify": "https://open.spotify.com/artist/7aBzpmFXB4WWpPl2F7RjBe"
+              "spotify": "https://open.spotify.com/artist/78ujnVz1JjrhzAc6mBC2GL"
             },
-            "href": "https://api.spotify.com/v1/artists/7aBzpmFXB4WWpPl2F7RjBe",
-            "id": "7aBzpmFXB4WWpPl2F7RjBe",
-            "name": "Wyclef Jean",
+            "href": "https://api.spotify.com/v1/artists/78ujnVz1JjrhzAc6mBC2GL",
+            "id": "78ujnVz1JjrhzAc6mBC2GL",
+            "name": "Marr Grey",
             "type": "artist",
-            "uri": "spotify:artist:7aBzpmFXB4WWpPl2F7RjBe"
+            "uri": "spotify:artist:78ujnVz1JjrhzAc6mBC2GL"
           }
         ],
         "available_markets": [
@@ -8334,24 +8322,24 @@
           "XK"
         ],
         "disc_number": 1,
-        "duration_ms": 218061,
+        "duration_ms": 114860,
         "explicit": true,
         "external_ids": {
-          "isrc": "QM2591600110"
+          "isrc": "QZK6K2102060"
         },
         "external_urls": {
-          "spotify": "https://open.spotify.com/track/3csVkJs9qXwctHvt1GUxng"
+          "spotify": "https://open.spotify.com/track/6Hk0y0Sw9urITXxiB70O91"
         },
-        "href": "https://api.spotify.com/v1/tracks/3csVkJs9qXwctHvt1GUxng",
-        "id": "3csVkJs9qXwctHvt1GUxng",
+        "href": "https://api.spotify.com/v1/tracks/6Hk0y0Sw9urITXxiB70O91",
+        "id": "6Hk0y0Sw9urITXxiB70O91",
         "is_local": false,
         "is_playable": true,
-        "name": "The Ring",
-        "popularity": 16,
+        "name": "Deja Vu",
+        "popularity": 15,
         "preview_url": null,
         "track_number": 1,
         "type": "track",
-        "uri": "spotify:track:3csVkJs9qXwctHvt1GUxng"
+        "uri": "spotify:track:6Hk0y0Sw9urITXxiB70O91"
       }
     ]
   }
