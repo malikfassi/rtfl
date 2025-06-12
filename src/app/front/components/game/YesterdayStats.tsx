@@ -5,7 +5,7 @@ import { useGameStats } from "@/app/front/hooks/useGameStats";
 import { format, subDays } from "date-fns";
 import { cn } from "@/app/front/lib/utils";
 import Link from "next/link";
-import { TrendingUp, Users, Target, Clock, Info } from "lucide-react";
+import { TrendingUp, Users, Target, Clock, Info, Trophy, Zap, Flame, Star } from "lucide-react";
 
 interface YesterdayStatsProps {
   currentDate: string;
@@ -56,6 +56,19 @@ export function YesterdayStats({ currentDate, className }: YesterdayStatsProps) 
 
   const difficulty = getDifficultyLabel(stats.difficultyScore);
 
+  const getDifficultyIcon = (label: string) => {
+    switch (label) {
+      case "Expert":
+        return <Flame className="w-4 h-4 text-red-200" />;
+      case "Hard":
+        return <Zap className="w-4 h-4 text-yellow-200" />;
+      case "Medium":
+        return <Target className="w-4 h-4 text-pink-200" />;
+      default:
+        return <Star className="w-4 h-4 text-green-200" />;
+    }
+  };
+
   return (
     <div className={cn("bg-gradient-to-r from-primary-muted/5 to-accent-info/5 rounded-lg p-4 border border-primary-muted/10 relative", className)}>
       <div className="flex justify-center mb-2">
@@ -68,7 +81,7 @@ export function YesterdayStats({ currentDate, className }: YesterdayStatsProps) 
         </div>
         <div className="flex items-center min-w-0">
           <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full bg-white/50 flex items-center gap-x-1 min-w-0 relative group cursor-pointer", difficulty.color)}>
-            <span className="shrink-0">{difficulty.emoji}</span>
+            <span className="shrink-0">{getDifficultyIcon(difficulty.label)}</span>
             <span className="truncate max-w-[5.5rem] md:max-w-none">{difficulty.label}</span>
             <Info className="w-3 h-3 shrink-0" />
             {/* Tooltip */}
@@ -78,27 +91,24 @@ export function YesterdayStats({ currentDate, className }: YesterdayStatsProps) 
           </span>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="flex items-center gap-2" title="Unique players who played yesterday's game.">
-          <Users className="w-3 h-3 text-accent-info" />
-          <div>
-            <div className="text-sm font-medium text-primary-dark">{stats.totalPlayers}</div>
-            <div className="text-xs text-primary-muted">players</div>
-          </div>
+      <div className="grid grid-cols-3 gap-3 mb-4 text-center">
+        {/* Players */}
+        <div className="flex flex-col items-center justify-center" title="Players">
+          <Users className="w-4 h-4 mb-1 text-indigo-300" />
+          <span className="text-lg font-bold text-primary-dark">{stats.totalPlayers}</span>
+          <span className="text-xs text-primary-muted">Players</span>
         </div>
-        <div className="flex items-center gap-2" title="Average number of guesses per player.">
-          <TrendingUp className="w-3 h-3 text-accent-warning" />
-          <div>
-            <div className="text-sm font-medium text-primary-dark">{stats.averageGuesses}</div>
-            <div className="text-xs text-primary-muted">avg guesses</div>
-          </div>
+        {/* Avg Guesses */}
+        <div className="flex flex-col items-center justify-center" title="Avg Guesses">
+          <TrendingUp className="w-4 h-4 mb-1 text-yellow-200" />
+          <span className="text-lg font-bold text-primary-dark">{stats.averageGuesses}</span>
+          <span className="text-xs text-primary-muted">Guesses</span>
         </div>
-        <div className="flex items-center gap-2 col-span-2" title="Average % of lyrics found by players who completed the game.">
-          <Target className="w-3 h-3 text-accent-success" />
-          <div>
-            <div className="text-sm font-medium text-primary-dark">{stats.averageLyricsCompletionForWinners}%</div>
-            <div className="text-xs text-primary-muted">avg completion (winners)</div>
-          </div>
+        {/* Wins */}
+        <div className="flex flex-col items-center justify-center" title="Wins">
+          <Trophy className="w-4 h-4 mb-1 text-yellow-300" />
+          <span className="text-lg font-bold text-primary-dark">{stats.wins}</span>
+          <span className="text-xs text-primary-muted">Wins</span>
         </div>
       </div>
 

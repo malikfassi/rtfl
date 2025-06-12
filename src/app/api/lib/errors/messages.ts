@@ -27,7 +27,7 @@ export const ErrorMessage: Record<ErrorCode, string | ErrorMessageFn> = {
   [ErrorCode.GameNotFound]: (date: string) => `Game not found for date: ${date}`,
 
   // Guess
-  [ErrorCode.DuplicateGuess]: 'Player has already submitted a guess for this game',
+  [ErrorCode.DuplicateGuess]: 'Player has already submitted this word as a guess for this game',
   [ErrorCode.InvalidWord]: 'Word not found in lyrics',
   [ErrorCode.GameNotFoundForGuess]: (date: string) => `Game not found for date: ${date}`,
 

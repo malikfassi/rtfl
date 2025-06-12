@@ -51,6 +51,9 @@ export function MaskedLyrics({
   const safeArtist = typeof artist === 'string' ? artist : '';
   const safeLyrics = typeof lyrics === 'string' ? lyrics : '';
 
+  // Add debug logging
+  console.log('MaskedLyrics debug:', { maskedLyricsParts, foundWords });
+
   const getWordColor = (word: string) => {
     const index = guesses.findIndex(g => g.valid && g.word.toLowerCase() === word.toLowerCase());
     if (index === -1) return undefined;

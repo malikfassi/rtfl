@@ -65,17 +65,25 @@ export function GameProgress({
         <div className="relative">
           {/* Glowing 80% threshold line */}
           <div
-            className="absolute top-0 left-0 h-2 flex items-center pointer-events-none"
-            style={{ left: '80%' }}
+            className="absolute top-0 h-2 flex items-center pointer-events-none"
+            style={{ left: '80%', transform: 'translateX(-50%)' }}
           >
             <div className="w-0.5 h-2 bg-yellow-300 rounded-full shadow-[0_0_8px_2px_rgba(253,224,71,0.7)] ring-2 ring-yellow-200 animate-pulse" />
           </div>
-          <div 
-            className="absolute -top-3 text-[10px] text-primary-muted/60 transform -translate-x-1/2"
-            style={{ left: '80%' }}
+          {/* Arrow, centered at 80% */}
+          <span
+            className="absolute -top-3 text-[10px] text-primary-muted/60"
+            style={{ left: '80%', transform: 'translateX(-50%)', lineHeight: 1 }}
           >
-            ↓80%
-          </div>
+            ↓
+          </span>
+          {/* 80% text, just to the right of the arrow */}
+          <span
+            className="absolute text-[10px] text-primary-muted/60 ml-0.5"
+            style={{ left: 'calc(80% + 0.2em)', top: '-14.1px' }}
+          >
+            80%
+          </span>
           <div className="h-2 bg-primary-muted/10 rounded-full overflow-hidden">
             <div
               className={cn(

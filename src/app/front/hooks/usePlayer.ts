@@ -21,19 +21,44 @@ interface GameInterfaceState {
 
 const playerApi = {
   getCurrentGame: async (userId: string, date: string): Promise<GameState | null> => {
-    console.log("getCurrentGame called with userId:", userId, "date:", date);
-    const response = await fetch(`/api/games/${date}`, {
-      headers: { 'x-user-id': userId }
+    console.log('[playerApi.getCurrentGame] userId:', userId, 'date:', date);
+    // Primary request for the requested date
+    const r = await fetch(`/api/games/${date}`, {
+      headers: {
+        'x-user-id': userId,
+      },
     });
-    if (!response.ok) {
-      if (response.status === 404) {
-        // Return null for missing games instead of throwing error
-        return null;
-      }
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch game state');
+    console.log('[playerApi.getCurrentGame] fetch /api/games/' + date, 'status:', r.status);
+
+    // Happy path – the requested game exists
+    if (r.ok) {
+      console.log('[playerApi.getCurrentGame] got real game for', date);
+      return await r.json();
     }
-    return response.json();
+
+    // Graceful fallback – known "no-game" statuses
+    if ([400, 403, 404].includes(r.status)) {
+      console.log('[playerApi.getCurrentGame] fallback to rickroll for', date);
+      const rr = await fetch('/api/games/rickroll', {
+        headers: {
+          'x-user-id': userId,
+        },
+      });
+      console.log('[playerApi.getCurrentGame] fetch /api/games/rickroll status:', rr.status);
+
+      if (rr.ok) {
+        // If it was a 403 (future date), throw an error to preserve the error state
+        if (r.status === 403) {
+          throw new Error('403');
+        }
+        return await rr.json(); // Rickroll available ✅
+      }
+      return null; // Rickroll also failed – show "No game"
+    }
+
+    // Unexpected error – bubble up to React-Query error state
+    const errorBody = await r.json().catch(() => ({}));
+    throw new Error(errorBody?.message ?? 'Failed');
   },
 
   submitGuess: async (userId: string, date: string, guess: string): Promise<GameState> => {
@@ -64,11 +89,27 @@ const playerApi = {
   }
 };
 
+function isValidDate(date: string) {
+  const regex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!regex.test(date)) return false;
+  const d = new Date(date);
+  return d instanceof Date && !isNaN(d.getTime());
+}
+
 export function useGameState(userId: string, date: string, enabled = true) {
+  console.log('[useGameState] userId:', userId, 'date:', date, 'enabled:', enabled);
   return useQuery({
-    queryKey: queryKeys.games.byDate(date),
-    queryFn: () => playerApi.getCurrentGame(userId, date),
-    enabled,
+    queryKey: [...queryKeys.games.byDate(date), userId],
+    queryFn: () => {
+      console.log('[useGameState.queryFn] userId:', userId, 'date:', date);
+      if (!isValidDate(date)) {
+        console.log('[useGameState.queryFn] invalid date, using rickroll');
+        return playerApi.getCurrentGame(userId, 'rickroll');
+      }
+      console.log('[useGameState.queryFn] valid date, using real game');
+      return playerApi.getCurrentGame(userId, date);
+    },
+    enabled: enabled || !isValidDate(date),
   });
 }
 
