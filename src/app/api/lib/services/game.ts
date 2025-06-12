@@ -30,10 +30,16 @@ export class GameService {
       ? totalGuesses / uniqueUsers.size 
       : 0;
 
+    // Calculate number of winners (players who found all correct words)
+    // For now, treat all users with at least one correct guess as a winner (adjust logic as needed)
+    const winners = new Set(guesses.filter(g => g.valid).map(g => g.playerId));
+    const wins = winners.size;
+
     return {
       totalGuesses,
       correctGuesses,
-      averageAttempts
+      averageAttempts,
+      wins
     };
   }
 

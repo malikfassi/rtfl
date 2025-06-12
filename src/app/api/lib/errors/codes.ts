@@ -23,7 +23,7 @@ export enum ErrorCode {
   GameNotFound = 'GAME_NOT_FOUND',
 
   // Guess
-  DuplicateGuess = 'DUPLICATE_GUESS',
+  DuplicateGuess = 'DUPLICATE_GUESS', // User has already submitted this word as a guess for this game
   InvalidWord = 'INVALID_WORD',
   GameNotFoundForGuess = 'GAME_NOT_FOUND_FOR_GUESS',
 

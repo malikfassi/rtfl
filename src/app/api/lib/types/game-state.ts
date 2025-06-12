@@ -7,6 +7,7 @@ export interface GameStats {
   totalValidGuesses: number;
   averageLyricsCompletionForWinners: number;
   difficultyScore: number;
+  wins: number;
 }
 
 export interface GameState {

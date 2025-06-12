@@ -4,6 +4,7 @@ export type GameStats = {
   totalGuesses: number;
   correctGuesses: number;
   averageAttempts: number;
+  wins: number;
 };
 
 // Type for Game with included song relation
