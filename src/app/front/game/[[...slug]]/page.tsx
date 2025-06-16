@@ -1,6 +1,8 @@
 import { LyricsGame } from "@/app/front/components/game/LyricsGame";
 import { format } from "date-fns";
 import { redirect } from "next/navigation";
+import { ROUTES, isValidDate, getCurrentDate, matchRoute } from "@/app/front/lib/routes";
+import { notFound } from "next/navigation";
 
 export default async function GameCatchAllPage({
   params,
@@ -11,20 +13,16 @@ export default async function GameCatchAllPage({
   
   // Handle archive paths by redirecting to the root archive path
   if (slug?.length === 1 && slug[0] === "archive") {
-    console.log('[CatchAllPage] Archive path detected, redirecting to /archive');
-    redirect('/archive');
+    redirect(ROUTES.ARCHIVE.ROOT);
   }
   if (slug?.length === 2 && slug[0] === "archive") {
-    console.log('[CatchAllPage] Archive month path detected, redirecting to /archive/[month]');
-    redirect(`/archive/${slug[1]}`);
+    redirect(ROUTES.ARCHIVE.BY_MONTH(slug[1]));
   }
   if (slug?.length === 2 && slug[0] === "front" && slug[1] === "archive") {
-    console.log('[CatchAllPage] Front archive path detected, redirecting to /archive');
-    redirect('/archive');
+    redirect(ROUTES.ARCHIVE.ROOT);
   }
   if (slug?.length === 3 && slug[0] === "front" && slug[1] === "archive") {
-    console.log('[CatchAllPage] Front archive month path detected, redirecting to /archive/[month]');
-    redirect(`/archive/${slug[2]}`);
+    redirect(ROUTES.ARCHIVE.BY_MONTH(slug[2]));
   }
 
   // Treat undefined, [], [""], and ['front', 'game'] as no slug (root path)
@@ -33,18 +31,21 @@ export default async function GameCatchAllPage({
     (slug.length === 1 && slug[0] === "") ||
     (slug.length === 2 && slug[0] === "front" && slug[1] === "game");
   
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = getCurrentDate();
   const date = isRootPath ? today : slug.join('-');
-  console.log('[CatchAllPage] slug:', slug, 'isRootPath:', isRootPath, 'date:', date);
 
   // Check if date is valid - only for non-root paths
-  const isValidDate = isRootPath ? true : /^\d{4}-\d{2}-\d{2}$/.test(date);
-  const rickrollMode = !isValidDate;
+  const isValidDatePath = isRootPath ? true : isValidDate(date);
+  
+  // Return 404 for invalid paths
+  if (!isValidDatePath) {
+    notFound();
+  }
 
   return (
     <div className="min-h-screen bg-background font-mono">
       <div className="p-8">
-        <LyricsGame date={date} game={undefined} rickrollMode={rickrollMode} />
+        <LyricsGame date={date} game={undefined} rickrollMode={false} />
       </div>
     </div>
   );
