@@ -14,6 +14,7 @@ import {
   endOfWeek
 } from "date-fns";
 import type { GameState } from "@/app/api/lib/types/game-state";
+import { parseMonthString } from "@/app/front/lib/utils/date-formatting";
 
 interface CalendarViewProps {
   month: string;
@@ -21,11 +22,6 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ month, games }: CalendarViewProps) {
-  // Robust month parsing (avoid timezone bugs)
-  function parseMonthString(monthStr: string) {
-    const [year, month] = monthStr.split('-').map(Number);
-    return new Date(year, month - 1, 1);
-  }
   const currentDate = parseMonthString(month);
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);

@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CalendarView } from "@/app/front/components/archive/CalendarView";
 import { ScrambleTitle } from "@/app/front/components/game/ScrambleTitle";
 import { buildArchiveRoute, getCurrentMonth } from "@/app/front/lib/routes";
+import { parseMonthString } from "@/app/front/lib/utils/date-formatting";
 
 interface ArchiveContentProps {
   month?: string;
@@ -31,11 +32,6 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
     setPlayerId(getOrCreatePlayerId());
   }, []);
 
-  // Robust month parsing (avoid timezone bugs)
-  function parseMonthString(monthStr: string) {
-    const [year, month] = monthStr.split('-').map(Number);
-    return new Date(year, month - 1, 1);
-  }
   const currentDate = parseMonthString(currentMonth);
   const prevMonth = format(subMonths(currentDate, 1), "yyyy-MM");
   const nextMonth = format(addMonths(currentDate, 1), "yyyy-MM");

@@ -76,4 +76,14 @@ export function getDaysBetween(date1: string, date2: string): number {
   const d2 = new Date(date2);
   const diffTime = Math.abs(d2.getTime() - d1.getTime());
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Parse a month string (YYYY-MM) into a Date object
+ * @param monthStr - Month string in YYYY-MM format
+ * @returns Date object set to the first day of the month
+ */
+export function parseMonthString(monthStr: string): Date {
+  const [year, month] = monthStr.split('-').map(Number);
+  return new Date(year, month - 1, 1);
 } 
