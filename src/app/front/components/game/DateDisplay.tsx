@@ -1,50 +1,47 @@
 "use client";
 
-import React from "react";
-import { format, isToday, differenceInSeconds, addDays } from "date-fns";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { formatGameDate, isValidDate } from "@/app/front/lib/utils/date-formatting";
+import { addDays, differenceInSeconds } from "date-fns";
 
 interface DateDisplayProps {
   date: string;
+  className?: string;
 }
 
-export function DateDisplay({ date }: DateDisplayProps) {
-  const gameDate = new Date(date);
-  const [timeUntilTomorrow, setTimeUntilTomorrow] = useState<string>("");
+export function DateDisplay({ date, className }: DateDisplayProps) {
+  const [secondsLeft, setSecondsLeft] = useState<number>(0);
+  const isValidDateFormat = isValidDate(date);
 
   useEffect(() => {
-    if (isToday(gameDate)) {
-      const updateCountdown = () => {
-        const tomorrow = addDays(new Date().setHours(0, 0, 0, 0), 1);
-        const secondsLeft = differenceInSeconds(tomorrow, new Date());
-        const hours = Math.floor(secondsLeft / 3600);
-        const minutes = Math.floor((secondsLeft % 3600) / 60);
-        const seconds = secondsLeft % 60;
-        setTimeUntilTomorrow(
-          `${hours.toString().padStart(2, "0")}:${minutes
-            .toString()
-            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
-        );
-      };
+    if (!isValidDateFormat) return;
 
-      updateCountdown();
-      const interval = setInterval(updateCountdown, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [gameDate]);
+    const updateTimer = () => {
+      const tomorrow = addDays(new Date().setHours(0, 0, 0, 0), 1);
+      const secondsLeft = differenceInSeconds(tomorrow, new Date());
+      setSecondsLeft(secondsLeft);
+    };
 
-  if (isToday(gameDate)) {
-    return (
-      <div>
-        <div className="text-sm text-primary-muted animate-pulse">{timeUntilTomorrow}</div>
-      </div>
-    );
-  }
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [isValidDateFormat]);
+
+  const hours = Math.floor(secondsLeft / 3600);
+  const minutes = Math.floor((secondsLeft % 3600) / 60);
+  const seconds = secondsLeft % 60;
 
   return (
-    <div className="space-y-0.5">
-      <div className="text-sm text-primary-muted">{format(gameDate, "EEEE")}</div>
-      <div className="text-sm text-primary-muted/70">{format(gameDate, "MMMM d, yyyy")}</div>
+    <div className={className}>
+      <div className="text-sm text-primary-muted">
+        {formatGameDate(date)}
+      </div>
+      {isValidDateFormat && (
+        <div className="text-xs text-primary-muted/60">
+          Next game in {hours}h {minutes}m {seconds}s
+        </div>
+      )}
     </div>
   );
 } 

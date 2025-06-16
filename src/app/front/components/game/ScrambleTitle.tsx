@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { cn } from "@/app/front/lib/utils";
 import Link from "next/link";
+import { ScrambleTitleProps } from "./lyrics-game/types";
 
 const specialChars = "!@#$%^&*()_+FUCKING";
 const baseWord = "FUCKING";
@@ -21,11 +22,7 @@ interface Letter {
   color: string;
 }
 
-interface ScrambleTitleProps {
-  date: string;
-}
-
-export function ScrambleTitle({ date }: ScrambleTitleProps) {
+export function ScrambleTitle({ title, date }: ScrambleTitleProps) {
   const [letters, setLetters] = useState<Letter[]>(
     baseWord.split('').map(char => ({
       char,

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { cn } from "@/app/front/lib/utils";
+import { calculateGuessHits } from "@/app/front/lib/utils/hit-counting";
 
 interface Guess {
   id: string;
@@ -18,9 +19,9 @@ interface GuessHistoryProps {
     word: string;
     valid: boolean;
   }>;
-  maskedLyrics: string;
-  maskedTitle: string;
-  maskedArtist: string;
+  maskedLyrics?: string;
+  maskedTitle?: string;
+  maskedArtist?: string;
   maskedTitleParts?: Array<{ value: string; isToGuess: boolean }>;
   maskedArtistParts?: Array<{ value: string; isToGuess: boolean }>;
   maskedLyricsParts?: Array<{ value: string; isToGuess: boolean }>;
@@ -45,40 +46,15 @@ export function GuessHistory({
 }: GuessHistoryProps) {
   const [hideZeroHits, setHideZeroHits] = useState(false);
   
-  // Count hits for each guess using token logic when available, fallback to regex
-  const guessHits = guesses.map(guess => {
-    let hits = 0;
-    
-    // Use token-based counting when available (more accurate)
-    if (maskedLyricsParts) {
-      hits += maskedLyricsParts
-        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
-        .length;
-    } else {
-      // Fallback to regex with word boundaries
-      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      hits += (maskedLyrics.match(wordRegex) || []).length;
-    }
-    
-    if (maskedTitleParts) {
-      hits += maskedTitleParts
-        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
-        .length;
-    } else {
-      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      hits += (maskedTitle.match(wordRegex) || []).length;
-    }
-    
-    if (maskedArtistParts) {
-      hits += maskedArtistParts
-        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
-        .length;
-    } else {
-      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      hits += (maskedArtist.match(wordRegex) || []).length;
-    }
-    
-    return { ...guess, hits };
+  // Count hits for each guess using the new utility
+  const guessHits = calculateGuessHits({
+    guesses,
+    maskedLyrics,
+    maskedTitle,
+    maskedArtist,
+    maskedTitleParts,
+    maskedArtistParts,
+    maskedLyricsParts,
   });
 
   // Filter and sort guesses

@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { useGameState, useGuess } from "@/app/front/hooks/usePlayer";
-import { getOrCreatePlayerId } from "@/app/front/lib/utils";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/app/front/lib/utils";
-import {
-  GameControls,
-  GameProgress,
-  MaskedLyrics,
-  YesterdayStats,
-} from "./lyrics-game";
-import { ScrambleTitle } from "./ScrambleTitle";
-import { DateDisplay } from "./DateDisplay";
-import { isMatch } from 'date-fns';
+import { GameContainer } from "./lyrics-game/GameContainer";
+import { GameHeader } from "./lyrics-game/GameHeader";
+import { GameContent } from "./lyrics-game/GameContent";
+import { GameSidebar } from "./lyrics-game/GameSidebar";
+import { ShareModal } from './lyrics-game/ShareModal';
+import { RickrollNotice } from './lyrics-game/RickrollNotice';
+import { useGameLogic } from '@/app/front/hooks/useGameLogic';
+import { GameControls } from './lyrics-game/GameControls';
+import { getOrCreatePlayerId } from '@/app/front/lib/utils';
+import { gameColors } from "@/app/front/lib/utils/color-management";
+import { LoadingState } from "../ui/LoadingState";
+import { ErrorState } from "../ui/ErrorState";
 
 interface LyricsGameProps {
   date: string;
@@ -26,459 +27,183 @@ interface LyricsGameProps {
   maskedLyrics?: string[];
 }
 
-const colors = [
-  { bg: "bg-accent-info/20", text: "text-accent-info" },
-  { bg: "bg-accent-success/20", text: "text-accent-success" },
-  { bg: "bg-accent-warning/25", text: "text-accent-warning" },
-  { bg: "bg-accent-error/20", text: "text-accent-error" },
-  { bg: "bg-primary-dark/20", text: "text-primary-dark" },
-];
-
 export function LyricsGame(props: LyricsGameProps) {
   const { date, game, disabled = false, isAdmin = false, onChooseSong, hideChooseSongButton = false, rickrollMode = false, lyrics: rickrollLyrics, maskedLyrics: rickrollMaskedLyrics } = props;
-  // Add a log for debugging
-  console.log('[LyricsGame] props.date:', date);
   
-  // Validate date format
-  const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
-  console.log('[LyricsGame] date:', date, 'isValidDate:', isValidDate);
-  
-  // Check if date is in the future
-  const today = new Date().toISOString().split('T')[0];
-  const isFutureDate = date > today;
-
-  const playerId = getOrCreatePlayerId();
   const [hoveredWord, setHoveredWord] = useState<string | null>(null);
   const [selectedGuess, setSelectedGuess] = useState<{ id: string; word: string } | null>(null);
-  const [guessError, setGuessError] = useState<string | null>(null);
   const [showFullLyrics, setShowFullLyrics] = useState(false);
-  
-  // Rickroll mode logic - use rickrollMode prop or invalid date
-  const isRickroll = rickrollMode || !isValidDate || isFutureDate;
-  console.log('[LyricsGame] isRickroll:', isRickroll, 'rickrollMode:', rickrollMode, 'isFutureDate:', isFutureDate);
-
-  // Only fetch game state if we don't have game information yet and date is valid
-  // OR if we're in rickroll mode (to fetch the rickroll game)
-  const shouldFetchGame = (game === undefined && isValidDate && !isFutureDate) || isRickroll;
-  const { data: gameState, isLoading: isGameLoading, error: gameError } = useGameState(playerId, date, shouldFetchGame);
-  
-  // Setup guess mutation
-  const guessMutation = useGuess(playerId, date);
-
-  // Track if share popup has been shown for this win
-  const hasSharedRef = useRef(false);
-
-  // Prefer fetched gameState; fall back to prop `game` if provided
-  const currentGame = gameState ?? game ?? null;
-
-  // Show informational popup when the game has fallen back to rick-roll
-  const [showRickrollNotice, setShowRickrollNotice] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [playerId, setPlayerId] = useState<string>('');
+  const [isClient, setIsClient] = useState(false);
+  const [gameError, setGameError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // Show notice if we're in rickroll mode or have a future date error
-    const shouldShowNotice = isRickroll || (gameError instanceof Error && gameError.message.includes('403') && isFutureDate);
-    setShowRickrollNotice(shouldShowNotice);
-    console.log('[LyricsGame] showRickrollNotice set to', shouldShowNotice, 'for date', date);
-  }, [date, isRickroll, gameError, isFutureDate]);
+    setIsClient(true);
+    setPlayerId(getOrCreatePlayerId());
+  }, []);
 
-  // Check if error is a 403 (future date)
-  const isFutureDateError = gameError instanceof Error && 
-    gameError.message.includes('403') && 
-    isFutureDate;
-
-  console.log('[LyricsGame] Debug popup state:', {
-    gameError: gameError instanceof Error ? gameError.message : gameError,
-    isFutureDate,
+  const {
+    currentGame,
+    isGameLoading,
+    gameError: useGameLogicGameError,
     isRickroll,
+    isFutureDate,
+    isValidDate,
     showRickrollNotice,
-    isFutureDateError,
-    date
+    isGameComplete,
+    lyricsProgressData,
+    titleProgressData,
+    artistProgressData,
+    foundWords,
+    maskedTitle,
+    maskedArtist,
+    maskedLyrics,
+    maskedTitleParts,
+    maskedArtistParts,
+    maskedLyricsParts,
+    guessSegments,
+    shareText,
+    gameUrl,
+    handleGuess,
+    handleShare,
+    refetch: refetchGame
+  } = useGameLogic({
+    date,
+    game,
+    rickrollMode,
+    lyrics: rickrollLyrics,
+    maskedLyrics: rickrollMaskedLyrics
   });
 
-  // No early return for missing game to keep hook order consistent
+  if (isGameLoading) {
+    return <LoadingState message="Loading game..." />;
+  }
 
-  // Get total words to find (only masked words) - use currentGame
-  const lyrics = typeof currentGame?.masked?.lyrics === 'string' ? currentGame.masked.lyrics : '';
-  const totalWords = Array.from(lyrics.matchAll(/_{2,}/g)).length;
-  
-  // Get total found word occurrences (not unique) - use currentGame
-  const foundWordsCount = (currentGame?.guesses ?? [])
-    ?.filter((g: { valid: boolean }) => g.valid)
-    .reduce((count: number, g: { id: string; valid: boolean; word: string }) => {
-      const words = Array.from(lyrics.matchAll(/\p{L}+|\p{N}+/gu), (m: RegExpMatchArray) => m[0]) as string[];
-      const hits = words.filter((word: string) => 
-        word.toLowerCase() === g.word.toLowerCase()
-      ).length;
-      return count + hits;
-    }, 0) || 0;
-  
-  const wordsFoundPercentage = Math.round((foundWordsCount / totalWords) * 100);
-  
-  // Calculate segments for each valid guess - use currentGame
-  const guessSegments = (currentGame?.guesses ?? [])
-    ?.filter((g: { valid: boolean }) => g.valid)
-    .map((g: { id: string; valid: boolean; word: string }, index: number) => {
-      const words = Array.from(lyrics.matchAll(/\p{L}+|\p{N}+/gu), (m: RegExpMatchArray) => m[0]) as string[];
-      const hits = words.filter((word: string) => 
-        word.toLowerCase() === g.word.toLowerCase()
-      ).length;
-      return {
-        id: g.id,
-        hits,
-        colorIndex: index % colors.length
-      };
-    })
-    .filter((segment: { hits: number }) => segment.hits > 0) || [];
+  if (useGameLogicGameError) {
+    return (
+      <ErrorState
+        title="Failed to load game"
+        message={useGameLogicGameError.message || "An error occurred while loading the game"}
+        onRetry={() => {
+          // Reset error state and retry loading
+          setGameError(null);
+          refetchGame();
+        }}
+      />
+    );
+  }
 
-  // Calculate completion percentages - use currentGame
-  const foundWords: string[] = Array.from(new Set(
-    (currentGame?.guesses ?? [])
-      ?.filter((g: { valid: boolean }) => g.valid)
-      .map((g: { word: string }) => g.word.toLowerCase()) || []
-  ));
+  if (!currentGame) {
+    return (
+      <ErrorState
+        title="Game not found"
+        message="The requested game could not be found"
+      />
+    );
+  }
 
-  // Convert masked fields from arrays to strings if needed - use currentGame
-  const maskedTitle = Array.isArray(currentGame?.masked?.title)
-    ? currentGame.masked.title.map((part: { value: string }) => part.value).join('')
-    : (typeof currentGame?.masked?.title === 'string' ? currentGame.masked.title : '');
-  const maskedArtist = Array.isArray(currentGame?.masked?.artist)
-    ? currentGame.masked.artist.map((part: { value: string }) => part.value).join('')
-    : (typeof currentGame?.masked?.artist === 'string' ? currentGame.masked.artist : '');
-  const maskedLyrics = Array.isArray(currentGame?.masked?.lyrics)
-    ? currentGame.masked.lyrics.map((part: { value: string }) => part.value).join('')
-    : (typeof currentGame?.masked?.lyrics === 'string' ? currentGame.masked.lyrics : '');
-
-  // Pass the raw arrays for masking logic - use currentGame
-  const maskedTitleParts = Array.isArray(currentGame?.masked?.title) ? currentGame.masked.title : undefined;
-  const maskedArtistParts = Array.isArray(currentGame?.masked?.artist) ? currentGame.masked.artist : undefined;
-  const maskedLyricsParts = Array.isArray(currentGame?.masked?.lyrics) ? currentGame.masked.lyrics : undefined;
-
-  // Partitioned progress calculation
-  const getProgress = (maskedParts: Array<{ value: string; isToGuess: boolean }> | undefined) => {
-    if (!maskedParts) return { found: 0, total: 0 };
-    const hiddenWords = maskedParts.filter(token => token.isToGuess).map(token => token.value.toLowerCase());
-    const total = hiddenWords.length;
-    const found = hiddenWords.filter(word => foundWords.includes(word)).length;
-    return { found, total };
-  };
-
-  const lyricsProgressData = getProgress(maskedLyricsParts);
-  const titleProgressData = getProgress(maskedTitleParts);
-  const artistProgressData = getProgress(maskedArtistParts);
-
-  // Winning conditions
-  const lyricsWin = lyricsProgressData.total > 0 && lyricsProgressData.found / lyricsProgressData.total >= 0.8;
-  const titleWin = titleProgressData.total > 0 && titleProgressData.found === titleProgressData.total;
-  const artistWin = artistProgressData.total > 0 && artistProgressData.found === artistProgressData.total;
-  const isGameComplete = lyricsWin || (titleWin && artistWin);
-
-  useEffect(() => {
-    if (isGameComplete && !hasSharedRef.current) {
-      hasSharedRef.current = true;
-      handleShare();
-    }
-    if (!isGameComplete) {
-      hasSharedRef.current = false;
-    }
-  }, [isGameComplete]);
-
-  const guesses = currentGame?.guesses ?? [];
   const onGuess = async (guess: string) => {
-    await guessMutation.mutateAsync(guess);
-    setGuessError(null);
+    await handleGuess(guess);
     const lastValid = (currentGame?.guesses ?? []).filter((g: { valid: boolean }) => g.valid).slice(-1)[0];
     if (lastValid) setSelectedGuess({ id: lastValid.id, word: lastValid.word });
   };
 
-  // Removed early returns for invalid or future dates; rickroll fallback will handle these cases
+  return (
+    <GameContainer>
+      <div className="space-y-8">
+        <GameHeader
+          title={maskedTitle}
+          date={date}
+          playerId={playerId}
+          isAdmin={isAdmin}
+          onChooseSong={onChooseSong}
+          hideChooseSongButton={hideChooseSongButton}
+        />
 
-  // Calculate completion percentages - simplified
-  const foundArtistWords = 0;
-  const foundTitleWords = 0;
-  const artistCompleteGuess = undefined;
-  const titleCompleteGuess = undefined;
-
-  const lyricsProgress = foundWordsCount / totalWords;
-
-  // Share functionality
-  const handleShare = () => {
-    const lyricsPercent = lyricsProgressData.total > 0 ? Math.round((lyricsProgressData.found / lyricsProgressData.total) * 100) : 0;
-    const titlePercent = titleProgressData.total > 0 ? Math.round((titleProgressData.found / titleProgressData.total) * 100) : 0;
-    const artistPercent = artistProgressData.total > 0 ? Math.round((artistProgressData.found / artistProgressData.total) * 100) : 0;
-    const guessCount = currentGame.guesses.filter((g: { valid: boolean }) => g.valid).length;
-    let shareText = '';
-    if (isGameComplete) {
-      const stats = [
-        `🎵 Lyrics: ${lyricsPercent}%`,
-        `📝 Title: ${titlePercent}%`, 
-        `👤 Artist: ${artistPercent}%`,
-        `💭 Guesses: ${guessCount}`
-      ].join('\n');
-      shareText = `🎯  Just played RTFL - Read the F***ing Lyrics!\n\n${stats}\n\nThink you can do better? 🎯`;
-    } else {
-      shareText = `I'm trying to solve today's RTFL lyrics challenge! Can you help me?\n\nPlay here:`;
-    }
-    const gameUrl = `${window.location.origin}/game/${date}`;
-    
-    // Create share options
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(gameUrl)}`;
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(gameUrl)}&quote=${encodeURIComponent(shareText)}`;
-    
-    // For now, copy to clipboard and show options
-    const fullText = `${shareText}\n\n${gameUrl}`;
-    navigator.clipboard.writeText(fullText).then(() => {
-      // Show share options modal or dropdown
-      const shareLinks = document.createElement('div');
-      shareLinks.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
-      
-      // Escape HTML to prevent XSS
-      const escapeHtml = (text: string) => {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-      };
-      
-      shareLinks.innerHTML = `
-        <div class="bg-background rounded-lg p-6 max-w-sm mx-4 space-y-4 border border-primary-muted/20">
-          <h3 class="font-bold text-lg mb-4 text-primary-dark">Challenge your friends!</h3>
-          <div class="bg-primary-muted/5 rounded-lg p-3 mb-4">
-            <div class="text-sm text-primary-dark whitespace-pre-line font-mono leading-relaxed">
-${escapeHtml(shareText).replace(/\n/g, '<br>')}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Game Controls */}
+          <div className="order-1 lg:order-1">
+            <div className="sticky top-8">
+              <GameControls
+                playerId={playerId}
+                date={date}
+                isGameComplete={isGameComplete}
+                guesses={currentGame.guesses}
+                maskedLyrics={maskedLyrics}
+                maskedTitle={maskedTitle}
+                maskedArtist={maskedArtist}
+                maskedTitleParts={maskedTitleParts}
+                maskedArtistParts={maskedArtistParts}
+                maskedLyricsParts={maskedLyricsParts}
+                onGuess={onGuess}
+                isSubmitting={false}
+                onWordHover={setHoveredWord}
+                selectedGuess={selectedGuess}
+                onGuessSelect={setSelectedGuess}
+                colors={gameColors}
+              />
             </div>
-            <div class="text-xs text-accent-info mt-2 break-all">${escapeHtml(gameUrl)}</div>
           </div>
-          <div class="space-y-3">
-            <a href="${twitterUrl}" target="_blank" class="block w-full px-4 py-3 bg-accent-info/10 text-accent-info rounded-lg text-center hover:bg-accent-info/20 transition-colors font-medium">
-              🐦 Share on Twitter
-            </a>
-            <a href="${facebookUrl}" target="_blank" class="block w-full px-4 py-3 bg-accent-success/10 text-accent-success rounded-lg text-center hover:bg-accent-success/20 transition-colors font-medium">
-              📘 Share on Facebook
-            </a>
-            <button class="w-full px-4 py-3 bg-primary-muted/10 text-primary-dark rounded-lg hover:bg-primary-muted/20 transition-colors font-medium" onclick="this.textContent='✅ Copied!'; setTimeout(() => this.remove(), 1000)">
-              📋 Link copied to clipboard!
-            </button>
+
+          {/* Center Column - Lyrics */}
+          <div className="order-2 lg:order-2 lg:col-span-2">
+            <GameContent
+              title={maskedTitle}
+              artist={maskedArtist}
+              lyrics={maskedLyrics}
+              maskedTitleParts={maskedTitleParts}
+              maskedArtistParts={maskedArtistParts}
+              maskedLyricsParts={maskedLyricsParts}
+              isComplete={isGameComplete}
+              foundWords={foundWords}
+              hoveredWord={hoveredWord}
+              selectedWord={selectedGuess?.word}
+              guesses={currentGame.guesses}
+              colors={gameColors}
+              song={currentGame?.song}
+              isAdmin={isAdmin}
+              showFullLyrics={showFullLyrics}
+            />
           </div>
-          <button class="w-full px-4 py-2 text-primary-muted hover:text-primary-dark transition-colors font-medium" onclick="this.closest('.fixed').remove()">
-            Cancel
+
+          {/* Right Column - Progress & Stats */}
+          <div className="order-3 lg:order-3">
+            <GameSidebar
+              progressProps={{
+                lyricsFound: lyricsProgressData.found,
+                lyricsTotal: lyricsProgressData.total,
+                titleFound: titleProgressData.found,
+                titleTotal: titleProgressData.total,
+                artistFound: artistProgressData.found,
+                artistTotal: artistProgressData.total,
+                lyricsWin: lyricsProgressData.total > 0 && lyricsProgressData.found / lyricsProgressData.total >= 0.8,
+                titleWin: titleProgressData.total > 0 && titleProgressData.found === titleProgressData.total,
+                artistWin: artistProgressData.total > 0 && artistProgressData.found === artistProgressData.total,
+              }}
+              yesterdayStatsProps={{
+                currentDate: date,
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="w-full px-4 py-3 bg-accent-info/10 hover:bg-accent-info/20 text-accent-info rounded-lg transition-colors font-medium"
+          >
+            Share
           </button>
         </div>
-      `;
-      
-      shareLinks.addEventListener('click', (e) => {
-        if (e.target === shareLinks) {
-          shareLinks.remove();
-        }
-      });
-      
-      document.body.appendChild(shareLinks);
-    });
-  };
-
-  // Toggle lyrics functionality
-  const handleToggleLyrics = () => {
-    setShowFullLyrics(!showFullLyrics);
-  };
-
-  // Use masked lyrics from currentGame for all games
-  const currentMaskedLyrics = currentGame?.masked ?? { title: '', artist: '', lyrics: '' };
-
-  const lyricsString = Array.isArray(currentMaskedLyrics?.lyrics)
-    ? currentMaskedLyrics.lyrics.map((part: { value: string }) => part.value).join('')
-    : (typeof currentMaskedLyrics?.lyrics === 'string' ? currentMaskedLyrics.lyrics : '');
-  const maskedTitleString = Array.isArray(maskedTitle)
-    ? maskedTitle.map((part: { value: string }) => part.value).join('')
-    : maskedTitle;
-  const maskedArtistString = Array.isArray(maskedArtist)
-    ? maskedArtist.map((part: { value: string }) => part.value).join('')
-    : maskedArtist;
-
-  // Show loading indicator while fetching
-  if (isGameLoading) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-center items-center min-h-[50vh]">
-          Loading...
-        </div>
       </div>
-    );
-  }
 
-  // If after loading we still have no game (both normal and rickroll failed)
-  if (!currentGame) {
-    return (
-      <>
-        {showRickrollNotice && isRickroll && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-            <div className="bg-background rounded-lg p-6 max-w-sm w-full space-y-4 border border-primary-muted/20 text-center">
-              <h2 className="text-lg font-bold text-primary-dark mb-2">
-                {isFutureDateError ? 'Nice try, time traveler! 🚀' : 'No game available'}
-              </h2>
-              <p className="text-sm text-primary-dark mb-4">
-                {isFutureDateError 
-                  ? `You'll have to wait ${Math.ceil((new Date(date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days to play this game! Until then, enjoy this special hidden song... 🎵`
-                  : "We couldn't find a daily game for this date, but you can still play! Try to guess this classic hit instead. 🎶"
-                }
-              </p>
-              <button
-                onClick={() => setShowRickrollNotice(false)}
-                className="w-full px-4 py-3 bg-accent-info/10 hover:bg-accent-info/20 text-accent-info rounded-lg transition-colors font-medium"
-              >
-                Let's play
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-center items-center min-h-[50vh] text-primary-muted">
-            No game available for this date
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  return (
-    <React.Fragment key={date}>
-      {showRickrollNotice && isRickroll && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-background rounded-lg p-6 max-w-sm w-full space-y-4 border border-primary-muted/20 text-center">
-            <h2 className="text-lg font-bold text-primary-dark mb-2">
-              {isFutureDateError ? 'Nice try, time traveler! 🚀' : 'No game available'}
-            </h2>
-            <p className="text-sm text-primary-dark mb-4">
-              {isFutureDateError 
-                ? `You'll have to wait ${Math.ceil((new Date(date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days to play this game! Until then, enjoy this special hidden song... 🎵`
-                : "We couldn't find a daily game for this date, but you can still play! Try to guess this classic hit instead. 🎶"
-              }
-            </p>
-            <button
-              onClick={() => setShowRickrollNotice(false)}
-              className="w-full px-4 py-3 bg-accent-info/10 hover:bg-accent-info/20 text-accent-info rounded-lg transition-colors font-medium"
-            >
-              Let's play
-            </button>
-          </div>
-        </div>
-      )}
-      <div className="min-h-screen bg-background font-mono">
-        {/* Main Game Area */}
-        <div className="px-4 lg:px-8 py-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 lg:[grid-template-columns:1fr_2.2fr_1fr] gap-4 lg:gap-8">
-              {/* Left Panel - Game Controls */}
-              <div className="order-1 lg:order-1">
-                <div className="sticky top-8">
-                  {/* Title and Player ID */}
-                  <div className="mb-6">
-                    <ScrambleTitle date={date} />
-                    <div className="mt-2 flex flex-wrap items-center gap-x-2">
-                      <div className="text-[10px] font-medium text-accent-info">Player ID</div>
-                      <div className="text-[10px] font-mono text-accent-info/80" style={{paddingTop: 0, paddingBottom: 0}} title={playerId}>#{playerId}</div>
-                    </div>
-                  </div>
-                  {/* Progress for mobile */}
-                  <GameProgress 
-                    lyricsFound={lyricsProgressData.found}
-                    lyricsTotal={lyricsProgressData.total}
-                    titleFound={titleProgressData.found}
-                    titleTotal={titleProgressData.total}
-                    artistFound={artistProgressData.found}
-                    artistTotal={artistProgressData.total}
-                    lyricsWin={lyricsWin}
-                    titleWin={titleWin}
-                    artistWin={artistWin}
-                    className="mb-6"
-                  />
-                  <GameControls
-                    playerId={playerId}
-                    date={date}
-                    isGameComplete={false}
-                    guesses={guesses}
-                    maskedLyrics={lyricsString}
-                    maskedTitle={maskedTitleString}
-                    maskedArtist={maskedArtistString}
-                    maskedTitleParts={maskedTitleParts}
-                    maskedArtistParts={maskedArtistParts}
-                    maskedLyricsParts={maskedLyricsParts}
-                    onGuess={onGuess}
-                    isSubmitting={guessMutation.isPending}
-                    onWordHover={setHoveredWord}
-                    selectedGuess={selectedGuess}
-                    onGuessSelect={setSelectedGuess}
-                    colors={colors}
-                  />
-                </div>
-              </div>
-              {/* Center Panel - Lyrics */}
-              <div className="order-2 lg:order-2">
-                <MaskedLyrics
-                  title={maskedTitleString}
-                  artist={maskedArtistString}
-                  lyrics={lyricsString}
-                  maskedTitleParts={maskedTitleParts}
-                  maskedArtistParts={maskedArtistParts}
-                  maskedLyricsParts={maskedLyricsParts}
-                  isComplete={isGameComplete}
-                  foundWords={foundWords}
-                  hoveredWord={hoveredWord}
-                  selectedWord={selectedGuess?.word}
-                  guesses={guesses}
-                  colors={colors}
-                  song={currentGame.song}
-                  isAdmin={props.isAdmin}
-                  showFullLyrics={showFullLyrics}
-                />
-                {/* Ystd game always at bottom of lyrics on mobile */}
-                <div className="block lg:hidden mt-6">
-                  <YesterdayStats currentDate={date} />
-                </div>
-              </div>
-              {/* Right Panel - Media & Actions */}
-              <div className="order-3 lg:order-3">
-                <div className="sticky top-8 space-y-4">
-                  {/* Spotify Player */}
-                  {isGameComplete && currentGame.song?.spotifyId && (
-                    <div className="rounded-lg overflow-hidden bg-white/5">
-                      <iframe
-                        src={`https://open.spotify.com/embed/track/${currentGame.song.spotifyId}?utm_source=generator`}
-                        width="100%"
-                        height="152"
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                        loading="lazy"
-                        className="border-0"
-                      />
-                    </div>
-                  )}
-                  {/* Victory Actions */}
-                  {isGameComplete && (
-                    <div className="space-y-3">
-                      <button
-                        onClick={handleToggleLyrics}
-                        className="w-full px-4 py-3 bg-primary-muted/10 hover:bg-primary-muted/20 text-primary-dark rounded-lg transition-colors font-medium"
-                      >
-                        {showFullLyrics ? "Hide" : "Reveal"} Full Lyrics
-                      </button>
-                    </div>
-                  )}
-                  {/* Always show share button */}
-                  <button
-                    onClick={handleShare}
-                    className="w-full px-4 py-3 bg-accent-info/10 hover:bg-accent-info/20 text-accent-info rounded-lg transition-colors font-medium"
-                  >
-                    Challenge your friends
-                  </button>
-                  {/* Yesterday's Game Stats (desktop only) */}
-                  <YesterdayStats 
-                    currentDate={date}
-                    className="hidden lg:block"
-                  />
-                  {/* TODO: Path to victory highlight - locate and style this section */}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </React.Fragment>
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        shareText={shareText}
+        gameUrl={gameUrl}
+      />
+    </GameContainer>
   );
 } 

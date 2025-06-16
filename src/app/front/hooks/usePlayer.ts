@@ -124,9 +124,12 @@ export function useGuess(userId: string, date: string) {
   });
 }
 
-export function useMonthGames(userId: string, month: string) {
+export function useGameMonth(userId: string, month: string, enabled = true) {
   return useQuery({
-    queryKey: queryKeys.games.byMonth(month),
+    queryKey: [...queryKeys.games.byMonth(month), userId],
     queryFn: () => playerApi.getGamesByMonth(userId, month),
+    enabled: enabled && !!userId && !!month,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2
   });
 } 

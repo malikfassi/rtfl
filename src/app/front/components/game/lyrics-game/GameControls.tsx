@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { cn } from "@/app/front/lib/utils";
 import { Input } from "@/app/front/components/ui/Input";
 import { GuessHistory } from "./GuessHistory";
+import { calculateGuessHits } from "@/app/front/lib/utils/hit-counting";
 
 interface Guess {
   id: string;
@@ -90,40 +91,15 @@ export function GameControls({
     });
   };
 
-  // Count hits for each guess using token logic when available, fallback to regex
-  const guessHits = guesses.map(guess => {
-    let hits = 0;
-    
-    // Use token-based counting when available (more accurate)
-    if (maskedLyricsParts) {
-      hits += maskedLyricsParts
-        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
-        .length;
-    } else {
-      // Fallback to regex with word boundaries
-      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      hits += (maskedLyrics.match(wordRegex) || []).length;
-    }
-    
-    if (maskedTitleParts) {
-      hits += maskedTitleParts
-        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
-        .length;
-    } else {
-      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      hits += (maskedTitle.match(wordRegex) || []).length;
-    }
-    
-    if (maskedArtistParts) {
-      hits += maskedArtistParts
-        .filter(token => token.isToGuess && token.value.toLowerCase() === guess.word.toLowerCase())
-        .length;
-    } else {
-      const wordRegex = new RegExp(`\\b${guess.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      hits += (maskedArtist.match(wordRegex) || []).length;
-    }
-    
-    return { ...guess, hits };
+  // Count hits for each guess using the new utility
+  const guessHits = calculateGuessHits({
+    guesses,
+    maskedLyrics,
+    maskedTitle,
+    maskedArtist,
+    maskedTitleParts,
+    maskedArtistParts,
+    maskedLyricsParts,
   });
 
   return (
