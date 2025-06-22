@@ -6,7 +6,7 @@
   },
   "followers": {
     "href": null,
-    "total": 190133
+    "total": 193317
   },
   "href": "https://api.spotify.com/v1/playlists/2HfFccisPxQfprhgIHM7XH?locale=*",
   "id": "2HfFccisPxQfprhgIHM7XH",
@@ -174,7 +174,7 @@
           "href": "https://api.spotify.com/v1/tracks/1qPbGZqppFwLwcBC1JQ6Vr",
           "id": "1qPbGZqppFwLwcBC1JQ6Vr",
           "name": "Wonderwall",
-          "popularity": 76,
+          "popularity": 77,
           "uri": "spotify:track:1qPbGZqppFwLwcBC1JQ6Vr",
           "is_local": false
         },
@@ -276,7 +276,7 @@
           "href": "https://api.spotify.com/v1/tracks/75aLTVBSGIquqzQ6AkmK3Q",
           "id": "75aLTVBSGIquqzQ6AkmK3Q",
           "name": "Smells Like Teen Spirit",
-          "popularity": 52,
+          "popularity": 53,
           "uri": "spotify:track:75aLTVBSGIquqzQ6AkmK3Q",
           "is_local": false
         },
@@ -1184,7 +1184,7 @@
           "href": "https://api.spotify.com/v1/tracks/3d9DChrdc6BOeFsbrZ3Is0",
           "id": "3d9DChrdc6BOeFsbrZ3Is0",
           "name": "Under the Bridge",
-          "popularity": 87,
+          "popularity": 88,
           "uri": "spotify:track:3d9DChrdc6BOeFsbrZ3Is0",
           "is_local": false
         },
@@ -1722,7 +1722,7 @@
           "href": "https://api.spotify.com/v1/tracks/6b2oQwSGFkzsMtQruIWm2p",
           "id": "6b2oQwSGFkzsMtQruIWm2p",
           "name": "Creep",
-          "popularity": 10,
+          "popularity": 9,
           "uri": "spotify:track:6b2oQwSGFkzsMtQruIWm2p",
           "is_local": false
         },
@@ -2284,7 +2284,7 @@
           "href": "https://api.spotify.com/v1/tracks/0nLiqZ6A27jJri2VCalIUs",
           "id": "0nLiqZ6A27jJri2VCalIUs",
           "name": "Nothing Else Matters",
-          "popularity": 57,
+          "popularity": 53,
           "uri": "spotify:track:0nLiqZ6A27jJri2VCalIUs",
           "is_local": false
         },
@@ -2386,7 +2386,7 @@
           "href": "https://api.spotify.com/v1/tracks/7aCSKL5LmVhakVs0l483B5",
           "id": "7aCSKL5LmVhakVs0l483B5",
           "name": "Come As You Are",
-          "popularity": 50,
+          "popularity": 51,
           "uri": "spotify:track:7aCSKL5LmVhakVs0l483B5",
           "is_local": false
         },
@@ -2482,7 +2482,7 @@
           "href": "https://api.spotify.com/v1/tracks/1hyuZzPDnSpBBPVztdGDWr",
           "id": "1hyuZzPDnSpBBPVztdGDWr",
           "name": "I Don't Want To Miss A Thing",
-          "popularity": 1,
+          "popularity": 4,
           "uri": "spotify:track:1hyuZzPDnSpBBPVztdGDWr",
           "is_local": false
         },
@@ -3424,7 +3424,7 @@
           "href": "https://api.spotify.com/v1/tracks/6L89mwZXSOwYl76YXfX13s",
           "id": "6L89mwZXSOwYl76YXfX13s",
           "name": "Basket Case",
-          "popularity": 86,
+          "popularity": 87,
           "uri": "spotify:track:6L89mwZXSOwYl76YXfX13s",
           "is_local": false
         },
@@ -3890,7 +3890,7 @@
           "href": "https://api.spotify.com/v1/tracks/3YRCqOhFifThpSRFJ1VWFM",
           "id": "3YRCqOhFifThpSRFJ1VWFM",
           "name": "November Rain",
-          "popularity": 84,
+          "popularity": 85,
           "uri": "spotify:track:3YRCqOhFifThpSRFJ1VWFM",
           "is_local": false
         },
@@ -4334,7 +4334,7 @@
           "href": "https://api.spotify.com/v1/tracks/59WN2psjkt1tyaxjspN8fp",
           "id": "59WN2psjkt1tyaxjspN8fp",
           "name": "Killing In The Name",
-          "popularity": 83,
+          "popularity": 84,
           "uri": "spotify:track:59WN2psjkt1tyaxjspN8fp",
           "is_local": false
         },
@@ -5522,7 +5522,7 @@
           "href": "https://api.spotify.com/v1/tracks/1FkoVC85Ds3mFoK0fVqEqP",
           "id": "1FkoVC85Ds3mFoK0fVqEqP",
           "name": "Self Esteem",
-          "popularity": 81,
+          "popularity": 82,
           "uri": "spotify:track:1FkoVC85Ds3mFoK0fVqEqP",
           "is_local": false
         },
@@ -6410,7 +6410,7 @@
           "href": "https://api.spotify.com/v1/tracks/3GfOAdcoc3X5GPiiXmpBjK",
           "id": "3GfOAdcoc3X5GPiiXmpBjK",
           "name": "Song 2",
-          "popularity": 71,
+          "popularity": 72,
           "uri": "spotify:track:3GfOAdcoc3X5GPiiXmpBjK",
           "is_local": false
         },
@@ -6506,7 +6506,7 @@
           "href": "https://api.spotify.com/v1/tracks/7H8zey5My6uNdD2TxeCb9F",
           "id": "7H8zey5My6uNdD2TxeCb9F",
           "name": "Don't Speak",
-          "popularity": 3,
+          "popularity": 5,
           "uri": "spotify:track:7H8zey5My6uNdD2TxeCb9F",
           "is_local": false
         },
@@ -6972,7 +6972,7 @@
           "href": "https://api.spotify.com/v1/tracks/2EoOZnxNgtmZaD8uUmz2nD",
           "id": "2EoOZnxNgtmZaD8uUmz2nD",
           "name": "Black Hole Sun",
-          "popularity": 83,
+          "popularity": 84,
           "uri": "spotify:track:2EoOZnxNgtmZaD8uUmz2nD",
           "is_local": false
         },
@@ -7068,7 +7068,7 @@
           "href": "https://api.spotify.com/v1/tracks/2SbsvihBJmgNKZ4qkXFWrp",
           "id": "2SbsvihBJmgNKZ4qkXFWrp",
           "name": "More Than Words",
-          "popularity": 2,
+          "popularity": 6,
           "uri": "spotify:track:2SbsvihBJmgNKZ4qkXFWrp",
           "is_local": false
         },
@@ -10778,7 +10778,7 @@
           "href": "https://api.spotify.com/v1/tracks/1zng9uqqXoPkmU05nsAlsw",
           "id": "1zng9uqqXoPkmU05nsAlsw",
           "name": "Bed Of Roses",
-          "popularity": 78,
+          "popularity": 79,
           "uri": "spotify:track:1zng9uqqXoPkmU05nsAlsw",
           "is_local": false
         },
@@ -12190,7 +12190,7 @@
           "href": "https://api.spotify.com/v1/tracks/4fXGWiVhlOLdhwRDP6pIFG",
           "id": "4fXGWiVhlOLdhwRDP6pIFG",
           "name": "Lemon Tree",
-          "popularity": 4,
+          "popularity": 3,
           "uri": "spotify:track:4fXGWiVhlOLdhwRDP6pIFG",
           "is_local": false
         },
@@ -12658,7 +12658,7 @@
           "href": "https://api.spotify.com/v1/tracks/2wUlYDGGXlSvm2NkGj0Qio",
           "id": "2wUlYDGGXlSvm2NkGj0Qio",
           "name": "Personal Jesus",
-          "popularity": 68,
+          "popularity": 69,
           "uri": "spotify:track:2wUlYDGGXlSvm2NkGj0Qio",
           "is_local": false
         },
@@ -13688,7 +13688,7 @@
           "href": "https://api.spotify.com/v1/tracks/74irxdVWstNlEQjsvArITq",
           "id": "74irxdVWstNlEQjsvArITq",
           "name": "Crazy",
-          "popularity": 5,
+          "popularity": 7,
           "uri": "spotify:track:74irxdVWstNlEQjsvArITq",
           "is_local": false
         },
@@ -13784,7 +13784,7 @@
           "href": "https://api.spotify.com/v1/tracks/1ENLIbxO4Uma773neTHxbp",
           "id": "1ENLIbxO4Uma773neTHxbp",
           "name": "Sweet Dreams (Are Made Of This)",
-          "popularity": 6,
+          "popularity": 4,
           "uri": "spotify:track:1ENLIbxO4Uma773neTHxbp",
           "is_local": false
         },
@@ -14250,7 +14250,7 @@
           "href": "https://api.spotify.com/v1/tracks/45Ia1U4KtIjAPPU7Wv1Sea",
           "id": "45Ia1U4KtIjAPPU7Wv1Sea",
           "name": "Are You Gonna Go My Way",
-          "popularity": 76,
+          "popularity": 77,
           "uri": "spotify:track:45Ia1U4KtIjAPPU7Wv1Sea",
           "is_local": false
         },
@@ -15754,7 +15754,7 @@
           "href": "https://api.spotify.com/v1/tracks/0wokCRaKD0zPNhMRXAgVsr",
           "id": "0wokCRaKD0zPNhMRXAgVsr",
           "name": "Ordinary World",
-          "popularity": 81,
+          "popularity": 82,
           "uri": "spotify:track:0wokCRaKD0zPNhMRXAgVsr",
           "is_local": false
         },
@@ -16220,7 +16220,7 @@
           "href": "https://api.spotify.com/v1/tracks/6CKoWCWAqEVWVjpeoJXyNH",
           "id": "6CKoWCWAqEVWVjpeoJXyNH",
           "name": "Shape Of My Heart",
-          "popularity": 78,
+          "popularity": 79,
           "uri": "spotify:track:6CKoWCWAqEVWVjpeoJXyNH",
           "is_local": false
         },
@@ -18472,7 +18472,7 @@
           "href": "https://api.spotify.com/v1/tracks/3ckd4YA4LcD3j50rfIVwUe",
           "id": "3ckd4YA4LcD3j50rfIVwUe",
           "name": "Head Like A Hole",
-          "popularity": 66,
+          "popularity": 67,
           "uri": "spotify:track:3ckd4YA4LcD3j50rfIVwUe",
           "is_local": false
         },
@@ -18586,7 +18586,7 @@
           "href": "https://api.spotify.com/v1/tracks/7f9sC9fvtjYSZYOLSmKJlq",
           "id": "7f9sC9fvtjYSZYOLSmKJlq",
           "name": "Tom's Diner",
-          "popularity": 61,
+          "popularity": 62,
           "uri": "spotify:track:7f9sC9fvtjYSZYOLSmKJlq",
           "is_local": false
         },

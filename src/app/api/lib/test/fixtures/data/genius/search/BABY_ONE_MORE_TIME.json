@@ -33,9 +33,9 @@
           "song_art_image_url": "https://images.genius.com/266bc126700ae7c3f3c9a2ee80401d4b.1000x1000x1.png",
           "stats": {
             "unreviewed_annotations": 0,
-            "concurrents": 2,
+            "concurrents": 3,
             "hot": false,
-            "pageviews": 2067510
+            "pageviews": 2089623
           },
           "title": "...Baby One More Time",
           "title_with_featured": "...Baby One More Time",
@@ -91,7 +91,7 @@
           "stats": {
             "unreviewed_annotations": 17,
             "hot": false,
-            "pageviews": 5694
+            "pageviews": 5697
           },
           "title": "A list of all their YouTube videos",
           "title_with_featured": "A list of all their YouTube videos",
@@ -117,6 +117,65 @@
               "is_verified": false,
               "name": "Scott Bradlee’s Postmodern Jukebox",
               "url": "https://genius.com/artists/Scott-bradlees-postmodern-jukebox"
+            }
+          ]
+        }
+      },
+      {
+        "highlights": [],
+        "index": "song",
+        "type": "song",
+        "result": {
+          "annotation_count": 1,
+          "api_path": "/songs/8767592",
+          "artist_names": "LYLYS",
+          "full_title": "LYLYS's Physical Music Collection by LYLYS",
+          "header_image_thumbnail_url": "https://images.genius.com/7ccdaa5c26676cadf06f2f6281cbf764.300x300x1.jpg",
+          "header_image_url": "https://images.genius.com/7ccdaa5c26676cadf06f2f6281cbf764.539x539x1.jpg",
+          "id": 8767592,
+          "lyrics_owner_id": 16537719,
+          "lyrics_state": "complete",
+          "path": "/Lylys-lylyss-physical-music-collection-annotated",
+          "primary_artist_names": "LYLYS",
+          "pyongs_count": 12,
+          "relationships_index_url": "https://genius.com/Lylys-lylyss-physical-music-collection-sample",
+          "release_date_components": {
+            "year": 2023,
+            "month": 1,
+            "day": 27
+          },
+          "release_date_for_display": "January 27, 2023",
+          "release_date_with_abbreviated_month_for_display": "Jan. 27, 2023",
+          "song_art_image_thumbnail_url": "https://images.genius.com/7ccdaa5c26676cadf06f2f6281cbf764.300x300x1.jpg",
+          "song_art_image_url": "https://images.genius.com/7ccdaa5c26676cadf06f2f6281cbf764.539x539x1.jpg",
+          "stats": {
+            "unreviewed_annotations": 1,
+            "hot": false
+          },
+          "title": "LYLYS’s Physical Music Collection",
+          "title_with_featured": "LYLYS's Physical Music Collection",
+          "url": "https://genius.com/Lylys-lylyss-physical-music-collection-annotated",
+          "featured_artists": [],
+          "primary_artist": {
+            "api_path": "/artists/3290603",
+            "header_image_url": "https://images.genius.com/e446c3e376a5acd97fadaf0fed9be57a.1000x1000x1.jpg",
+            "id": 3290603,
+            "image_url": "https://images.genius.com/d5b10b576d77e9a3927ad87fb8d8cfd8.999x999x1.jpg",
+            "is_meme_verified": false,
+            "is_verified": false,
+            "name": "LYLYS",
+            "url": "https://genius.com/artists/Lylys"
+          },
+          "primary_artists": [
+            {
+              "api_path": "/artists/3290603",
+              "header_image_url": "https://images.genius.com/e446c3e376a5acd97fadaf0fed9be57a.1000x1000x1.jpg",
+              "id": 3290603,
+              "image_url": "https://images.genius.com/d5b10b576d77e9a3927ad87fb8d8cfd8.999x999x1.jpg",
+              "is_meme_verified": false,
+              "is_verified": false,
+              "name": "LYLYS",
+              "url": "https://genius.com/artists/Lylys"
             }
           ]
         }
@@ -158,9 +217,9 @@
           "featured_artists": [],
           "primary_artist": {
             "api_path": "/artists/4381087",
-            "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1749488875",
+            "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1750343510",
             "id": 4381087,
-            "image_url": "https://assets.genius.com/images/default_avatar_300.png?1749488875",
+            "image_url": "https://assets.genius.com/images/default_avatar_300.png?1750343510",
             "is_meme_verified": false,
             "is_verified": false,
             "name": "b1rd75",
@@ -169,9 +228,9 @@
           "primary_artists": [
             {
               "api_path": "/artists/4381087",
-              "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1749488875",
+              "header_image_url": "https://assets.genius.com/images/default_avatar_300.png?1750343510",
               "id": 4381087,
-              "image_url": "https://assets.genius.com/images/default_avatar_300.png?1749488875",
+              "image_url": "https://assets.genius.com/images/default_avatar_300.png?1750343510",
               "is_meme_verified": false,
               "is_verified": false,
               "name": "b1rd75",
@@ -393,7 +452,7 @@
             "is_verified": false,
             "name": "‎marcswig",
             "url": "https://genius.com/artists/Marcswig",
-            "iq": 15591
+            "iq": 15605
           },
           "primary_artists": [
             {
@@ -405,7 +464,7 @@
               "is_verified": false,
               "name": "‎marcswig",
               "url": "https://genius.com/artists/Marcswig",
-              "iq": 15591
+              "iq": 15605
             }
           ]
         }
@@ -450,7 +509,7 @@
             "is_verified": true,
             "name": "Anne-Marie",
             "url": "https://genius.com/artists/Anne-marie",
-            "iq": 4066
+            "iq": 4068
           },
           "primary_artists": [
             {
@@ -462,66 +521,7 @@
               "is_verified": true,
               "name": "Anne-Marie",
               "url": "https://genius.com/artists/Anne-marie",
-              "iq": 4066
-            }
-          ]
-        }
-      },
-      {
-        "highlights": [],
-        "index": "song",
-        "type": "song",
-        "result": {
-          "annotation_count": 0,
-          "api_path": "/songs/8042591",
-          "artist_names": "CyaDrew",
-          "full_title": "LUV ME NOT by CyaDrew",
-          "header_image_thumbnail_url": "https://images.genius.com/056be3486710f14c3ec5f556460e32ed.300x300x1.png",
-          "header_image_url": "https://images.genius.com/056be3486710f14c3ec5f556460e32ed.1000x1000x1.png",
-          "id": 8042591,
-          "lyrics_owner_id": 10714070,
-          "lyrics_state": "complete",
-          "path": "/Cyadrew-luv-me-not-lyrics",
-          "primary_artist_names": "CyaDrew",
-          "pyongs_count": null,
-          "relationships_index_url": "https://genius.com/Cyadrew-luv-me-not-sample",
-          "release_date_components": {
-            "year": 2022,
-            "month": 5,
-            "day": 25
-          },
-          "release_date_for_display": "May 25, 2022",
-          "release_date_with_abbreviated_month_for_display": "May 25, 2022",
-          "song_art_image_thumbnail_url": "https://images.genius.com/056be3486710f14c3ec5f556460e32ed.300x300x1.png",
-          "song_art_image_url": "https://images.genius.com/056be3486710f14c3ec5f556460e32ed.1000x1000x1.png",
-          "stats": {
-            "unreviewed_annotations": 0,
-            "hot": false
-          },
-          "title": "LUV ME NOT",
-          "title_with_featured": "LUV ME NOT",
-          "url": "https://genius.com/Cyadrew-luv-me-not-lyrics",
-          "featured_artists": [],
-          "primary_artist": {
-            "api_path": "/artists/2204345",
-            "header_image_url": "https://images.genius.com/dc457d94adc9ea0baac95cd9cbb392c4.1000x750x1.jpg",
-            "id": 2204345,
-            "image_url": "https://images.genius.com/f6710002fa766e201f8881b56e86eef3.320x320x1.jpg",
-            "is_meme_verified": false,
-            "is_verified": false,
-            "name": "CyaDrew",
-            "url": "https://genius.com/artists/Cyadrew"
-          },
-          "primary_artists": [
-            {
-              "api_path": "/artists/2204345",
-              "header_image_url": "https://images.genius.com/dc457d94adc9ea0baac95cd9cbb392c4.1000x750x1.jpg",
-              "id": 2204345,
-              "image_url": "https://images.genius.com/f6710002fa766e201f8881b56e86eef3.320x320x1.jpg",
-              "is_meme_verified": false,
-              "is_verified": false,
-              "name": "CyaDrew",
-              "url": "https://genius.com/artists/Cyadrew"
+              "iq": 4068
             }
           ]
         }

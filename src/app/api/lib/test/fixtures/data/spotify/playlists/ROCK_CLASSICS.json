@@ -6,7 +6,7 @@
   },
   "followers": {
     "href": null,
-    "total": 27537
+    "total": 28028
   },
   "href": "https://api.spotify.com/v1/playlists/3sTZTkIGgm8wJiSXDvpApF?locale=*",
   "id": "3sTZTkIGgm8wJiSXDvpApF",
@@ -792,7 +792,7 @@
           "href": "https://api.spotify.com/v1/tracks/2sXp9Qmvc7mRaDBjBgcGGi",
           "id": "2sXp9Qmvc7mRaDBjBgcGGi",
           "name": "Every Breath You Take - Remastered 2003",
-          "popularity": 3,
+          "popularity": 2,
           "uri": "spotify:track:2sXp9Qmvc7mRaDBjBgcGGi",
           "is_local": false
         },
@@ -1256,7 +1256,7 @@
           "href": "https://api.spotify.com/v1/tracks/6KTv0Z8BmVqM7DPxbGzpVC",
           "id": "6KTv0Z8BmVqM7DPxbGzpVC",
           "name": "Rock And Roll All Nite",
-          "popularity": 76,
+          "popularity": 77,
           "uri": "spotify:track:6KTv0Z8BmVqM7DPxbGzpVC",
           "is_local": false
         },
@@ -2274,7 +2274,7 @@
           "href": "https://api.spotify.com/v1/tracks/4pbJqGIASGPr0ZpGpnWkDn",
           "id": "4pbJqGIASGPr0ZpGpnWkDn",
           "name": "We Will Rock You - Remastered 2011",
-          "popularity": 80,
+          "popularity": 81,
           "uri": "spotify:track:4pbJqGIASGPr0ZpGpnWkDn",
           "is_local": false
         },
@@ -2836,7 +2836,7 @@
           "href": "https://api.spotify.com/v1/tracks/6s0NHplywwr1IjnQpUpWJk",
           "id": "6s0NHplywwr1IjnQpUpWJk",
           "name": "Bad To The Bone",
-          "popularity": 73,
+          "popularity": 74,
           "uri": "spotify:track:6s0NHplywwr1IjnQpUpWJk",
           "is_local": false
         },
@@ -6980,7 +6980,7 @@
           "href": "https://api.spotify.com/v1/tracks/6L89mwZXSOwYl76YXfX13s",
           "id": "6L89mwZXSOwYl76YXfX13s",
           "name": "Basket Case",
-          "popularity": 86,
+          "popularity": 87,
           "uri": "spotify:track:6L89mwZXSOwYl76YXfX13s",
           "is_local": false
         },
@@ -8300,7 +8300,7 @@
           "href": "https://api.spotify.com/v1/tracks/6nTiIhLmQ3FWhvrGafw2zj",
           "id": "6nTiIhLmQ3FWhvrGafw2zj",
           "name": "American Idiot",
-          "popularity": 85,
+          "popularity": 86,
           "uri": "spotify:track:6nTiIhLmQ3FWhvrGafw2zj",
           "is_local": false
         },
@@ -8766,7 +8766,7 @@
           "href": "https://api.spotify.com/v1/tracks/6GG73Jik4jUlQCkKg9JuGO",
           "id": "6GG73Jik4jUlQCkKg9JuGO",
           "name": "The Middle",
-          "popularity": 84,
+          "popularity": 85,
           "uri": "spotify:track:6GG73Jik4jUlQCkKg9JuGO",
           "is_local": false
         },
@@ -9230,7 +9230,7 @@
           "href": "https://api.spotify.com/v1/tracks/60a0Rd6pjrkxjPbaKzXjfq",
           "id": "60a0Rd6pjrkxjPbaKzXjfq",
           "name": "In the End",
-          "popularity": 91,
+          "popularity": 92,
           "uri": "spotify:track:60a0Rd6pjrkxjPbaKzXjfq",
           "is_local": false
         },
@@ -10166,7 +10166,7 @@
           "href": "https://api.spotify.com/v1/tracks/2nLtzopw4rPReszdYBJU6h",
           "id": "2nLtzopw4rPReszdYBJU6h",
           "name": "Numb",
-          "popularity": 90,
+          "popularity": 91,
           "uri": "spotify:track:2nLtzopw4rPReszdYBJU6h",
           "is_local": false
         },
@@ -10712,7 +10712,7 @@
           "href": "https://api.spotify.com/v1/tracks/1BY1Vd2Bt6JPOhMvsIwtVv",
           "id": "1BY1Vd2Bt6JPOhMvsIwtVv",
           "name": "Dancing With Myself",
-          "popularity": 66,
+          "popularity": 62,
           "uri": "spotify:track:1BY1Vd2Bt6JPOhMvsIwtVv",
           "is_local": false
         },
@@ -11750,7 +11750,7 @@
           "href": "https://api.spotify.com/v1/tracks/5u6y4u5EgDv0peILf60H5t",
           "id": "5u6y4u5EgDv0peILf60H5t",
           "name": "Oye Como Va",
-          "popularity": 72,
+          "popularity": 73,
           "uri": "spotify:track:5u6y4u5EgDv0peILf60H5t",
           "is_local": false
         },
@@ -12680,7 +12680,7 @@
           "href": "https://api.spotify.com/v1/tracks/0SS7GzhJtJy13LunBz8bAl",
           "id": "0SS7GzhJtJy13LunBz8bAl",
           "name": "The Reason",
-          "popularity": 47,
+          "popularity": 48,
           "uri": "spotify:track:0SS7GzhJtJy13LunBz8bAl",
           "is_local": false
         },
@@ -14986,7 +14986,7 @@
           "href": "https://api.spotify.com/v1/tracks/40riOy7x9W7GXjyGp4pjAv",
           "id": "40riOy7x9W7GXjyGp4pjAv",
           "name": "Hotel California - 2013 Remaster",
-          "popularity": 87,
+          "popularity": 88,
           "uri": "spotify:track:40riOy7x9W7GXjyGp4pjAv",
           "is_local": false
         },
@@ -16108,7 +16108,7 @@
           "href": "https://api.spotify.com/v1/tracks/346bXsVvJhjWaQ4NeBBNj4",
           "id": "346bXsVvJhjWaQ4NeBBNj4",
           "name": "Factory",
-          "popularity": 35,
+          "popularity": 36,
           "uri": "spotify:track:346bXsVvJhjWaQ4NeBBNj4",
           "is_local": false
         },
@@ -17002,7 +17002,7 @@
           "href": "https://api.spotify.com/v1/tracks/3m6KkYKdnbffMpGd9Pm9FP",
           "id": "3m6KkYKdnbffMpGd9Pm9FP",
           "name": "Seven Nation Army",
-          "popularity": 8,
+          "popularity": 11,
           "uri": "spotify:track:3m6KkYKdnbffMpGd9Pm9FP",
           "is_local": false
         },
@@ -17802,7 +17802,7 @@
           "href": "https://api.spotify.com/v1/tracks/7HXtpmFjqt4Wv6T8y5lVz3",
           "id": "7HXtpmFjqt4Wv6T8y5lVz3",
           "name": "Whatsername",
-          "popularity": 55,
+          "popularity": 56,
           "uri": "spotify:track:7HXtpmFjqt4Wv6T8y5lVz3",
           "is_local": false
         },
@@ -19283,7 +19283,7 @@
           "href": "https://api.spotify.com/v1/tracks/4qjscZh4jfhkpcQG4ZQfi2",
           "id": "4qjscZh4jfhkpcQG4ZQfi2",
           "name": "Animal",
-          "popularity": 71,
+          "popularity": 72,
           "uri": "spotify:track:4qjscZh4jfhkpcQG4ZQfi2",
           "is_local": false
         },
@@ -21741,7 +21741,7 @@
           "href": "https://api.spotify.com/v1/tracks/0cx32rX0uZvcJUP92Wkj2y",
           "id": "0cx32rX0uZvcJUP92Wkj2y",
           "name": "Wouldn't It Be Nice - Remastered 1999",
-          "popularity": 58,
+          "popularity": 59,
           "uri": "spotify:track:0cx32rX0uZvcJUP92Wkj2y",
           "is_local": false
         },
@@ -23465,7 +23465,7 @@
           "href": "https://api.spotify.com/v1/tracks/1hZJcuz9iMoz6tLkFlIaUy",
           "id": "1hZJcuz9iMoz6tLkFlIaUy",
           "name": "Take My Breath Away",
-          "popularity": 66,
+          "popularity": 67,
           "uri": "spotify:track:1hZJcuz9iMoz6tLkFlIaUy",
           "is_local": false
         },
@@ -26441,7 +26441,7 @@
           "href": "https://api.spotify.com/v1/tracks/3DiRdaZtPrVdb4U2RIuRWm",
           "id": "3DiRdaZtPrVdb4U2RIuRWm",
           "name": "One Way Or Another",
-          "popularity": 53,
+          "popularity": 54,
           "uri": "spotify:track:3DiRdaZtPrVdb4U2RIuRWm",
           "is_local": false
         },
@@ -26633,7 +26633,7 @@
           "href": "https://api.spotify.com/v1/tracks/1AAEWUVZpew24mP6nC1IU5",
           "id": "1AAEWUVZpew24mP6nC1IU5",
           "name": "Take My Breath Away - Love Theme from \"Top Gun\"",
-          "popularity": 0,
+          "popularity": 1,
           "uri": "spotify:track:1AAEWUVZpew24mP6nC1IU5",
           "is_local": false
         },
@@ -28645,7 +28645,7 @@
           "href": "https://api.spotify.com/v1/tracks/5VVwwfK6Cp9IydkhKfJUEq",
           "id": "5VVwwfK6Cp9IydkhKfJUEq",
           "name": "You Give Love A Bad Name",
-          "popularity": 5,
+          "popularity": 4,
           "uri": "spotify:track:5VVwwfK6Cp9IydkhKfJUEq",
           "is_local": false
         },
@@ -28741,7 +28741,7 @@
           "href": "https://api.spotify.com/v1/tracks/5Nr9yifzGhFVgpKtcYLPwk",
           "id": "5Nr9yifzGhFVgpKtcYLPwk",
           "name": "I Want to Know What Love Is",
-          "popularity": 5,
+          "popularity": 7,
           "uri": "spotify:track:5Nr9yifzGhFVgpKtcYLPwk",
           "is_local": false
         },
@@ -28837,7 +28837,7 @@
           "href": "https://api.spotify.com/v1/tracks/4uLU6hMCjMI75M1A2tKUQC",
           "id": "4uLU6hMCjMI75M1A2tKUQC",
           "name": "Never Gonna Give You Up",
-          "popularity": 8,
+          "popularity": 7,
           "uri": "spotify:track:4uLU6hMCjMI75M1A2tKUQC",
           "is_local": false
         },
@@ -31207,7 +31207,7 @@
           "href": "https://api.spotify.com/v1/tracks/6OnfBiiSc9RGKiBKKtZXgQ",
           "id": "6OnfBiiSc9RGKiBKKtZXgQ",
           "name": "We Built This City",
-          "popularity": 79,
+          "popularity": 80,
           "uri": "spotify:track:6OnfBiiSc9RGKiBKKtZXgQ",
           "is_local": false
         },
@@ -32235,7 +32235,7 @@
           "href": "https://api.spotify.com/v1/tracks/7o2CTH4ctstm8TNelqjb51",
           "id": "7o2CTH4ctstm8TNelqjb51",
           "name": "Sweet Child O' Mine",
-          "popularity": 19,
+          "popularity": 18,
           "uri": "spotify:track:7o2CTH4ctstm8TNelqjb51",
           "is_local": false
         },
@@ -32701,7 +32701,7 @@
           "href": "https://api.spotify.com/v1/tracks/0X1sqQ652p1sceKM2nJlIJ",
           "id": "0X1sqQ652p1sceKM2nJlIJ",
           "name": "Runaway",
-          "popularity": 77,
+          "popularity": 78,
           "uri": "spotify:track:0X1sqQ652p1sceKM2nJlIJ",
           "is_local": false
         },
@@ -33167,7 +33167,7 @@
           "href": "https://api.spotify.com/v1/tracks/0oerlffJSzhRVvtDfLcp3N",
           "id": "0oerlffJSzhRVvtDfLcp3N",
           "name": "Wanted Dead Or Alive",
-          "popularity": 73,
+          "popularity": 74,
           "uri": "spotify:track:0oerlffJSzhRVvtDfLcp3N",
           "is_local": false
         },
@@ -34569,7 +34569,7 @@
           "href": "https://api.spotify.com/v1/tracks/1ZPlNanZsJSPK5h9YZZFbZ",
           "id": "1ZPlNanZsJSPK5h9YZZFbZ",
           "name": "Like a Virgin",
-          "popularity": 73,
+          "popularity": 74,
           "uri": "spotify:track:1ZPlNanZsJSPK5h9YZZFbZ",
           "is_local": false
         },
@@ -36523,7 +36523,7 @@
           "href": "https://api.spotify.com/v1/tracks/1hlveB9M6ijHZRbzZ2teyh",
           "id": "1hlveB9M6ijHZRbzZ2teyh",
           "name": "We're Not Gonna Take It",
-          "popularity": 26,
+          "popularity": 24,
           "uri": "spotify:track:1hlveB9M6ijHZRbzZ2teyh",
           "is_local": false
         },

@@ -6,14 +6,14 @@
   },
   "followers": {
     "href": null,
-    "total": 139238
+    "total": 140553
   },
   "href": "https://api.spotify.com/v1/playlists/141guhSLUNzE58MqlIC4zT?locale=*",
   "id": "141guhSLUNzE58MqlIC4zT",
   "images": [
     {
       "height": null,
-      "url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72cb848c3db342bfe6cf4f62301",
+      "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84b848c3db342bfe6cf4f62301",
       "width": null
     }
   ],
@@ -1152,7 +1152,7 @@
           "href": "https://api.spotify.com/v1/tracks/4uLU6hMCjMI75M1A2tKUQC",
           "id": "4uLU6hMCjMI75M1A2tKUQC",
           "name": "Never Gonna Give You Up",
-          "popularity": 8,
+          "popularity": 7,
           "uri": "spotify:track:4uLU6hMCjMI75M1A2tKUQC",
           "is_local": false
         },
@@ -2086,7 +2086,7 @@
           "href": "https://api.spotify.com/v1/tracks/4t0UsYzmmmZRMTWn77jiGF",
           "id": "4t0UsYzmmmZRMTWn77jiGF",
           "name": "Show Me Love",
-          "popularity": 75,
+          "popularity": 76,
           "uri": "spotify:track:4t0UsYzmmmZRMTWn77jiGF",
           "is_local": false
         },
@@ -2554,7 +2554,7 @@
           "href": "https://api.spotify.com/v1/tracks/1i3jPowCNmyemFeiJtvLSA",
           "id": "1i3jPowCNmyemFeiJtvLSA",
           "name": "Desert Roll",
-          "popularity": 33,
+          "popularity": 39,
           "uri": "spotify:track:1i3jPowCNmyemFeiJtvLSA",
           "is_local": false
         },
@@ -4052,7 +4052,7 @@
           "href": "https://api.spotify.com/v1/tracks/7kTvXtMERxvwCGcWv68ssH",
           "id": "7kTvXtMERxvwCGcWv68ssH",
           "name": "Sweat (A La La La La Long)",
-          "popularity": 2,
+          "popularity": 1,
           "uri": "spotify:track:7kTvXtMERxvwCGcWv68ssH",
           "is_local": false
         },
@@ -5552,7 +5552,7 @@
           "href": "https://api.spotify.com/v1/tracks/5LtuSj4euHwoRGv48Xl9mx",
           "id": "5LtuSj4euHwoRGv48Xl9mx",
           "name": "The Final Time",
-          "popularity": 0,
+          "popularity": 34,
           "uri": "spotify:track:5LtuSj4euHwoRGv48Xl9mx",
           "is_local": false
         },
@@ -6506,7 +6506,7 @@
           "href": "https://api.spotify.com/v1/tracks/3WXulOP77aG1AegMXRoUs3",
           "id": "3WXulOP77aG1AegMXRoUs3",
           "name": "Touch Me There",
-          "popularity": 34,
+          "popularity": 38,
           "uri": "spotify:track:3WXulOP77aG1AegMXRoUs3",
           "is_local": false
         },
@@ -6974,7 +6974,7 @@
           "href": "https://api.spotify.com/v1/tracks/5fRvePkRGdpn2nKacG7I6d",
           "id": "5fRvePkRGdpn2nKacG7I6d",
           "name": "Coco Jamboo",
-          "popularity": 77,
+          "popularity": 78,
           "uri": "spotify:track:5fRvePkRGdpn2nKacG7I6d",
           "is_local": false
         },
@@ -7442,7 +7442,7 @@
           "href": "https://api.spotify.com/v1/tracks/0tTC67dz52fc0MRoaplZ5C",
           "id": "0tTC67dz52fc0MRoaplZ5C",
           "name": "Old Fashioned Rhyme",
-          "popularity": 41,
+          "popularity": 43,
           "uri": "spotify:track:0tTC67dz52fc0MRoaplZ5C",
           "is_local": false
         },
@@ -8670,7 +8670,7 @@
           "href": "https://api.spotify.com/v1/tracks/3ZZGnDRMcJU0JNRFKbH09d",
           "id": "3ZZGnDRMcJU0JNRFKbH09d",
           "name": "Jenny",
-          "popularity": 37,
+          "popularity": 49,
           "uri": "spotify:track:3ZZGnDRMcJU0JNRFKbH09d",
           "is_local": false
         },
@@ -9234,7 +9234,7 @@
           "href": "https://api.spotify.com/v1/tracks/5VVwwfK6Cp9IydkhKfJUEq",
           "id": "5VVwwfK6Cp9IydkhKfJUEq",
           "name": "You Give Love A Bad Name",
-          "popularity": 5,
+          "popularity": 4,
           "uri": "spotify:track:5VVwwfK6Cp9IydkhKfJUEq",
           "is_local": false
         },
@@ -10646,7 +10646,7 @@
           "href": "https://api.spotify.com/v1/tracks/6Jy4MUMCVihVdip0682Kbi",
           "id": "6Jy4MUMCVihVdip0682Kbi",
           "name": "Dreams",
-          "popularity": 34,
+          "popularity": 37,
           "uri": "spotify:track:6Jy4MUMCVihVdip0682Kbi",
           "is_local": false
         },
@@ -11772,7 +11772,7 @@
           "href": "https://api.spotify.com/v1/tracks/7o2CTH4ctstm8TNelqjb51",
           "id": "7o2CTH4ctstm8TNelqjb51",
           "name": "Sweet Child O' Mine",
-          "popularity": 19,
+          "popularity": 18,
           "uri": "spotify:track:7o2CTH4ctstm8TNelqjb51",
           "is_local": false
         },
@@ -12240,7 +12240,7 @@
           "href": "https://api.spotify.com/v1/tracks/7cCijzbqdgFJqWivh5xKSJ",
           "id": "7cCijzbqdgFJqWivh5xKSJ",
           "name": "Call Me Cray",
-          "popularity": 23,
+          "popularity": 32,
           "uri": "spotify:track:7cCijzbqdgFJqWivh5xKSJ",
           "is_local": false
         },
@@ -12704,7 +12704,7 @@
           "href": "https://api.spotify.com/v1/tracks/18AXbzPzBS8Y3AkgSxzJPb",
           "id": "18AXbzPzBS8Y3AkgSxzJPb",
           "name": "In The Air Tonight - 2015 Remastered",
-          "popularity": 82,
+          "popularity": 83,
           "uri": "spotify:track:18AXbzPzBS8Y3AkgSxzJPb",
           "is_local": false
         },
@@ -14144,7 +14144,7 @@
           "href": "https://api.spotify.com/v1/tracks/3GCpEbJzknVdpvx9WI03x3",
           "id": "3GCpEbJzknVdpvx9WI03x3",
           "name": "Mysterious Girl - Radio Edit",
-          "popularity": 57,
+          "popularity": 58,
           "uri": "spotify:track:3GCpEbJzknVdpvx9WI03x3",
           "is_local": false
         },
@@ -14612,7 +14612,7 @@
           "href": "https://api.spotify.com/v1/tracks/4k4UqdNIGQJ8dCiss0cnZt",
           "id": "4k4UqdNIGQJ8dCiss0cnZt",
           "name": "Never Look Back",
-          "popularity": 41,
+          "popularity": 40,
           "uri": "spotify:track:4k4UqdNIGQJ8dCiss0cnZt",
           "is_local": false
         },
@@ -15084,7 +15084,7 @@
           "href": "https://api.spotify.com/v1/tracks/4aMT5LHe8A2uIc11H8Cx2m",
           "id": "4aMT5LHe8A2uIc11H8Cx2m",
           "name": "Conga",
-          "popularity": 59,
+          "popularity": 60,
           "uri": "spotify:track:4aMT5LHe8A2uIc11H8Cx2m",
           "is_local": false
         },
@@ -16114,7 +16114,7 @@
           "href": "https://api.spotify.com/v1/tracks/6FcQD1qOpqV8NdhY45sKyI",
           "id": "6FcQD1qOpqV8NdhY45sKyI",
           "name": "What's Love Got to Do with It",
-          "popularity": 59,
+          "popularity": 60,
           "uri": "spotify:track:6FcQD1qOpqV8NdhY45sKyI",
           "is_local": false
         },
@@ -16220,7 +16220,7 @@
           "href": "https://api.spotify.com/v1/tracks/7lQWRAjyhTpCWFC0jmclT4",
           "id": "7lQWRAjyhTpCWFC0jmclT4",
           "name": "Gangsta's Paradise",
-          "popularity": 11,
+          "popularity": 13,
           "uri": "spotify:track:7lQWRAjyhTpCWFC0jmclT4",
           "is_local": false
         },
@@ -19358,7 +19358,7 @@
           "href": "https://api.spotify.com/v1/tracks/3u5N55tHf7hXATSQrjBh2q",
           "id": "3u5N55tHf7hXATSQrjBh2q",
           "name": "Freed From Desire - prod. Molella, Phil Jay",
-          "popularity": 81,
+          "popularity": 82,
           "uri": "spotify:track:3u5N55tHf7hXATSQrjBh2q",
           "is_local": false
         },
@@ -19836,7 +19836,7 @@
           "href": "https://api.spotify.com/v1/tracks/3XKIUb7HzIF1Vu9usunMzc",
           "id": "3XKIUb7HzIF1Vu9usunMzc",
           "name": "Maria Maria (feat. The Product G&B)",
-          "popularity": 77,
+          "popularity": 78,
           "uri": "spotify:track:3XKIUb7HzIF1Vu9usunMzc",
           "is_local": false
         },
@@ -21328,7 +21328,7 @@
           "href": "https://api.spotify.com/v1/tracks/1YnVYHXoak0syv4xBRHQRb",
           "id": "1YnVYHXoak0syv4xBRHQRb",
           "name": "Kingston Town",
-          "popularity": 74,
+          "popularity": 75,
           "uri": "spotify:track:1YnVYHXoak0syv4xBRHQRb",
           "is_local": false
         },
@@ -21424,7 +21424,7 @@
           "href": "https://api.spotify.com/v1/tracks/2ahnofp2LbBWDXcJbMaSTu",
           "id": "2ahnofp2LbBWDXcJbMaSTu",
           "name": "What Is Love - 7\" Mix",
-          "popularity": 9,
+          "popularity": 10,
           "uri": "spotify:track:2ahnofp2LbBWDXcJbMaSTu",
           "is_local": false
         },
@@ -22446,7 +22446,7 @@
           "href": "https://api.spotify.com/v1/tracks/6OtlkByM64FzhICejC8TaY",
           "id": "6OtlkByM64FzhICejC8TaY",
           "name": "Ready or Not",
-          "popularity": 1,
+          "popularity": 0,
           "uri": "spotify:track:6OtlkByM64FzhICejC8TaY",
           "is_local": false
         },
@@ -22914,7 +22914,7 @@
           "href": "https://api.spotify.com/v1/tracks/6Sy9BUbgFse0n0LPA5lwy5",
           "id": "6Sy9BUbgFse0n0LPA5lwy5",
           "name": "Sandstorm",
-          "popularity": 74,
+          "popularity": 75,
           "uri": "spotify:track:6Sy9BUbgFse0n0LPA5lwy5",
           "is_local": false
         },
@@ -23976,7 +23976,7 @@
           "href": "https://api.spotify.com/v1/tracks/0ofMkI3jzmGCElAOgOLeo3",
           "id": "0ofMkI3jzmGCElAOgOLeo3",
           "name": "The Rhythm of the Night",
-          "popularity": 75,
+          "popularity": 76,
           "uri": "spotify:track:0ofMkI3jzmGCElAOgOLeo3",
           "is_local": false
         },
@@ -25088,7 +25088,7 @@
           "href": "https://api.spotify.com/v1/tracks/2oTDOIAdsxPTE7yAp4YOcv",
           "id": "2oTDOIAdsxPTE7yAp4YOcv",
           "name": "Jump Around",
-          "popularity": 5,
+          "popularity": 6,
           "uri": "spotify:track:2oTDOIAdsxPTE7yAp4YOcv",
           "is_local": false
         },
@@ -26022,7 +26022,7 @@
           "href": "https://api.spotify.com/v1/tracks/5tJjo5JDF9zhzYD7yQfATH",
           "id": "5tJjo5JDF9zhzYD7yQfATH",
           "name": "Africa",
-          "popularity": 53,
+          "popularity": 54,
           "uri": "spotify:track:5tJjo5JDF9zhzYD7yQfATH",
           "is_local": false
         },
@@ -27166,7 +27166,7 @@
           "href": "https://api.spotify.com/v1/tracks/68C7Q9IW70v5uaXSXyWVm3",
           "id": "68C7Q9IW70v5uaXSXyWVm3",
           "name": "The Sign",
-          "popularity": 1,
+          "popularity": 0,
           "uri": "spotify:track:68C7Q9IW70v5uaXSXyWVm3",
           "is_local": false
         },
@@ -28664,7 +28664,7 @@
           "href": "https://api.spotify.com/v1/tracks/54OR1VDpfkBuOY5zZjhZAY",
           "id": "54OR1VDpfkBuOY5zZjhZAY",
           "name": "YMCA - Original Version 1978",
-          "popularity": 73,
+          "popularity": 74,
           "uri": "spotify:track:54OR1VDpfkBuOY5zZjhZAY",
           "is_local": false
         },
@@ -29700,7 +29700,7 @@
           "href": "https://api.spotify.com/v1/tracks/4aVuWgvD0X63hcOCnZtNFA",
           "id": "4aVuWgvD0X63hcOCnZtNFA",
           "name": "Hold the Line",
-          "popularity": 84,
+          "popularity": 85,
           "uri": "spotify:track:4aVuWgvD0X63hcOCnZtNFA",
           "is_local": false
         },
@@ -30276,7 +30276,7 @@
           "href": "https://api.spotify.com/v1/tracks/32RxZnEk5KyWUTZR4azxbD",
           "id": "32RxZnEk5KyWUTZR4azxbD",
           "name": "Can You Feel the Love Tonight - End Title",
-          "popularity": 63,
+          "popularity": 64,
           "uri": "spotify:track:32RxZnEk5KyWUTZR4azxbD",
           "is_local": false
         },
@@ -30874,7 +30874,7 @@
           "href": "https://api.spotify.com/v1/tracks/2goLsvvODILDzeeiT4dAoR",
           "id": "2goLsvvODILDzeeiT4dAoR",
           "name": "Believe",
-          "popularity": 83,
+          "popularity": 84,
           "uri": "spotify:track:2goLsvvODILDzeeiT4dAoR",
           "is_local": false
         },
@@ -31338,7 +31338,7 @@
           "href": "https://api.spotify.com/v1/tracks/4qv7YSyt5UV8LvrXyE8sGn",
           "id": "4qv7YSyt5UV8LvrXyE8sGn",
           "name": "Can You Feel It - 7\" Version",
-          "popularity": 52,
+          "popularity": 53,
           "uri": "spotify:track:4qv7YSyt5UV8LvrXyE8sGn",
           "is_local": false
         },
@@ -32734,7 +32734,7 @@
           "href": "https://api.spotify.com/v1/tracks/7Ewz6bJ97vUqk5HdkvguFQ",
           "id": "7Ewz6bJ97vUqk5HdkvguFQ",
           "name": "Heaven",
-          "popularity": 85,
+          "popularity": 86,
           "uri": "spotify:track:7Ewz6bJ97vUqk5HdkvguFQ",
           "is_local": false
         },
@@ -33670,7 +33670,7 @@
           "href": "https://api.spotify.com/v1/tracks/6kWJvPfC4DgUpRsXKNa9z9",
           "id": "6kWJvPfC4DgUpRsXKNa9z9",
           "name": "All That She Wants",
-          "popularity": 83,
+          "popularity": 84,
           "uri": "spotify:track:6kWJvPfC4DgUpRsXKNa9z9",
           "is_local": false
         },
@@ -33862,7 +33862,7 @@
           "href": "https://api.spotify.com/v1/tracks/0pMUR7Uvp6vxlbG0qBFvgM",
           "id": "0pMUR7Uvp6vxlbG0qBFvgM",
           "name": "Better Off Alone",
-          "popularity": 14,
+          "popularity": 13,
           "uri": "spotify:track:0pMUR7Uvp6vxlbG0qBFvgM",
           "is_local": false
         },
