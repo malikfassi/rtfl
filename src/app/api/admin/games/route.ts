@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { Handler } from 'typed-route-handler';
+import { PrismaClient } from '@prisma/client';
 
 import { ValidationError } from '@/app/api/lib/errors/base';
 import { handleError } from '@/app/api/lib/utils/error-handler';
-import { gameService, type GameWithSong } from '@/app/api/lib/services/game';
+import { createGameService } from '@/app/api/lib/services/game';
+import type { GameWithSong } from '@/app/types';
 import { schemas, validateSchema } from '@/app/api/lib/validation';
-import { songService } from '@/app/api/lib/services/song';
+import { createSongService } from '@/app/api/lib/services/song';
 
 type ErrorResponse = { error: string };
 type SuccessResponse<T> = T;
@@ -14,14 +15,18 @@ type GetResponse = SuccessResponse<GameWithSong | GameWithSong[]> | ErrorRespons
 type PostResponse = SuccessResponse<GameWithSong> | ErrorResponse;
 type DeleteResponse = SuccessResponse<{ success: boolean }> | ErrorResponse;
 
-export const GET: Handler<GetResponse> = async (request) => {
+export async function GET(request: Request): Promise<NextResponse<GetResponse>> {
+  const prisma = new PrismaClient();
   try {
+    const songService = createSongService(prisma);
+    const gameService = createGameService(songService, prisma);
+    
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month');
     const date = searchParams.get('date');
 
     if (!date && !month) {
-      throw new ValidationError('Date or month is required');
+      throw new ValidationError();
     }
 
     if (date) {
@@ -35,19 +40,25 @@ export const GET: Handler<GetResponse> = async (request) => {
     }
   } catch (error) {
     return handleError(error);
+  } finally {
+    await prisma.$disconnect();
   }
-};
+}
 
-export const POST: Handler<PostResponse> = async (request) => {
+export async function POST(request: Request): Promise<NextResponse<PostResponse>> {
+  const prisma = new PrismaClient();
   try {
+    const songService = createSongService(prisma);
+    const gameService = createGameService(songService, prisma);
+    
     const body = await request.json();
     const { date, spotifyId } = body;
     
     if (!date) {
-      throw new ValidationError('Date is required');
+      throw new ValidationError();
     }
     if (!spotifyId) {
-      throw new ValidationError('Spotify ID is required');
+      throw new ValidationError();
     }
 
     const validatedDate = validateSchema(schemas.date, date);
@@ -58,16 +69,22 @@ export const POST: Handler<PostResponse> = async (request) => {
     return NextResponse.json(result);
   } catch (error) {
     return handleError(error);
+  } finally {
+    await prisma.$disconnect();
   }
-};
+}
 
-export const DELETE: Handler<DeleteResponse> = async (request) => {
+export async function DELETE(request: Request): Promise<NextResponse<DeleteResponse>> {
+  const prisma = new PrismaClient();
   try {
+    const songService = createSongService(prisma);
+    const gameService = createGameService(songService, prisma);
+    
     const body = await request.json();
     const { date } = body;
     
     if (!date) {
-      throw new ValidationError('Date is required');
+      throw new ValidationError();
     }
 
     const validatedDate = validateSchema(schemas.date, date);
@@ -75,5 +92,7 @@ export const DELETE: Handler<DeleteResponse> = async (request) => {
     return NextResponse.json({ success: true });
   } catch (error) {
     return handleError(error);
+  } finally {
+    await prisma.$disconnect();
   }
-};
+}

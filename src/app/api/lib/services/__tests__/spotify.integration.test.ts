@@ -1,18 +1,16 @@
-import { SpotifyService } from '../spotify';
-import { SpotifyApiError, TrackNotFoundError } from '@/app/api/lib/errors/clients/spotify';
+import { createSpotifyService } from '../spotify';
+import { TrackNotFoundError } from '@/app/api/lib/errors/clients/spotify';
 import { ValidationError } from '@/app/api/lib/errors/base';
 import { setupIntegrationTest, cleanupIntegrationTest } from '@/app/api/lib/test/env/integration';
-import type { IntegrationTestContext } from '@/app/api/lib/test/env/integration';
-import { TRACK_KEYS, TRACK_URIS, TEST_IDS } from '@/app/api/lib/test/constants';
+import { TRACK_KEYS, TRACK_URIS } from '@/app/api/lib/test/constants';
 import { integration_validator } from '@/app/api/lib/test/validators';
 
 describe('SpotifyService Integration', () => {
-  let context: IntegrationTestContext;
-  let spotifyService: SpotifyService;
+  let spotifyService: ReturnType<typeof createSpotifyService>;
 
   beforeEach(async () => {
-    context = await setupIntegrationTest();
-    spotifyService = new SpotifyService();
+    await setupIntegrationTest();
+    spotifyService = createSpotifyService();
   });
 
   afterEach(async () => {

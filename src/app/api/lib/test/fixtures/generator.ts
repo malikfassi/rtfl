@@ -1,16 +1,16 @@
 import type { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { writeFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 
 import { GeniusClientImpl } from '@/app/api/lib/clients/genius';
 import { env } from '@/app/api/lib/env';
-import type { GeniusSearchResponse } from '@/app/api/lib/types/genius';
+import type { GeniusSearchResponse } from '@/app/types';
 import { withRetry } from '@/app/api/lib/utils/retry';
-import { TEST_IDS, isErrorCase, isInstrumental, getAllTrackIds, TRACK_KEYS, PLAYLIST_KEYS, TRACK_URIS, PLAYLIST_URIS } from '../constants';
+import { TEST_IDS, isErrorCase, isInstrumental, getAllTrackIds } from '../constants';
 import { extractLyricsFromHtml } from '@/app/api/lib/services/lyrics';
 import { maskedLyricsService } from '@/app/api/lib/services/masked-lyrics';
 
@@ -41,27 +41,6 @@ console.log('Initializing API clients...');
 const spotify = SpotifyApi.withClientCredentials(env.SPOTIFY_CLIENT_ID, env.SPOTIFY_CLIENT_SECRET);
 const genius = new GeniusClientImpl(env.GENIUS_ACCESS_TOKEN);
 console.log('API clients initialized successfully');
-
-interface SpotifyData {
-  tracks: Partial<Record<string, Track>>;
-  playlists: Partial<Record<string, SimplifiedPlaylist>>;
-  playlistTracks: Partial<Record<string, Track[]>>;
-  errors: {
-    tracks: Partial<Record<string, { status: number; message: string }>>;
-    playlists: Partial<Record<string, { status: number; message: string }>>;
-  };
-}
-
-interface GeniusData {
-  byId: Partial<Record<string, {
-    url: string;
-    title: string;
-    artist: string;
-    search: GeniusSearchResponse;
-  }>>;
-}
-
-type LyricsData = Partial<Record<string, string>>;
 
 // Helper function to extract Spotify ID from URI
 export function extractSpotifyId(uri: string): string {
@@ -311,38 +290,12 @@ async function generatePlaylistData(uri: string, key: string): Promise<{
   }
 }
 
-// Modify batch processing to be sequential with longer delays
-async function processBatch<T, R>(
-  items: T[],
-  processor: (item: T) => Promise<R>,
-  onProgress?: (processed: number, total: number) => void
-): Promise<R[]> {
-  const results: R[] = [];
-  
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    const result = await processor(item);
-    results.push(result);
-    
-    if (onProgress) {
-      onProgress(i + 1, items.length);
-    }
-    
-    // Add delay between items
-    if (i < items.length - 1) {
-      await delay(1000);
-    }
-  }
-  
-  return results;
-}
-
 async function generateSpecialCaseFixtures() {
   console.log('\nGenerating special case fixtures...');
 
   // Get key names generically
   const noResultsKeyName = Object.entries(TEST_IDS.GENIUS.QUERIES)
-    .find(([_, v]) => v === TEST_IDS.GENIUS.QUERIES.NO_RESULTS)?.[0] || 'NO_RESULTS';
+    .find((entry) => entry[1] === TEST_IDS.GENIUS.QUERIES.NO_RESULTS)?.[0] || 'NO_RESULTS';
 
   // Generate NO_RESULTS search fixture for Genius
   console.log('- Searching Genius for no results query...');
@@ -391,13 +344,14 @@ async function generateSpecialCaseFixtures() {
         const track = await spotify.tracks.get(spotifyId);
         // If somehow it exists, save it
         saveFixtureFile('spotify', 'tracks', key, track, 'json');
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Save the actual error response from Spotify
-        console.log('- Got expected error from Spotify:', error.message);
+        const err = error as { status?: number; message?: string };
+        console.log('- Got expected error from Spotify:', err.message);
         const errorResponse = {
           error: {
-            status: error.status || 404,
-            message: error.message || "Non existing id"
+            status: err.status || 404,
+            message: err.message || "Non existing id"
           }
         };
         saveFixtureFile('spotify', 'tracks', key, errorResponse, 'json');
@@ -670,16 +624,16 @@ function createFixtureDirectories() {
 }
 
 // Helper to save individual fixture files
-function saveFixtureFile(service: string, type: string, key: string, data: any, extension: string = 'json') {
+function saveFixtureFile(service: string, type: string, key: string, data: unknown, extension: string = 'json') {
   const fileName = key;
   const filePath = path.join(__dirname, 'data', service, type, `${fileName}.${extension}`);
-  const content = extension === 'json' ? JSON.stringify(data, null, 2) : data;
+  const content = extension === 'json' ? JSON.stringify(data, null, 2) : String(data);
   writeFileSync(filePath, content);
   console.log(`✓ Saved ${service}/${type}/${fileName}.${extension}`);
 }
 
 // Helper to save search fixture
-function saveSearchFixture(service: string, key: string, query: string, data: any) {
+function saveSearchFixture(service: string, key: string, query: string, data: unknown) {
   saveFixtureFile(service, 'search', key, data, 'json');
 }
 

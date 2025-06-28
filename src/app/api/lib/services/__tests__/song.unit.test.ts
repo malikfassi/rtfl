@@ -4,7 +4,7 @@ import { TRACK_KEYS } from '@/app/api/lib/test/constants';
 import { fixtures } from '@/app/api/lib/test/fixtures';
 import { unit_validator } from '@/app/api/lib/test/validators';
 import { PrismaClient } from '@prisma/client';
-import { GeniusSearchResponse, GeniusHit } from '@/app/api/lib/types/genius';
+import { GeniusSearchResponse, GeniusHit } from '@/app/types';
 
 describe('SongService Unit Tests', () => {
   let context: UnitTestContext;
@@ -12,11 +12,10 @@ describe('SongService Unit Tests', () => {
 
   beforeEach(() => {
     context = setupUnitTest();
-    (context.mockGeniusClient as any).findMatch = jest.fn();
     service = new SongService(
       context.mockPrisma as unknown as PrismaClient,
       context.mockSpotifyClient,
-      context.mockGeniusClient as any
+      context.mockGeniusService
     );
   });
 
@@ -38,8 +37,9 @@ describe('SongService Unit Tests', () => {
         context.mockSpotifyClient.getTrack.mockResolvedValueOnce(track);
         const searchFixture: GeniusSearchResponse = fixtures.genius.search[key];
         const bestMatch: GeniusHit = searchFixture.response.hits[0];
-        context.mockGeniusClient.search.mockResolvedValueOnce(searchFixture);
-        (context.mockGeniusClient as any).findMatch.mockResolvedValueOnce(bestMatch);
+        context.mockGeniusService.search.mockResolvedValueOnce(searchFixture);
+        context.mockGeniusService.findMatch.mockResolvedValueOnce(bestMatch);
+        // If you want to control lyrics/maskedLyrics, mock them here as needed
         const now = new Date();
         const expectedGeniusData = {
           title: bestMatch.result.title,

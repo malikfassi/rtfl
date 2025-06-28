@@ -1,17 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { handleError } from '@/app/api/lib/utils/error-handler';
 import { createGameStateService } from '@/app/api/lib/services/game-state';
 import { validateSchema, schemas } from '@/app/api/lib/validation';
-import type { GameState } from '@/app/api/lib/types/game-state';
 import { PrismaClient } from '@prisma/client';
-import type { NextRequest } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { maskedLyricsService } from '@/app/api/lib/services/masked-lyrics';
+import { createMaskedLyricsService } from '@/app/api/lib/services/masked-lyrics';
+import type { MaskedLyrics } from '@/app/types/game';
+import type { Token } from '@/app/types/common';
+import { Prisma } from '@prisma/client';
 
-type SuccessResponse<T> = T;
-type ErrorResponse = { error: string };
-type GetResponse = SuccessResponse<GameState & { stats?: GameStats }> | ErrorResponse;
 
 interface GameStats {
   totalPlayers: number;
@@ -48,7 +46,7 @@ const createRickrollGame = async (prisma: PrismaClient) => {
           create: {
             spotifyId: spotifyData.id,
             lyrics,
-            maskedLyrics: maskedLyricsService.create(title, artist, lyrics) as any,
+            maskedLyrics: createMaskedLyricsService().create(title, artist, lyrics) as unknown as Prisma.InputJsonValue,
             spotifyData,
             geniusData: geniusData.response.hits[0].result,
           }
@@ -60,7 +58,7 @@ const createRickrollGame = async (prisma: PrismaClient) => {
   return game;
 };
 
-export const GET = async (request: NextRequest, context: { params: { date: string } }) => {
+export const GET = async (request: NextRequest, context: { params: Promise<{ date: string }> }) => {
   const prisma = new PrismaClient();
   try {
     const { params } = context;
@@ -122,9 +120,14 @@ export const GET = async (request: NextRequest, context: { params: { date: strin
       const averageGuesses = totalPlayers > 0 ? Math.round(totalValidGuesses / totalPlayers) : 0;
 
       // Calculate lyrics completion for winners
-      const maskedLyrics = game.song.maskedLyrics;
-      const maskedWords = Array.isArray(maskedLyrics)
-        ? maskedLyrics.filter((t: any) => t.isToGuess).map((t: any) => t.value.toLowerCase())
+      const maskedLyrics = game.song.maskedLyrics as unknown as MaskedLyrics;
+      const allTokens: Token[] = [
+        ...(maskedLyrics.title || []),
+        ...(maskedLyrics.artist || []),
+        ...(maskedLyrics.lyrics || [])
+      ];
+      const maskedWords = Array.isArray(allTokens)
+        ? allTokens.filter((t: Token) => t.isToGuess).map((t: Token) => t.value.toLowerCase())
         : [];
       const totalMaskedWords = maskedWords.length;
 
@@ -136,12 +139,12 @@ export const GET = async (request: NextRequest, context: { params: { date: strin
       }
 
       // Find players who found all masked words
-      const winners = Object.entries(playerGuesses).filter(([_playerId, words]) =>
+      const winners = Object.entries(playerGuesses).filter(([, words]: [string, Set<string>]) =>
         maskedWords.every(w => words.has(w))
       );
 
       // Calculate completion percentage for winners
-      const winnerCompletions = winners.map(([_playerId, words]) =>
+      const winnerCompletions = winners.map(([, words]: [string, Set<string>]) =>
         totalMaskedWords > 0 ? Math.round((Array.from(words).filter(w => maskedWords.includes(w)).length / totalMaskedWords) * 100) : 0
       );
       const averageLyricsCompletionForWinners = winnerCompletions.length > 0

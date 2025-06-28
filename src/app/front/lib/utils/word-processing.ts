@@ -1,9 +1,9 @@
-export interface Token {
-  value: string;
-  isToGuess: boolean;
-}
+import type { Token } from '@/app/types';
 
-interface WordState {
+// Re-export for backward compatibility
+export type { Token };
+
+export interface WordState {
   isFound: boolean;
   shouldShow: boolean;
   isNewlyFound: boolean;

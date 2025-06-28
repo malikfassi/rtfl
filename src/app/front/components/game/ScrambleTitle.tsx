@@ -22,7 +22,7 @@ interface Letter {
   color: string;
 }
 
-export function ScrambleTitle({ title, date }: ScrambleTitleProps) {
+export function ScrambleTitle({ date }: ScrambleTitleProps) {
   const [letters, setLetters] = useState<Letter[]>(
     baseWord.split('').map(char => ({
       char,
@@ -95,7 +95,7 @@ export function ScrambleTitle({ title, date }: ScrambleTitleProps) {
     });
 
     return () => cleanupFns.forEach(fn => fn());
-  }, [scrambleLetter]);
+  }, [scrambleLetter, isAnimating]);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -155,7 +155,7 @@ export function ScrambleTitle({ title, date }: ScrambleTitleProps) {
         ))}
       </span>
       {' '}LYRICS{' '}
-      <Link href="/front/archive" className="group inline-flex items-baseline">
+      <Link href="/archive" className="group inline-flex items-baseline">
         <span className="text-xs font-normal text-foreground/70 group-hover:hidden transition-all duration-300">
           {date}
         </span>

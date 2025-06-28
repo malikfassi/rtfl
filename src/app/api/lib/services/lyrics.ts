@@ -1,9 +1,9 @@
-import * as cheerio from 'cheerio';
+import { load } from 'cheerio';
 import { decode } from 'html-entities';
 import { LyricsExtractionError } from '@/app/api/lib/errors/services/lyrics';
 
 export function extractLyricsFromHtml(html: string): string {
-  const $ = cheerio.load(html);
+  const $ = load(html);
   // Check for licensing message
   const licensingMessage = $('.LyricsPlaceholder__Message-sc-14g6xqc-2, .LyricsPlaceholder__Container-sc-14g6xqc-0').text();
   if (licensingMessage && licensingMessage.toLowerCase().includes('licensing')) {
@@ -92,7 +92,7 @@ export class LyricsService {
       }
 
       const html = await response.text();
-      const lyrics = extractLyricsFromHtml(html);
+      const lyrics = await extractLyricsFromHtml(html);
       
       if (!lyrics || lyrics === '[No lyrics available]') {
         throw new Error('No lyrics found on the page');
@@ -139,5 +139,7 @@ export class LyricsService {
   }
 }
 
-// Export singleton instance
-export const lyricsService = new LyricsService();
+// Factory function to create new instances
+export function createLyricsService() {
+  return new LyricsService();
+}

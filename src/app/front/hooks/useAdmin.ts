@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, addMonths } from 'date-fns';
-import type { GameWithSong } from '@/app/api/lib/services/game';
+import type { GameWithSong } from '@/app/types';
 import { queryKeys } from '@/app/front/lib/query-client';
 
 const adminApi = {

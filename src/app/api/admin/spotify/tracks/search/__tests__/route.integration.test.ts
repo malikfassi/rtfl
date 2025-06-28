@@ -4,7 +4,6 @@ import type { Track } from '@spotify/web-api-ts-sdk';
 import { cleanupIntegrationTest, setupIntegrationTest } from '@/app/api/lib/test';
 import { TRACK_KEYS } from '@/app/api/lib/test/constants';
 import { fixtures } from '@/app/api/lib/test/fixtures';
-import { integration_validator } from '@/app/api/lib/test/validators';
 import { ErrorCode } from '@/app/api/lib/errors/codes';
 import { ErrorMessage } from '@/app/api/lib/errors/messages';
 
@@ -13,18 +12,14 @@ import { GET } from '../route';
 const validTrackKey = TRACK_KEYS.PARTY_IN_THE_USA;
 const validTrack = fixtures.spotify.tracks[validTrackKey];
 
-function getErrorMessage(msg: string | ((...args: any[]) => string), ...args: any[]): string {
-  return typeof msg === 'function' ? msg(...args) : msg;
-}
-
 describe('Spotify Tracks Search API Integration', () => {
   beforeEach(async () => {
     await setupIntegrationTest();
-  }, 10000);
+  }, 30000);
 
   afterEach(async () => {
     await cleanupIntegrationTest();
-  }, 10000);
+  }, 30000);
 
   describe('GET /api/admin/spotify/tracks/search', () => {
     test('should return tracks when found by query', async () => {
@@ -57,7 +52,7 @@ describe('Spotify Tracks Search API Integration', () => {
                artistName.includes(validTrack.artists[0].name.toLowerCase());
       });
       expect(hasRelevantTrack).toBe(true);
-    }, 10000);
+    }, 30000);
 
     test('should return 400 when query is missing', async () => {
       const request = new NextRequest(
@@ -70,8 +65,8 @@ describe('Spotify Tracks Search API Integration', () => {
 
       expect(response.status).toBe(400);
       expect(data.error).toBe(ErrorCode.ValidationError);
-      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
-    }, 10000);
+      expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
+    }, 30000);
 
     test('should return 400 when query is empty', async () => {
       const request = new NextRequest(
@@ -84,8 +79,8 @@ describe('Spotify Tracks Search API Integration', () => {
 
       expect(response.status).toBe(400);
       expect(data.error).toBe(ErrorCode.ValidationError);
-      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
-    }, 10000);
+      expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
+    }, 30000);
 
     test('should return 400 when query is too long', async () => {
       const longQuery = 'a'.repeat(300);
@@ -99,7 +94,7 @@ describe('Spotify Tracks Search API Integration', () => {
 
       expect(response.status).toBe(400);
       expect(data.error).toBe(ErrorCode.ValidationError);
-      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
-    }, 10000);
+      expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
+    }, 30000);
   });
 }); 

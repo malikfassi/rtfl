@@ -1,18 +1,16 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
 import React, { useEffect, useRef,useState } from 'react';
 
-import { Button } from '@/app/front/components/ui/Button';
 import { Input } from '@/app/front/components/ui/Input';
 import { useDebounce } from '@/app/front/hooks/useDebounce';
 import { cn } from '@/app/front/lib/utils';
 
 interface SongBrowserProps {
   onSelect: (track: Track) => void;
-  onCancel: () => void;
   disabled?: boolean;
 }
 
-export function SongBrowser({ onSelect, onCancel, disabled }: SongBrowserProps) {
+export function SongBrowser({ onSelect, disabled }: SongBrowserProps) {
   const [query, setQuery] = useState('');
   const [tracks, setTracks] = useState<Track[]>([]);
   const [selectedTrackId, setSelectedTrackId] = useState<string | undefined>(undefined);

@@ -1,0 +1,20 @@
+{
+  "jest.autoEnable": true,
+  "jest.autoRun": {
+    "onSave": "test-file",
+    "watch": false
+  },
+  "jest.debugMode": false,
+  "jest.jestCommandLine": "npx jest --config jest.vscode.config.js",
+  "jest.nodeEnv": {
+    "NODE_ENV": "test"
+  },
+  "jest.showCoverageOnLoad": false,
+  "jest.testExplorer": {
+    "enabled": true,
+    "showInlineError": true
+  },
+  "jest.workingDirectory": "${workspaceFolder}",
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true
+}

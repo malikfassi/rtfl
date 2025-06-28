@@ -6,26 +6,7 @@ import { LyricsRenderer } from "./LyricsRenderer";
 import { WordRenderer } from "./WordRenderer";
 import { useWordHighlighting } from "@/app/front/hooks/useWordHighlighting";
 import { calculateWordState, getWordColor } from "@/app/front/lib/utils/word-processing";
-
-interface MaskedLyricsProps {
-  title: string;
-  artist: string;
-  lyrics: string;
-  maskedTitleParts?: Array<{ value: string; isToGuess: boolean }>;
-  maskedArtistParts?: Array<{ value: string; isToGuess: boolean }>;
-  maskedLyricsParts?: Array<{ value: string; isToGuess: boolean }>;
-  isComplete?: boolean;
-  foundWords: string[];
-  guesses: Array<{
-    id: string;
-    word: string;
-    valid: boolean;
-  }>;
-  colors: Array<{ bg: string; text: string; }>;
-  song?: { lyrics: string; } | null;
-  isAdmin?: boolean;
-  showFullLyrics?: boolean;
-}
+import type { MaskedLyricsProps } from "@/app/types";
 
 export function MaskedLyrics({ 
   title, 
@@ -153,14 +134,14 @@ export function MaskedLyrics({
       )}
 
       <LyricsRenderer
-        lyrics={isAdmin && showFullLyrics && song?.lyrics ? song.lyrics : safeLyrics}
+        lyrics={isAdmin && showFullLyrics && song?.lyrics ? song.lyrics : (maskedLyricsParts || safeLyrics)}
         foundWords={foundWords}
         hoveredWord={hoveredWord}
         selectedWord={selectedWord}
         guesses={guesses}
-        colors={colors}
         isComplete={isComplete}
         showFullLyrics={showFullLyrics}
+        colors={colors}
       />
     </div>
   );

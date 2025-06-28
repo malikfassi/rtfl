@@ -9,9 +9,10 @@
     "@types/lodash": "^4.17.14",
     "@types/spotify-web-api-node": "^5.0.11",
     "axios": "^1.7.9",
-    "cheerio": "^1.0.0",
+    "cheerio": "^1.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cuid": "^3.0.0",
     "date-fns": "^4.1.0",
     "express": "^4.21.2",
     "genius-lyrics": "^4.4.7",
@@ -20,7 +21,6 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.474.0",
     "next": "15.1.6",
-    "playwright": "^1.52.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "spotify-web-api-node": "^5.0.2",
@@ -32,6 +32,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@jest/globals": "^29.7.0",
+    "@playwright/test": "^1.53.0",
     "@swc/jest": "^0.2.37",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^14.2.1",
@@ -68,7 +69,8 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typed-route-handler": "^1.1.0",
-    "typescript": "5.3.3"
+    "typescript": "5.3.3",
+    "whatwg-fetch": "^3.6.20"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -96,6 +98,14 @@
     "start": "next start",
     "test": "jest",
     "test:clean": "npm run clean:db && jest",
+    "test:failed": "jest --verbose --silent --passWithNoTests",
+    "test:failed:config": "jest --config jest.failed.config.cjs",
+    "test:failed:config:log": "jest --config jest.failed.config.cjs > test-results/failed-tests-detailed.log 2>&1",
+    "test:failed:log": "jest --verbose --silent --passWithNoTests > test-results/failed-tests.log 2>&1",
+    "test:failed:only": "jest --verbose --silent --passWithNoTests --onlyFailures",
+    "test:failed:script": "./scripts/test-failed.sh",
+    "test:failed:script:log": "./scripts/test-failed.sh log",
+    "test:front": "jest --config jest.config.cjs",
     "test:integration": "jest --selectProjects integration",
     "test:integration:sequential": "jest --selectProjects integration --runInBand",
     "test:parallel": "npm run clean:db && jest --maxWorkers=50%",

@@ -1,7 +1,5 @@
 import type { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 import { fixtures } from '../../fixtures';
-import { TEST_IDS } from '../../constants';
-import { constructSpotifySearchQuery } from '../../../utils/spotify';
 
 type SpotifyTrackFixture = Track;
 

@@ -4,15 +4,6 @@ import React, { useState } from "react";
 import { cn } from "@/app/front/lib/utils";
 import { calculateGuessHits } from "@/app/front/lib/utils/hit-counting";
 
-interface Guess {
-  id: string;
-  gameId: string;
-  playerId: string;
-  word: string;
-  createdAt: Date;
-  valid: boolean;
-}
-
 interface GuessHistoryProps {
   guesses: Array<{
     id: string;
@@ -79,7 +70,7 @@ export function GuessHistory({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {filteredGuesses.map((g, i) => {
+        {filteredGuesses.map((g) => {
           const index = guesses.findIndex(guess => guess.id === g.id);
           const color = colors[index % colors.length];
           const isSelected = g.id === selectedGuess?.id;

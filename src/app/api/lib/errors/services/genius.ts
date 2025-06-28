@@ -1,4 +1,4 @@
-import { AppError, NotFoundError } from '../base';
+import { AppError } from '../base';
 
 export class LyricsExtractionError extends AppError {
   static readonly code = 'LYRICS_EXTRACTION_ERROR';

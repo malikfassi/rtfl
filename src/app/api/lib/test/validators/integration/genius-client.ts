@@ -1,6 +1,6 @@
-import { GeniusSearchResponse } from '../../../types/genius';
+import { GeniusSearchResponse } from '@/app/types';
 import { fixtures } from '../../fixtures';
-import { TEST_IDS, getAllTrackIds, isErrorCase, isInstrumental } from '../../constants';
+import { TEST_IDS } from '../../constants';
 import { getExpectedSongMetadata } from '../../utils/genius';
 import { TRACK_KEYS } from '../../constants';
 

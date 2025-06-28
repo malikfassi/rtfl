@@ -1,23 +1,8 @@
 "use client";
 
-import { useMutation, useQuery } from '@tanstack/react-query';
-import type { GameState } from '@/app/api/lib/types/game-state';
-import type { Guess, Song } from '@prisma/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { GameState } from '@/app/types';
 import { queryKeys } from '@/app/front/lib/query-client';
-import { useQueryClient } from '@tanstack/react-query';
-
-interface GameInterfaceState {
-  playerId: string;
-  guesses: Array<Guess & { valid: boolean }>;
-  _title: string;
-  _artist: string;
-  masked: {
-    title: string;
-    artist: string;
-    lyrics: string;
-  };
-  song?: Song;
-}
 
 const playerApi = {
   getCurrentGame: async (userId: string, date: string): Promise<GameState | null> => {

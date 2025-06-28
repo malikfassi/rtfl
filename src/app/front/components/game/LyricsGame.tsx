@@ -1,56 +1,49 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { cn } from "@/app/front/lib/utils";
 import { GameContainer } from "./lyrics-game/GameContainer";
 import { GameHeader } from "./lyrics-game/GameHeader";
 import { GameContent } from "./lyrics-game/GameContent";
 import { GameSidebar } from "./lyrics-game/GameSidebar";
 import { ShareModal } from './lyrics-game/ShareModal';
-import { RickrollNotice } from './lyrics-game/RickrollNotice';
 import { useGameLogic } from '@/app/front/hooks/useGameLogic';
 import { GameControls } from './lyrics-game/GameControls';
-import { getOrCreatePlayerId } from '@/app/front/lib/utils';
+import { getOrCreatePlayerId } from '@/app/front/lib/helpers/player';
 import { gameColors } from "@/app/front/lib/utils/color-management";
 import { LoadingState } from "../ui/LoadingState";
 import { ErrorState } from "../ui/ErrorState";
+import type { Game } from "@/app/types";
 
 interface LyricsGameProps {
   date: string;
-  game: any;
+  game?: Game;
   disabled?: boolean;
   isAdmin?: boolean;
   onChooseSong?: () => void;
   hideChooseSongButton?: boolean;
-  rickrollMode?: boolean;
-  lyrics?: string[];
-  maskedLyrics?: string[];
 }
 
 export function LyricsGame(props: LyricsGameProps) {
-  const { date, game, disabled = false, isAdmin = false, onChooseSong, hideChooseSongButton = false, rickrollMode = false, lyrics: rickrollLyrics, maskedLyrics: rickrollMaskedLyrics } = props;
+  const { date, isAdmin = false, onChooseSong, hideChooseSongButton = false } = props;
   
   const [hoveredWord, setHoveredWord] = useState<string | null>(null);
   const [selectedGuess, setSelectedGuess] = useState<{ id: string; word: string } | null>(null);
-  const [showFullLyrics, setShowFullLyrics] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [playerId, setPlayerId] = useState<string>('');
   const [isClient, setIsClient] = useState(false);
-  const [gameError, setGameError] = useState<Error | null>(null);
 
   useEffect(() => {
     setIsClient(true);
-    setPlayerId(getOrCreatePlayerId());
+    const id = getOrCreatePlayerId();
+    if (id) {
+      setPlayerId(id);
+    }
   }, []);
 
   const {
     currentGame,
     isGameLoading,
     gameError: useGameLogicGameError,
-    isRickroll,
-    isFutureDate,
-    isValidDate,
-    showRickrollNotice,
     isGameComplete,
     lyricsProgressData,
     titleProgressData,
@@ -62,19 +55,16 @@ export function LyricsGame(props: LyricsGameProps) {
     maskedTitleParts,
     maskedArtistParts,
     maskedLyricsParts,
-    guessSegments,
     shareText,
     gameUrl,
-    handleGuess,
-    handleShare,
-    refetch: refetchGame
+    handleGuess
   } = useGameLogic({
-    date,
-    game,
-    rickrollMode,
-    lyrics: rickrollLyrics,
-    maskedLyrics: rickrollMaskedLyrics
+    date
   });
+
+  if (!isClient || !playerId) {
+    return <LoadingState message="Loading..." />;
+  }
 
   if (isGameLoading) {
     return <LoadingState message="Loading game..." />;
@@ -87,8 +77,7 @@ export function LyricsGame(props: LyricsGameProps) {
         message={useGameLogicGameError.message || "An error occurred while loading the game"}
         onRetry={() => {
           // Reset error state and retry loading
-          setGameError(null);
-          refetchGame();
+          window.location.reload();
         }}
       />
     );
@@ -161,9 +150,8 @@ export function LyricsGame(props: LyricsGameProps) {
               selectedWord={selectedGuess?.word}
               guesses={currentGame.guesses}
               colors={gameColors}
-              song={currentGame?.song}
+              song={null}
               isAdmin={isAdmin}
-              showFullLyrics={showFullLyrics}
             />
           </div>
 

@@ -1,4 +1,4 @@
-import type { GameWithSong, GameWithSongAndGuesses, GameStats } from '../../../types/game';
+import type { GameWithSong, GameWithSongAndGuesses, GameStats } from '@/app/types';
 import type { Guess } from '@prisma/client';
 import { songService } from './song-service';
 import { guessService } from './guess-service';

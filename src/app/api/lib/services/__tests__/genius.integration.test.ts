@@ -1,19 +1,20 @@
-import { GeniusService } from '../genius';
+import { createGeniusService } from '../genius';
 import { NoMatchingLyricsError } from '@/app/api/lib/errors/services/genius';
 import { ValidationError } from '@/app/api/lib/errors/base';
 import { setupIntegrationTest, cleanupIntegrationTest } from '@/app/api/lib/test/env/integration';
-import type { IntegrationTestContext } from '@/app/api/lib/test/env/integration';
 import { TRACK_KEYS, TEST_IDS } from '@/app/api/lib/test/constants';
 import { fixtures } from '@/app/api/lib/test/fixtures';
 import { integration_validator } from '@/app/api/lib/test/validators';
+import { GeniusClientImpl } from '@/app/api/lib/clients/genius';
 
 describe('GeniusService Integration', () => {
-  let context: IntegrationTestContext;
-  let geniusService: GeniusService;
+  let geniusService: ReturnType<typeof createGeniusService>;
 
   beforeEach(async () => {
-    context = await setupIntegrationTest();
-    geniusService = new GeniusService();
+    await setupIntegrationTest();
+    // Use the real GeniusClientImpl with env.test values
+    const realClient = new GeniusClientImpl(process.env.GENIUS_ACCESS_TOKEN);
+    geniusService = createGeniusService(realClient);
   });
 
   afterEach(async () => {

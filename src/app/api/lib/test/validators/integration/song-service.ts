@@ -2,6 +2,20 @@ import type { Song } from '@prisma/client';
 import { fixtures } from '../../fixtures';
 import { TRACK_KEYS, TRACK_URIS } from '../../constants';
 
+interface SpotifyData {
+  name: string;
+  artists: Array<{
+    name: string;
+    id: string;
+  }>;
+}
+
+interface GeniusData {
+  title: string;
+  artist: string;
+  url: string;
+}
+
 export const songService = {
   create: (key: string, song: Song) => {
     expect(song).toBeDefined();
@@ -35,14 +49,14 @@ export const songService = {
     
     if (spotifyFixture && !('error' in spotifyFixture)) {
       // Check spotify data matches fixture
-      const spotifyData = song.spotifyData as any;
+      const spotifyData = song.spotifyData as unknown as SpotifyData;
       expect(spotifyData.name.toLowerCase()).toContain(spotifyFixture.name.toLowerCase());
       expect(spotifyData.artists[0].name.toLowerCase()).toContain(spotifyFixture.artists[0].name.toLowerCase());
     }
     
     if (geniusFixture && geniusFixture.response.hits.length > 0) {
       // Check genius data matches fixture
-      const geniusData = song.geniusData as any;
+      const geniusData = song.geniusData as unknown as GeniusData;
       const expectedHit = geniusFixture.response.hits[0].result;
       expect(geniusData.title.toLowerCase()).toContain(expectedHit.title.toLowerCase());
       expect(geniusData.artist.toLowerCase()).toContain(expectedHit.primary_artist?.name.toLowerCase() || '');

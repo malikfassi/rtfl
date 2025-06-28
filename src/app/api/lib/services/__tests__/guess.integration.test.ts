@@ -33,7 +33,7 @@ describe('GuessService Integration', () => {
             spotifyData: JSON.parse(JSON.stringify(track)),
             geniusData: {},
             lyrics,
-            maskedLyrics,
+            maskedLyrics: JSON.parse(JSON.stringify(maskedLyrics)),
           },
         },
       },

@@ -2,10 +2,10 @@
 
 import React from "react";
 import { useGameStats } from "@/app/front/hooks/useGameStats";
-import { format, subDays } from "date-fns";
+import { subDays } from "date-fns";
 import { cn } from "@/app/front/lib/utils";
 import Link from "next/link";
-import { TrendingUp, Users, Target, Clock, Info, Trophy, Zap, Flame, Star } from "lucide-react";
+import { TrendingUp, Users, Target, Info, Trophy, Zap, Flame, Star } from "lucide-react";
 
 interface YesterdayStatsProps {
   currentDate: string;
@@ -76,7 +76,7 @@ export function YesterdayStats({ currentDate, className }: YesterdayStatsProps) 
       </div>
       <div className="flex items-center justify-between mb-3 gap-x-2">
         <div className="min-w-0">
-          <h3 className="text-sm font-medium text-primary-dark mb-1 truncate">Yesterday's Challenge</h3>
+          <h3 className="text-sm font-medium text-primary-dark mb-1 truncate">Yesterday&apos;s Challenge</h3>
           <p className="text-xs text-primary-muted truncate">How did other players do?</p>
         </div>
         <div className="flex items-center min-w-0">
@@ -113,10 +113,10 @@ export function YesterdayStats({ currentDate, className }: YesterdayStatsProps) 
       </div>
 
       <Link 
-        href={`/${yesterday}` as any}
+        href={`/${yesterday}`}
         className="block w-full px-3 py-2 bg-accent-info/10 hover:bg-accent-info/20 text-accent-info text-center rounded-md transition-colors text-sm font-medium"
       >
-        🕐 Try Yesterday's Game
+        🕐 Try Yesterday&apos;s Game
       </Link>
     </div>
   );

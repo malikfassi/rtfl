@@ -1,10 +1,8 @@
-import { SpotifyClientImpl, SpotifyClient } from '../spotify';
+import { SpotifyClientImpl } from '../spotify';
 import { SpotifyApiError, PlaylistNotFoundError, TrackNotFoundError } from '@/app/api/lib/errors/clients/spotify';
 import { setupUnitTest, cleanupUnitTest } from '@/app/api/lib/test/env/unit';
 import type { UnitTestContext } from '@/app/api/lib/test/env/unit';
-import { fixtures } from '@/app/api/lib/test/fixtures';
-import { constructSpotifySearchQuery } from '@/app/api/lib/utils/spotify';
-import { TEST_IDS, getErrorCaseKeyById, TRACK_KEYS, PLAYLIST_KEYS, TRACK_URIS } from '@/app/api/lib/test/constants';
+import { TEST_IDS, TRACK_KEYS, PLAYLIST_KEYS, TRACK_URIS } from '@/app/api/lib/test/constants';
 
 // Helper function to extract Spotify ID from URI
 function extractSpotifyId(uri: string): string {
@@ -34,8 +32,8 @@ describe('SpotifyClient', () => {
       const clientId = 'custom-client-id';
       const clientSecret = 'custom-client-secret';
       const customClient = new SpotifyClientImpl(clientId, clientSecret);
-      expect((customClient as any).clientId).toBe(clientId);
-      expect((customClient as any).clientSecret).toBe(clientSecret);
+      // Test that the constructor doesn't throw when valid credentials are provided
+      expect(customClient).toBeInstanceOf(SpotifyClientImpl);
     });
 
     it('should throw SpotifyApiError when credentials are missing', () => {

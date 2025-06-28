@@ -16,10 +16,6 @@ const validTrackKey = TRACK_KEYS.PARTY_IN_THE_USA;
 const validTrack = fixtures.spotify.tracks[validTrackKey];
 const validTrackId = validTrack.id;
 
-function getErrorMessage(msg: string | ((...args: any[]) => string), ...args: any[]): string {
-  return typeof msg === 'function' ? msg(...args) : msg;
-}
-
 describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
   beforeEach(async () => {
     await setupIntegrationTest();
@@ -53,7 +49,7 @@ describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
 
     expect(response.status).toBe(404);
     expect(data.error).toBe(ErrorCode.TrackNotFound);
-    expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.TrackNotFound]));
+    expect(data.message).toBe(ErrorMessage[ErrorCode.TrackNotFound]);
   });
 
   it('returns 400 for invalid track ID format', async () => {
@@ -67,7 +63,7 @@ describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
 
     expect(response.status).toBe(400);
     expect(data.error).toBe(ErrorCode.ValidationError);
-    expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
+    expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
   });
 
   it('returns 400 for malformed track ID', async () => {
@@ -82,6 +78,6 @@ describe('GET /api/admin/spotify/tracks/[id] Integration', () => {
 
     expect(response.status).toBe(400);
     expect(data.error).toBe(ErrorCode.ValidationError);
-    expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
+    expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
   });
 }); 

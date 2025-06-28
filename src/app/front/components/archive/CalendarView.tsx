@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import { Check } from "lucide-react";
 import {
   startOfMonth,
   endOfMonth,
@@ -13,13 +12,9 @@ import {
   startOfWeek,
   endOfWeek
 } from "date-fns";
-import type { GameState } from "@/app/api/lib/types/game-state";
 import { parseMonthString } from "@/app/front/lib/utils/date-formatting";
-
-interface CalendarViewProps {
-  month: string;
-  games: GameState[];
-}
+import type { Token, Guess } from "@/app/types";
+import type { CalendarViewProps } from "@/app/types";
 
 export function CalendarView({ month, games }: CalendarViewProps) {
   const currentDate = parseMonthString(month);
@@ -66,13 +61,13 @@ export function CalendarView({ month, games }: CalendarViewProps) {
               ? game.masked.lyrics 
               : [];
             const hiddenWords = lyricsTokens
-              .filter((token: any) => token.isToGuess)
-              .map((token: any) => token.value.toLowerCase());
+              .filter((token: Token) => token.isToGuess)
+              .map((token: Token) => token.value.toLowerCase());
             const totalLyrics = hiddenWords.length;
             const foundWords = Array.from(new Set(
               game.guesses
-                .filter((g: any) => g.valid)
-                .map((g: any) => g.word.toLowerCase())
+                .filter((g: Guess) => g.valid)
+                .map((g: Guess) => g.word.toLowerCase())
             ));
             const foundHiddenWords = hiddenWords.filter((word: string) => foundWords.includes(word));
             const foundLyrics = foundHiddenWords.length;
@@ -81,8 +76,8 @@ export function CalendarView({ month, games }: CalendarViewProps) {
             // Check title/artist completion
             const titleTokens = Array.isArray(game.masked.title) ? game.masked.title : [];
             const artistTokens = Array.isArray(game.masked.artist) ? game.masked.artist : [];
-            titleHidden = titleTokens.filter((t: any) => t.isToGuess).map((t: any) => t.value.toLowerCase());
-            artistHidden = artistTokens.filter((t: any) => t.isToGuess).map((t: any) => t.value.toLowerCase());
+            titleHidden = titleTokens.filter((t: Token) => t.isToGuess).map((t: Token) => t.value.toLowerCase());
+            artistHidden = artistTokens.filter((t: Token) => t.isToGuess).map((t: Token) => t.value.toLowerCase());
             foundTitle = titleHidden.filter((word: string) => foundWords.includes(word)).length;
             foundArtist = artistHidden.filter((word: string) => foundWords.includes(word)).length;
             titleComplete = titleHidden.length > 0 && foundTitle === titleHidden.length;
@@ -93,7 +88,7 @@ export function CalendarView({ month, games }: CalendarViewProps) {
             const titleArtistFound = foundTitle + foundArtist;
             titleArtistPct = titleArtistTotal > 0 ? Math.round((titleArtistFound / titleArtistTotal) * 100) : 0;
             // Only show progress if there is at least 1 guess or progress
-            hasProgress = game.guesses.filter((g: any) => g.valid).length > 0 || progressPercent > 0 || titleArtistPct > 0;
+            hasProgress = game.guesses.filter((g: Guess) => g.valid).length > 0 || progressPercent > 0 || titleArtistPct > 0;
           }
 
           // Always clickable if in current month and not in the future
@@ -124,7 +119,7 @@ export function CalendarView({ month, games }: CalendarViewProps) {
                 </div>
               )}
               {isClickable && (
-                <Link href={`/${dateStr}` as any} className="absolute inset-0 flex flex-col items-center justify-center">
+                <Link href={`/${dateStr}`} className="absolute inset-0 flex flex-col items-center justify-center">
                   {game && hasProgress ? (
                     <div className="flex flex-col items-center justify-center gap-0.5 w-full max-w-full flex-wrap">
                       <span className={
@@ -143,7 +138,7 @@ export function CalendarView({ month, games }: CalendarViewProps) {
                         `inline-flex items-center px-0.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-semibold border whitespace-nowrap ` +
                         (isComplete ? "bg-yellow-100 text-yellow-700 border-yellow-300" : "bg-yellow-50 text-yellow-600 border-yellow-200")
                       } style={{minWidth: 0, maxWidth: '100%'}}>
-                        <span className="mr-0.5">💬</span>{game.guesses.filter((g: any) => g.valid).length}
+                        <span className="mr-0.5">💬</span>{game.guesses.filter((g: Guess) => g.valid).length}
                       </span>
                     </div>
                   ) : (

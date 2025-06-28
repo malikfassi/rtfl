@@ -1,19 +1,19 @@
+import { describe, it, afterEach, beforeEach } from '@jest/globals';
 import { MaskedLyricsService } from '../masked-lyrics';
 import { LyricsService } from '../lyrics';
 import { setupIntegrationTest, cleanupIntegrationTest } from '@/app/api/lib/test/env/integration';
-import type { IntegrationTestContext } from '@/app/api/lib/test/env/integration';
 import { TRACK_KEYS } from '@/app/api/lib/test/constants';
 import { getGeniusUrlFromTrackKey } from '@/app/api/lib/test/utils/genius';
 import { fixtures } from '@/app/api/lib/test/fixtures';
 import { integration_validator } from '@/app/api/lib/test/validators';
+import type { MaskedLyrics, Token } from '@/app/types';
 
 describe('MaskedLyricsService Integration', () => {
-  let context: IntegrationTestContext;
   let service: MaskedLyricsService;
   let lyricsService: LyricsService;
 
   beforeEach(async () => {
-    context = await setupIntegrationTest();
+    await setupIntegrationTest();
     service = new MaskedLyricsService(); // Real service, no mocks
     lyricsService = new LyricsService(); // Real service, no mocks
   });
@@ -46,18 +46,21 @@ describe('MaskedLyricsService Integration', () => {
 });
 
 // Helper to convert MaskedLyricsService output to integration validator format
-function toIntegrationMaskedLyrics(masked: any, originalLyrics: string): any {
-  const flatten = (tokens: any[]) => tokens.map((t: any) => t.value).join('');
-  const guessable = (tokens: any[]) => tokens.filter((t: any) => t.isToGuess);
+function toIntegrationMaskedLyrics(masked: MaskedLyrics, originalLyrics: string): {
+  originalLyrics: string;
+  maskedLyrics: string;
+  totalWords: number;
+  guessableWords: number;
+} {
+  const flatten = (tokens: Token[]) => tokens.map((t) => t.value).join('');
   const allTokens = [...masked.title, ...masked.artist, ...masked.lyrics];
-  const totalWords = allTokens.filter((t: any) => t.isToGuess).length;
+  const totalWords = allTokens.filter((t) => t.isToGuess).length;
   const guessableWords = totalWords; // All guessable tokens are words
   const maskedLyrics = flatten(masked.lyrics).replace(/\w/g, '_'); // crude mask for validator
   return {
     originalLyrics,
     maskedLyrics,
     totalWords,
-    guessableWords,
-    ...masked
+    guessableWords
   };
 } 

@@ -1,21 +1,21 @@
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { MaskedLyricsService } from '../masked-lyrics';
-import { setupUnitTest, cleanupUnitTest, UnitTestContext } from '@/app/api/lib/test/env/unit';
+import { setupUnitTest, cleanupUnitTest } from '@/app/api/lib/test/env/unit';
 import { TRACK_KEYS } from '@/app/api/lib/test/constants';
-import { MaskedLyrics, Token } from '@/app/api/lib/types/lyrics';
+import { MaskedLyrics } from '@/app/types';
 import { fixtures } from '@/app/api/lib/test/fixtures';
 import { unit_validator } from '@/app/api/lib/test/validators';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { getGeniusUrlFromTrackKey } from '@/app/api/lib/test/utils/genius';
-import { lyricsService } from '../lyrics';
+import { createLyricsService } from '../lyrics';
 
 describe('MaskedLyricsService Unit Tests', () => {
   let service: MaskedLyricsService;
-  let context: UnitTestContext;
+  let lyricsService: ReturnType<typeof createLyricsService>;
 
   beforeEach(() => {
-    context = setupUnitTest();
+    setupUnitTest();
     service = new MaskedLyricsService();
+    lyricsService = createLyricsService();
   });
 
   afterEach(() => {

@@ -1,5 +1,3 @@
-import { constructGeniusSearchQuery } from '../utils/genius';
-
 // All fixture access is now by constant key only. No mapping helpers needed.
 
 export const TEST_IDS = {
@@ -65,11 +63,11 @@ export const getAllTrackIds = () => {
 };
 
 export const isErrorCase = (id: string): boolean => {
-  return Object.values(TEST_IDS.SPOTIFY.ERROR_CASES).includes(id as any);
+  return Object.values(TEST_IDS.SPOTIFY.ERROR_CASES).includes(id as typeof TEST_IDS.SPOTIFY.ERROR_CASES[keyof typeof TEST_IDS.SPOTIFY.ERROR_CASES]);
 };
 
 export const isInstrumental = (id: string): boolean => {
-  return Object.values(TEST_IDS.SPOTIFY.TRACKS.INSTRUMENTAL).includes(id as any);
+  return Object.values(TEST_IDS.SPOTIFY.TRACKS.INSTRUMENTAL).includes(id as typeof TEST_IDS.SPOTIFY.TRACKS.INSTRUMENTAL[keyof typeof TEST_IDS.SPOTIFY.TRACKS.INSTRUMENTAL]);
 };
 
 export const TEST_DATES = {

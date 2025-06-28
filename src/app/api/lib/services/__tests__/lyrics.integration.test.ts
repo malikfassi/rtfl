@@ -1,6 +1,6 @@
 import { LyricsService } from '../lyrics';
 import { LyricsExtractionError } from '@/app/api/lib/errors/services/lyrics';
-import { setupIntegrationTest, cleanupIntegrationTest, IntegrationTestContext } from '@/app/api/lib/test/env/integration';
+import { setupIntegrationTest, cleanupIntegrationTest } from '@/app/api/lib/test/env/integration';
 import { TRACK_KEYS } from '@/app/api/lib/test/constants';
 import { 
   getGeniusUrlFromTrackKey, 
@@ -9,11 +9,10 @@ import {
 import { integration_validator } from '@/app/api/lib/test/validators';
 
 describe('LyricsService Integration', () => {
-  let context: IntegrationTestContext;
   let lyricsService: LyricsService;
 
   beforeEach(async () => {
-    context = await setupIntegrationTest();
+    await setupIntegrationTest();
     lyricsService = new LyricsService(); // Real service, no mocks
   });
 

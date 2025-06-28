@@ -1,7 +1,7 @@
-export interface Color {
-  bg: string;
-  text: string;
-}
+import type { Color } from '@/app/types';
+
+// Re-export for backward compatibility
+export type { Color };
 
 export const gameColors: Color[] = [
   { bg: "bg-accent-info/20", text: "text-accent-info" },
@@ -23,8 +23,7 @@ export function getGameColor(index: number): Color {
  */
 export function getWordColor(
   word: string,
-  guesses: Array<{ word: string; valid: boolean }>,
-  colors: Color[] = gameColors
+  guesses: Array<{ word: string; valid: boolean }>
 ): Color | undefined {
   const index = guesses.findIndex(g => g.valid && g.word.toLowerCase() === word.toLowerCase());
   if (index === -1) return undefined;
@@ -35,8 +34,7 @@ export function getWordColor(
  * Get a color for a guess based on its position in the guesses array
  */
 export function getGuessColor(
-  guessIndex: number,
-  colors: Color[] = gameColors
+  guessIndex: number
 ): Color {
   return getGameColor(guessIndex);
 } 

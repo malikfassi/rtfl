@@ -1,8 +1,6 @@
 import { getExpectedSongMetadata } from '../../utils/genius';
 import { TRACK_KEYS } from '../../constants';
 import { fixtures } from '../../fixtures';
-import * as cheerio from 'cheerio';
-import { decode } from 'html-entities';
 import { extractLyricsFromHtml } from '../../../services/lyrics';
 
 export const lyricsService = {

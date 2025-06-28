@@ -1,5 +1,5 @@
 import { writeFile, mkdir } from 'fs/promises';
-import { join, dirname, extname } from 'path';
+import { join, extname } from 'path';
 
 interface CaptureOptions {
   service: string;

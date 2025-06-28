@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import type { Track } from '@spotify/web-api-ts-sdk';
-import type { GeniusSearchResponse } from '@/app/api/lib/types/genius';
+import type { GeniusSearchResponse } from '@/app/types';
 
 /**
  * Database client for test environment

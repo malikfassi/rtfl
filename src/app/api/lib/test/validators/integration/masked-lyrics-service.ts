@@ -1,5 +1,12 @@
+interface MaskedLyricsResult {
+  originalLyrics: string;
+  maskedLyrics: string;
+  totalWords: number;
+  guessableWords: number;
+}
+
 export const maskedLyricsService = {
-  create: (maskedLyrics: any) => {
+  create: (maskedLyrics: MaskedLyricsResult) => {
     expect(maskedLyrics).toBeDefined();
     expect(maskedLyrics).toHaveProperty('originalLyrics');
     expect(maskedLyrics).toHaveProperty('maskedLyrics');

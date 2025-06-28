@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from "@/app/front/lib/utils";
 
-interface RickrollNoticeProps {
+interface ErrorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  isFutureDate: boolean;
-  date: string;
+  title: string;
+  message: string;
 }
 
-export function RickrollNotice({ isOpen, onClose, isFutureDate, date }: RickrollNoticeProps) {
+export function ErrorModal({ isOpen, onClose, title, message }: ErrorModalProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -21,10 +21,6 @@ export function RickrollNotice({ isOpen, onClose, isFutureDate, date }: Rickroll
   }, [isOpen]);
 
   if (!isVisible) return null;
-
-  const daysUntilGame = Math.ceil(
-    (new Date(date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-  );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -42,7 +38,7 @@ export function RickrollNotice({ isOpen, onClose, isFutureDate, date }: Rickroll
       onKeyDown={handleKeyDown}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="rickroll-notice-title"
+      aria-labelledby="error-modal-title"
     >
       <div 
         className={cn(
@@ -51,26 +47,20 @@ export function RickrollNotice({ isOpen, onClose, isFutureDate, date }: Rickroll
         )}
       >
         <h2 
-          id="rickroll-notice-title" 
+          id="error-modal-title" 
           className="text-lg font-bold text-primary-dark mb-2 text-center"
         >
-          {isFutureDate ? 'Nice try, time traveler! 🚀' : 'No game available'}
+          {title}
         </h2>
         <p className="text-sm text-primary-dark mb-4 text-center">
-          {isFutureDate 
-            ? `You'll have to wait ${daysUntilGame} days to play this game! Until then, enjoy this special hidden song... 🎵`
-            : "We couldn't find a daily game for this date, but you can still play! Try to guess this classic hit instead. 🎶"
-          }
+          {message}
         </p>
         <button
           onClick={onClose}
           className="w-full px-4 py-3 bg-accent-info/10 hover:bg-accent-info/20 text-accent-info rounded-lg transition-colors font-medium"
-          aria-label="Start playing"
+          aria-label="Close"
         >
-          <span className="flex items-center justify-center gap-2">
-            <span>🎮</span>
-            <span>Let's play</span>
-          </span>
+          Close
         </button>
       </div>
     </div>

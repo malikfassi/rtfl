@@ -1,9 +1,9 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
 import { format } from 'date-fns';
 import React, { useState } from 'react';
+import type { AdminGame, GameStatusInfo } from '@/app/types';
 
 import { Button } from '@/app/front/components/ui/Button';
-import type { AdminGame, GameStatusInfo } from '@/app/types/admin';
 import { useToast } from '@/app/front/hooks/use-toast';
 
 import { SongBrowser } from './SongBrowser';
@@ -20,7 +20,6 @@ interface GameEditorProps {
   onGameDelete?: (date: string) => Promise<void>;
   onRandomSongAssign?: (date: Date) => void;
   selectedPlaylist?: { tracks: Track[] };
-  onPlaylistChange?: (playlist: { tracks: Track[] }) => void;
   pendingChange?: GameStatusInfo;
 }
 
@@ -33,7 +32,6 @@ export function GameEditor({
   onGameDelete,
   onRandomSongAssign,
   selectedPlaylist,
-  onPlaylistChange,
   pendingChange
 }: GameEditorProps) {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -138,7 +136,6 @@ export function GameEditor({
 
         <SongBrowser
           onSelect={handleSelectSong}
-          onCancel={() => onModeChange('preview')}
           disabled={isUpdating}
         />
       </div>

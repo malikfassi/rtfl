@@ -2,16 +2,7 @@ import React from 'react';
 import { ScrambleTitle } from '../ScrambleTitle';
 import { DateDisplay } from '../DateDisplay';
 import { cn } from "@/app/front/lib/utils";
-
-interface GameHeaderProps {
-  title: string;
-  date: string;
-  playerId: string;
-  isAdmin?: boolean;
-  onChooseSong?: () => void;
-  hideChooseSongButton?: boolean;
-  className?: string;
-}
+import type { GameHeaderProps } from "@/app/types";
 
 export function GameHeader({
   title,
@@ -32,7 +23,7 @@ export function GameHeader({
         {isValidDateFormat ? (
           <DateDisplay date={date} />
         ) : (
-          <div className="text-sm text-primary-muted">Invalid date</div>
+          <div className="text-sm text-primary-muted">{date}</div>
         )}
         <div className="flex items-center gap-x-2">
           <div className="text-[10px] font-medium text-accent-info">Player ID</div>

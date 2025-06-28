@@ -1,17 +1,13 @@
 'use client';
 
-import type { Track } from '@spotify/web-api-ts-sdk';
+import type { CustomPlaylist } from '@/app/types';
 import React, { useState } from 'react';
 
 import { AdminDashboard } from '@/app/front/components/admin/game/AdminDashboard';
 import { useAdminGames, useAdminGameMutations } from '@/app/front/hooks/useAdmin';
 
-interface Playlist {
-  tracks: Track[];
-}
-
 export default function AdminPage() {
-  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>();
+  const [selectedPlaylist, setSelectedPlaylist] = useState<CustomPlaylist | null>();
   const { data: games, isLoading } = useAdminGames();
   const { createGame, deleteGame } = useAdminGameMutations();
 

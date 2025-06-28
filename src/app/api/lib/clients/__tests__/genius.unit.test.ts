@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { GeniusClientImpl } from '../genius';
 import { setupUnitTest, cleanupUnitTest } from '@/app/api/lib/test/env/unit';
 import type { UnitTestContext } from '@/app/api/lib/test/env/unit';
-import { TEST_IDS, getErrorCaseKeyById, TRACK_KEYS } from '@/app/api/lib/test/constants';
+import { TEST_IDS, TRACK_KEYS } from '@/app/api/lib/test/constants';
 import { fixtures } from '@/app/api/lib/test/fixtures';
 
 describe('GeniusClient', () => {
@@ -21,24 +21,32 @@ describe('GeniusClient', () => {
 
   describe('search', () => {
     it('should return search results for a valid query', async () => {
-      const id = TRACK_KEYS.PARTY_IN_THE_USA;
-      const track = fixtures.spotify.tracks[id];
-      const key = id;
+      const key = TRACK_KEYS.PARTY_IN_THE_USA;
       const response = await client.search(key);
+      
+      // Use validator which checks structure and compares against fixture
       context.validator.genius_client.search(response, key);
+      
       expect(context.mockGeniusClient.search).toHaveBeenCalledWith(key);
     });
 
     it('should handle empty search results', async () => {
       const key = 'NO_RESULTS';
       const response = await client.search(key);
-      expect(response.response.hits).toHaveLength(0);
+      
+      // Use validator which checks structure and compares against fixture
+      context.validator.genius_client.search(response, key);
+      
       expect(context.mockGeniusClient.search).toHaveBeenCalledWith(key);
     });
 
     it('should not return main artist/title for NOT_FOUND track', async () => {
       const key = 'NOT_FOUND';
       const response = await client.search(key);
+      
+      // Use validator which checks structure and compares against fixture
+      context.validator.genius_client.search(response, key);
+      
       const hits = response.response.hits;
       const containsMainArtist = hits.some(hit => hit.result && hit.result.primary_artist && hit.result.primary_artist.name === 'Miley Cyrus');
       expect(containsMainArtist).toBe(false);
@@ -54,25 +62,24 @@ describe('GeniusClient', () => {
 
   describe('fetchLyricsPage', () => {
     it('should return lyrics page HTML for a valid URL', async () => {
-      const id = TRACK_KEYS.PARTY_IN_THE_USA;
-      const track = fixtures.spotify.tracks[id];
-      const key = id;
-      const searchResults = await client.search(key);
-      const firstHit = searchResults.response.hits[0];
+      const key = TRACK_KEYS.PARTY_IN_THE_USA;
+      const searchFixture = fixtures.genius.search[key];
+      const firstHit = searchFixture.response.hits[0];
       if (!firstHit) {
-        throw new Error('No search results found');
+        throw new Error('No search results found in fixture');
       }
       const url = firstHit.result.url;
       if (!url) {
-        throw new Error('No URL found in search result');
+        throw new Error('No URL found in search result fixture');
       }
       const html = await client.fetchLyricsPage(url);
       expect(typeof html).toBe('string');
       expect(html.length).toBeGreaterThan(0);
       // Should contain HTML tags
       expect(html).toMatch(/<[^>]+>/);
-      // Should contain the song title somewhere in the HTML
-      expect(html.toLowerCase()).toContain('party');
+      // Should match the fixture lyrics
+      const expectedLyrics = fixtures.genius.lyrics[key];
+      expect(html).toBe(expectedLyrics);
       expect(context.mockGeniusClient.fetchLyricsPage).toHaveBeenCalledWith(url);
     });
 

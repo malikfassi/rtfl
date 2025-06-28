@@ -1,37 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { cn } from "@/app/front/lib/utils";
-import { Input } from "@/app/front/components/ui/Input";
 import { GuessHistory } from "./GuessHistory";
-import { calculateGuessHits } from "@/app/front/lib/utils/hit-counting";
+import type { GameControlsProps } from "@/app/types";
 
-interface Guess {
-  id: string;
-  gameId: string;
-  playerId: string;
-  word: string;
-  createdAt: Date;
-  valid: boolean;
-}
-
-interface GameControlsProps {
-  playerId: string;
-  date: string;
-  isGameComplete: boolean;
-  guesses: Guess[];
-  maskedLyrics: string;
-  maskedTitle: string;
-  maskedArtist: string;
-  maskedTitleParts?: Array<{ value: string; isToGuess: boolean }>;
-  maskedArtistParts?: Array<{ value: string; isToGuess: boolean }>;
-  maskedLyricsParts?: Array<{ value: string; isToGuess: boolean }>;
-  onGuess: (guess: string) => Promise<void>;
-  isSubmitting: boolean;
-  onWordHover: (word: string | null) => void;
-  selectedGuess: { id: string; word: string } | null;
-  onGuessSelect: (guess: { id: string; word: string } | null) => void;
-  className?: string;
-  colors: Array<{ bg: string; text: string; }>;
-}
 
 export function GameControls({ 
   isGameComplete, 
@@ -90,17 +61,6 @@ export function GameControls({
       inputRef.current?.focus();
     });
   };
-
-  // Count hits for each guess using the new utility
-  const guessHits = calculateGuessHits({
-    guesses,
-    maskedLyrics,
-    maskedTitle,
-    maskedArtist,
-    maskedTitleParts,
-    maskedArtistParts,
-    maskedLyricsParts,
-  });
 
   return (
     <div>

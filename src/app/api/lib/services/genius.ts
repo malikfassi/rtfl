@@ -1,11 +1,12 @@
-import { getGeniusClient } from '@/app/api/lib/clients/genius';
+import type { GeniusClient } from '@/app/api/lib/clients/genius';
 import { NoMatchingLyricsError } from '@/app/api/lib/errors/services/genius';
 import { validateSchema } from '@/app/api/lib/validation';
 import { searchQuerySchema } from '@/app/api/lib/validation';
-import type { GeniusSearchResponse, GeniusHit } from '@/app/api/lib/types/genius';
+import type { GeniusSearchResponse, GeniusHit } from '@/app/types';
+import { getGeniusClient } from '@/app/api/lib/clients/genius';
 
 export class GeniusService {
-  private geniusClient = getGeniusClient();
+  constructor(private geniusClient: GeniusClient) {}
 
   private normalize(str: string): string {
     return str
@@ -143,6 +144,13 @@ export class GeniusService {
     return bestMatch;
   }
 }
-// Export singleton instance
-export const geniusService = new GeniusService();
+
+// Factory function to create GeniusService with default client
+export function createGeniusService(client?: GeniusClient): GeniusService {
+  if (client) {
+    return new GeniusService(client);
+  }
+  
+  return new GeniusService(getGeniusClient());
+}
 

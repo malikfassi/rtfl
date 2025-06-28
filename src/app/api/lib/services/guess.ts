@@ -1,14 +1,13 @@
 import { Guess, PrismaClient } from '@prisma/client';
+import { validateSchema } from '@/app/api/lib/validation';
+import type { MaskedLyrics } from '@/app/types';
+import { createMaskedLyricsService } from './masked-lyrics';
 
-import { prisma } from '@/app/api/lib/db';
 import {
   DuplicateGuessError,
   GameNotFoundForGuessError
 } from '@/app/api/lib/errors/services/guess';
-import { validateSchema } from '@/app/api/lib/validation';
 import { dateSchema, gameIdSchema, playerIdSchema, wordSchema } from '@/app/api/lib/validation';
-import type { MaskedLyrics } from '@/app/api/lib/types/lyrics';
-import { maskedLyricsService } from './masked-lyrics';
 
 export class GuessService {
   constructor(private prisma: PrismaClient) {}
@@ -45,7 +44,7 @@ export class GuessService {
 
     // 4. Validate word against masked lyrics
     const maskedLyrics = game.song.maskedLyrics as unknown as MaskedLyrics;
-    const isValidWord = maskedLyricsService.hasWord(normalizedGuess, maskedLyrics);
+    const isValidWord = createMaskedLyricsService().hasWord(normalizedGuess, maskedLyrics);
 
     // 5. Create and return guess record
     return await this.prisma.guess.create({
@@ -88,7 +87,4 @@ export class GuessService {
 // Export factory function
 export function createGuessService(client: PrismaClient) {
   return new GuessService(client);
-}
-
-// Export singleton instance
-export const guessService = new GuessService(prisma); 
+} 

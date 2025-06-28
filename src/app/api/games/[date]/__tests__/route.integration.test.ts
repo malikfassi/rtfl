@@ -4,8 +4,6 @@ import { setupIntegrationTest, IntegrationTestContext } from '@/app/api/lib/test
 import { TRACK_KEYS } from '@/app/api/lib/test/constants';
 import { fixtures } from '@/app/api/lib/test/fixtures';
 import { integration_validator } from '@/app/api/lib/test/validators';
-import { ErrorCode } from '@/app/api/lib/errors/codes';
-import { ErrorMessage } from '@/app/api/lib/errors/messages';
 import { GET } from '../route';
 
 const date = '2024-01-01';
@@ -35,7 +33,7 @@ describe('GET /api/games/[date]', () => {
       new URL(`http://localhost:3000/api/games/${date}`),
       { method: 'GET', headers }
     );
-    const response = await GET(request, { params: { date } });
+    const response = await GET(request, { params: Promise.resolve({ date }) });
     const data = await response.json();
     expect(response.status).toBe(200);
     integration_validator.game_state_service.getGameState(data);
@@ -48,7 +46,7 @@ describe('GET /api/games/[date]', () => {
       new URL(`http://localhost:3000/api/games/${nonexistentDate}`),
       { method: 'GET', headers }
     );
-    const response = await GET(request, { params: { date: nonexistentDate } });
+    const response = await GET(request, { params: Promise.resolve({ date: nonexistentDate }) });
     expect(response.status).toBe(404);
   });
 
@@ -57,7 +55,7 @@ describe('GET /api/games/[date]', () => {
       new URL('http://localhost:3000/api/games/invalid-date'),
       { method: 'GET', headers }
     );
-    const response = await GET(request, { params: { date: 'invalid-date' } });
+    const response = await GET(request, { params: Promise.resolve({ date: 'invalid-date' }) });
     expect(response.status).toBe(400);
   });
 
@@ -66,7 +64,7 @@ describe('GET /api/games/[date]', () => {
       new URL('http://localhost:3000/api/games/'),
       { method: 'GET', headers }
     );
-    const response = await GET(request, { params: { date: '' } });
+    const response = await GET(request, { params: Promise.resolve({ date: '' }) });
     expect(response.status).toBe(400);
   });
 }); 

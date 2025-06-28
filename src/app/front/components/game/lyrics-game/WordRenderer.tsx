@@ -1,16 +1,6 @@
 import React from "react";
 import { cn } from "@/app/front/lib/utils";
-import { Color } from "@/app/front/lib/utils/color-management";
-
-interface WordRendererProps {
-  word: string;
-  isFound: boolean;
-  shouldShow: boolean;
-  isNewlyFound: boolean;
-  isHovered: boolean;
-  isSelected: boolean;
-  color?: Color;
-}
+import type { WordRendererProps } from "@/app/types";
 
 export function WordRenderer({
   word,

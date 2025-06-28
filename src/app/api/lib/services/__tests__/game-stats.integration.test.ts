@@ -34,7 +34,13 @@ describe('Game Stats Integration Tests', () => {
     expect(game.stats).toEqual({
       totalGuesses: 0,
       correctGuesses: 0,
-      averageAttempts: 0
+      averageAttempts: 0,
+      wins: 0,
+      totalPlayers: 0,
+      averageGuesses: 0,
+      totalValidGuesses: 0,
+      averageLyricsCompletionForWinners: 0,
+      difficultyScore: 0
     });
   });
 
@@ -79,7 +85,13 @@ describe('Game Stats Integration Tests', () => {
     expect(game.stats).toEqual({
       totalGuesses: 0,
       correctGuesses: 0,
-      averageAttempts: 0
+      averageAttempts: 0,
+      wins: 0,
+      totalPlayers: 0,
+      averageGuesses: 0,
+      totalValidGuesses: 0,
+      averageLyricsCompletionForWinners: 0,
+      difficultyScore: 0
     });
 
     // Add first guess
@@ -88,7 +100,13 @@ describe('Game Stats Integration Tests', () => {
     expect(game.stats).toEqual({
       totalGuesses: 1,
       correctGuesses: 1,
-      averageAttempts: 1
+      averageAttempts: 1,
+      wins: 1,
+      totalPlayers: 1,
+      averageGuesses: 1,
+      totalValidGuesses: 1,
+      averageLyricsCompletionForWinners: 1,
+      difficultyScore: 0
     });
 
     // Add second guess
@@ -97,7 +115,13 @@ describe('Game Stats Integration Tests', () => {
     expect(game.stats).toEqual({
       totalGuesses: 2,
       correctGuesses: 1,
-      averageAttempts: 2
+      averageAttempts: 2,
+      wins: 1,
+      totalPlayers: 1,
+      averageGuesses: 2,
+      totalValidGuesses: 1,
+      averageLyricsCompletionForWinners: 1,
+      difficultyScore: 0
     });
 
     // Add third player

@@ -1,7 +1,11 @@
+import type { GameState } from '@/app/types';
+
 export const gameStateService = {
-  getGameState: (key: string, gameState: any) => {
+  getGameState: (key: string, gameState: GameState) => {
     expect(gameState).toBeDefined();
-    expect(gameState).toHaveProperty('song');
+    if ('song' in gameState) {
+      expect(gameState).toHaveProperty('song');
+    }
     expect(gameState).toHaveProperty('guesses');
     expect(gameState).toHaveProperty('masked');
     

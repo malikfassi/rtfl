@@ -1,6 +1,6 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
 import { fixtures } from '../../fixtures';
-import { TEST_IDS, isErrorCase } from '../../constants';
+import { isErrorCase } from '../../constants';
 
 export const spotifyService = {
   getTrack: (key: string, track: Track) => {

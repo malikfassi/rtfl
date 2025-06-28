@@ -1,4 +1,4 @@
-import { GeniusData, GeniusSearchResponse, GeniusHit } from '../types/genius';
+import { GeniusData, GeniusHit } from '@/app/types';
 
 /**
  * Constructs a clean search query for Genius by removing special characters,

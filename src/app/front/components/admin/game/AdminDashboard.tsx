@@ -1,45 +1,35 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
-import { format, isSameDay } from 'date-fns';
+import { format } from 'date-fns';
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 
-import { getTrackArtist, getTrackTitle } from '@/app/front/lib/utils/spotify';
+import { getTrackArtist, getTrackTitle } from '@/app/front/lib/helpers/spotify';
 import type { GameWithSong } from '@/app/api/lib/services/game';
-import type { GameStatusInfo, AdminGame } from '@/app/types/admin';
+import type { GameStatusInfo, AdminGame } from '@/app/types';
+import type { CustomPlaylist } from '@/app/types';
 
 import { BatchGameEditor } from './BatchGameEditor';
 import { Calendar } from './Calendar';
-import { type EditorMode as GameEditorMode, GameEditor } from './GameEditor';
+import { GameEditor } from './GameEditor';
 import { useAdminGamesWithSurroundingMonths } from '@/app/front/hooks/useAdmin';
-
-interface Game {
-  id: string;
-  date: string;
-  song: {
-    id: string;
-    title: string;
-    artist: string;
-  };
-}
 
 interface AdminDashboardProps {
   games: GameWithSong[];
   onCreateGame: (input: { date: string; spotifyId: string }) => void;
   onDeleteGame: (date: string) => void;
-  selectedPlaylist?: { tracks: Track[] };
-  onPlaylistChange: (playlist: { tracks: Track[] } | undefined) => void;
+  selectedPlaylist?: CustomPlaylist;
+  onPlaylistChange: (playlist: CustomPlaylist | undefined) => void;
 }
 
 type EditorMode = 'preview' | 'search';
 
 export function AdminDashboard({ 
-  games: _games, // ignore prop, use hook
   onCreateGame,
   onDeleteGame,
   selectedPlaylist, 
   onPlaylistChange 
 }: AdminDashboardProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const { data: games = [], isLoading } = useAdminGamesWithSurroundingMonths(currentMonth);
+  const { data: games = [] } = useAdminGamesWithSurroundingMonths(currentMonth);
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [pendingChanges, setPendingChanges] = useState<Record<string, GameStatusInfo>>({});
   const [singleViewMode, setSingleViewMode] = useState<EditorMode>('preview');
@@ -150,7 +140,8 @@ export function AdminDashboard({
         spotifyId: newGame.song.spotifyId
       });
       setPendingChanges(prev => {
-        const { [newGame.date]: _, ...rest } = prev;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [newGame.date]: _unused, ...rest } = prev;
         return rest;
       });
       setSingleViewMode('preview');
@@ -163,7 +154,8 @@ export function AdminDashboard({
     try {
       await onDeleteGame(date);
       setPendingChanges(prev => {
-        const { [date]: _, ...rest } = prev;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [date]: _unused, ...rest } = prev;
         return rest;
       });
       setSingleViewMode('preview');
@@ -193,7 +185,6 @@ export function AdminDashboard({
   const handleSelectDates = (dates: Date[]) => {
     setSelectedDates(dates);
     setPendingChanges({});
-    if (onPlaylistChange) onPlaylistChange(undefined);
   };
 
   return (
@@ -222,7 +213,6 @@ export function AdminDashboard({
               onGameDelete={handleGameDelete}
               onRandomSongAssign={assignRandomSongToDate}
               selectedPlaylist={selectedPlaylist}
-              onPlaylistChange={onPlaylistChange}
               pendingChange={pendingChanges[format(selectedDates[0], 'yyyy-MM-dd')]}
             />
           ) : (

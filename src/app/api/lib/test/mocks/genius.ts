@@ -1,8 +1,6 @@
 import { fixtures } from '../fixtures';
 import type { GeniusClient } from '@/app/api/lib/clients/genius';
-import { isErrorCase } from '../constants';
 import { TEST_IDS } from '../constants';
-import { GeniusApiError } from '@/app/api/lib/errors/clients/genius';
 
 // All fixture access is by constant key only. No mapping helpers used.
 
@@ -47,6 +45,6 @@ export class GeniusMocks {
           return '';
         }
       })
-    } as any;
+    } as jest.Mocked<GeniusClient>;
   }
 }

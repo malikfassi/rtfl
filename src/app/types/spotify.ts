@@ -1,5 +1,58 @@
-// Types that match the actual Spotify API response structure
+import type { Track, Playlist as SpotifyPlaylistType, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 
+// Re-export official types for consistency
+export type SpotifyTrack = Track;
+export type SpotifyPlaylist = SpotifyPlaylistType;
+export type SpotifySimplifiedPlaylist = SimplifiedPlaylist;
+
+// Custom types that extend official ones
+export interface CustomPlaylist {
+  id: string;
+  name: string;
+  tracks: Track[];
+}
+
+// Service interfaces
+export interface SpotifyServiceInterface {
+  getTrack(id: string): Promise<Track>;
+  searchTracks(query: string): Promise<Track[]>;
+}
+
+export interface SpotifyClient {
+  getTrack(id: string): Promise<Track>;
+  searchTracks(query: string): Promise<Track[]>;
+  getPlaylist(id: string): Promise<SpotifyPlaylist>;
+  searchPlaylists(query: string): Promise<SpotifyPlaylist[]>;
+}
+
+// API response types
+export interface PlaylistsResponse {
+  playlists: CustomPlaylist[];
+}
+
+export interface TracksResponse {
+  tracks: Track[];
+}
+
+// Custom data types for internal use
+export interface SpotifyData {
+  name: string;
+  artists: Array<{
+    name: string;
+    id: string;
+  }>;
+  album: {
+    name: string;
+    images: Array<{
+      url: string;
+      height: number;
+      width: number;
+    }>;
+  };
+  preview_url: string | null;
+}
+
+// Legacy types for backward compatibility (deprecated - use official SDK types)
 export interface SpotifyArtist {
   external_urls: {
     spotify: string;
@@ -31,61 +84,6 @@ export interface SpotifyAlbum {
   release_date: string;
   release_date_precision: string;
   total_tracks: number;
-  type: string;
-  uri: string;
-}
-
-export interface SpotifyTrack {
-  album: SpotifyAlbum;
-  artists: SpotifyArtist[];
-  available_markets: string[];
-  disc_number: number;
-  duration_ms: number;
-  explicit: boolean;
-  external_ids: {
-    isrc: string;
-  };
-  external_urls: {
-    spotify: string;
-  };
-  href: string;
-  id: string;
-  is_local: boolean;
-  name: string;
-  popularity: number;
-  preview_url: string | null;
-  track_number: number;
-  type: string;
-  uri: string;
-}
-
-export interface SpotifyPlaylist {
-  collaborative: boolean;
-  description: string | null;
-  external_urls: {
-    spotify: string;
-  };
-  href: string;
-  id: string;
-  images: SpotifyImage[];
-  name: string;
-  owner: {
-    display_name: string;
-    external_urls: {
-      spotify: string;
-    };
-    href: string;
-    id: string;
-    type: string;
-    uri: string;
-  };
-  primary_color: string | null;
-  public: boolean;
-  snapshot_id: string;
-  tracks: {
-    href: string;
-    total: number;
-  };
   type: string;
   uri: string;
 } 

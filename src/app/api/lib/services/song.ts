@@ -4,14 +4,14 @@ import type { Track } from '@spotify/web-api-ts-sdk';
 import { prisma } from '@/app/api/lib/db';
 import { validateSchema } from '@/app/api/lib/validation';
 import { spotifyIdSchema } from '@/app/api/lib/validation';
-import type { GeniusHit, GeniusServiceInterface } from '@/app/api/lib/types/genius';
-import type { SpotifyServiceInterface } from '@/app/api/lib/types/spotify';
+import type { GeniusHit, GeniusServiceInterface } from '@/app/types';
+import type { SpotifyServiceInterface } from '@/app/types';
 import { extractTrackData } from '@/app/api/lib/utils/spotify';
 import { extractGeniusData } from '@/app/api/lib/utils/genius';
-import { geniusService } from './genius';
-import { lyricsService } from './lyrics';
-import { maskedLyricsService } from './masked-lyrics';
-import { spotifyService } from './spotify';
+import { createGeniusService } from './genius';
+import { createLyricsService } from './lyrics';
+import { createMaskedLyricsService } from './masked-lyrics';
+import { createSpotifyService } from './spotify';
 
 export class SongService {
   constructor(
@@ -76,7 +76,7 @@ export class SongService {
     });
 
     // 3. Get lyrics from the best match URL
-    const lyrics = await lyricsService.getLyrics(bestMatch.result.url);
+    const lyrics = await createLyricsService().getLyrics(bestMatch.result.url);
 
     return [track, bestMatch, lyrics];
   }
@@ -89,7 +89,7 @@ export class SongService {
     tx: PrismaClient
   ): Promise<Song> {
     // 1. Prepare masked lyrics
-    const maskedLyrics = maskedLyricsService.create(
+    const maskedLyrics = createMaskedLyricsService().create(
       track.name,
       track.artists[0].name,
       lyrics
@@ -112,18 +112,13 @@ export class SongService {
   }
 }
 
-// Default instance using default dependencies
-export const songService = new SongService(
-  prisma,
-  spotifyService,
-  geniusService
-);
-
 // Factory function to create new instances with custom dependencies
 export const createSongService = (
   prismaClient: PrismaClient = prisma,
-  spotifyServiceInstance: typeof spotifyService = spotifyService,
-  geniusServiceInstance: typeof geniusService = geniusService
+  spotifyServiceInstance?: SpotifyServiceInterface,
+  geniusServiceInstance?: GeniusServiceInterface
 ) => {
-  return new SongService(prismaClient, spotifyServiceInstance, geniusServiceInstance);
+  const spotifyService = spotifyServiceInstance || createSpotifyService();
+  const geniusService = geniusServiceInstance || createGeniusService();
+  return new SongService(prismaClient, spotifyService, geniusService);
 }; 

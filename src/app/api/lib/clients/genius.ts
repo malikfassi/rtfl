@@ -1,7 +1,6 @@
 import { env } from '@/app/api/lib/env';
 import { GeniusApiError } from '@/app/api/lib/errors/clients/genius';
-import type { GeniusSearchResponse } from '@/app/api/lib/types/genius';
-import { validateSchema, schemas } from '@/app/api/lib/validation';
+import type { GeniusSearchResponse } from '@/app/types';
 
 export interface GeniusClient {
   search(query: string): Promise<GeniusSearchResponse>;

@@ -7,6 +7,7 @@ import { fixtures } from '@/app/api/lib/test/fixtures';
 import { integration_validator } from '@/app/api/lib/test/validators';
 import { ErrorCode } from '@/app/api/lib/errors/codes';
 import { ErrorMessage } from '@/app/api/lib/errors/messages';
+import { Prisma } from '@prisma/client';
 
 import { POST } from '../route';
 
@@ -20,18 +21,27 @@ beforeEach(async () => {
   context = await setupIntegrationTest();
   const key = TRACK_KEYS.PARTY_IN_THE_USA;
   const track = fixtures.spotify.tracks[key];
-  // Create the song in the DB and get its CUID
-  const song = await context.songService.create(track.id);
+  const lyrics = fixtures.genius.lyrics[key];
+  const maskedLyrics = fixtures.genius.maskedLyrics[key];
+  const geniusSearch = fixtures.genius.search[key];
+  
+  // Create the song directly in the database using fixture data
+  const song = await context.prisma.song.create({
+    data: {
+      spotifyId: track.id,
+      spotifyData: track as unknown as Prisma.InputJsonValue,
+      geniusData: geniusSearch.response.hits[0].result as unknown as Prisma.InputJsonValue,
+      lyrics,
+      maskedLyrics: maskedLyrics as unknown as Prisma.InputJsonValue
+    }
+  });
+  
   await context.gameService.createOrUpdate(date, song.id);
 });
 
 afterEach(async () => {
   await context.cleanup();
 });
-
-function getErrorMessage(msg: string | ((...args: any[]) => string), ...args: any[]): string {
-  return typeof msg === 'function' ? msg(...args) : msg;
-}
 
 describe('POST /api/games/[date]/guess', () => {
   test('submits valid guess and returns updated game state', async () => {
@@ -63,7 +73,7 @@ describe('POST /api/games/[date]/guess', () => {
     const data = await response.json();
     expect(response.status).toBe(400);
     expect(data.error).toBe(ErrorCode.ValidationError);
-    expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
+    expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
   });
 
   test('returns 404 when game not found', async () => {
@@ -80,7 +90,7 @@ describe('POST /api/games/[date]/guess', () => {
     const data = await response.json();
     expect(response.status).toBe(404);
     expect(data.error).toBe(ErrorCode.GameNotFoundForGuess);
-    expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.GameNotFoundForGuess], nonexistentDate));
+    expect(data.message).toBe((ErrorMessage[ErrorCode.GameNotFoundForGuess] as (date: string) => string)(nonexistentDate));
   });
 
   test('returns 400 when date is invalid', async () => {
@@ -96,6 +106,6 @@ describe('POST /api/games/[date]/guess', () => {
     const data = await response.json();
     expect(response.status).toBe(400);
     expect(data.error).toBe(ErrorCode.ValidationError);
-    expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError], 'invalid-date'));
+    expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
   });
 }); 

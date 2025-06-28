@@ -7,7 +7,6 @@ import {
   type IntegrationTestContext
 } from '@/app/api/lib/test/env/integration';
 import { TRACK_KEYS, TRACK_URIS } from '@/app/api/lib/test/constants';
-import { fixtures } from '@/app/api/lib/test/fixtures';
 import { integration_validator } from '@/app/api/lib/test/validators';
 
 

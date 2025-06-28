@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 
 import { Button } from '@/app/front/components/ui/Button';
 import { cn } from '@/app/front/lib/utils';
-import type { GameStatusInfo } from '@/app/types/admin';
+import type { GameStatusInfo } from '@/app/types';
 
 interface Game {
   id: string;
@@ -14,18 +14,6 @@ interface Game {
     artist: string;
   };
   status?: GameStatusInfo;
-}
-
-function getTrackTitle(track: { name: string } | null | undefined) {
-  return track?.name || '';
-}
-
-function getTrackArtist(track: { artists: { name: string }[] } | null | undefined) {
-  return track?.artists[0]?.name || '';
-}
-
-function getTrackId(track: { id: string } | null | undefined) {
-  return track?.id || '';
 }
 
 interface CalendarProps {

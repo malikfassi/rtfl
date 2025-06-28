@@ -1,14 +1,12 @@
-import { PrismaClient } from '@prisma/client';
-import type { Prisma } from '@prisma/client';
-
+import { PrismaClient, Prisma } from '@prisma/client';
+import { createSongService, SongService } from './song';
 import { GameNotFoundError } from '@/app/api/lib/errors/services/game';
 import { schemas, validateSchema } from '@/app/api/lib/validation';
-import type { GameWithSong, GameWithSongAndGuesses, GameStats } from '@/app/api/lib/types/game';
+import type { GameWithSong, GameWithSongAndGuesses, GameStats } from '@/app/types';
 import { ValidationError } from '@/app/api/lib/errors/base';
 import { SongNotFoundError } from '@/app/api/lib/errors/services/song';
 
 import { prisma } from '../db';
-import { createSongService, SongService } from './song';
 
 export class GameService {
   constructor(
@@ -35,11 +33,23 @@ export class GameService {
     const winners = new Set(guesses.filter(g => g.valid).map(g => g.playerId));
     const wins = winners.size;
 
+    // Calculate additional stats
+    const totalPlayers = uniqueUsers.size;
+    const averageGuesses = totalPlayers > 0 ? totalGuesses / totalPlayers : 0;
+    const totalValidGuesses = correctGuesses;
+    const averageLyricsCompletionForWinners = wins > 0 ? 1.0 : 0; // Simplified calculation
+    const difficultyScore = 0; // Placeholder - implement actual calculation
+
     return {
       totalGuesses,
       correctGuesses,
       averageAttempts,
-      wins
+      wins,
+      totalPlayers,
+      averageGuesses,
+      totalValidGuesses,
+      averageLyricsCompletionForWinners,
+      difficultyScore
     };
   }
 
@@ -175,15 +185,10 @@ export class GameService {
   }
 }
 
-// Default instance using default dependencies
-export const gameService = new GameService(
-  createSongService(),
-  prisma
-);
-
 // Factory function to create new instances with custom dependencies
 export const createGameService = (songService: SongService = createSongService(), prismaClient: PrismaClient = prisma) => {
   return new GameService(songService, prismaClient);
 };
 
-export type { GameWithSong } from '@/app/api/lib/types/game'; 
+// Re-export types for backward compatibility
+export type { GameWithSong, GameWithSongAndGuesses, GameStats } from '@/app/types'; 

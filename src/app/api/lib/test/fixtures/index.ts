@@ -1,32 +1,17 @@
 import type { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
-import type { GeniusSearchResponse } from '../../types/genius';
-import { TEST_IDS, getAllTrackIds } from '../constants';
+import type { GeniusSearchResponse, GeniusResult, MaskedLyrics } from '@/app/types';
+import { TEST_IDS } from '../constants';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { constructGeniusSearchQuery } from '../../utils/genius';
-import { constructSpotifySearchQuery } from '../../utils/spotify';
-import { MaskedLyricsService, maskedLyricsService } from '../../services/masked-lyrics';
+import { createMaskedLyricsService } from '../../services/masked-lyrics';
 import { extractLyricsFromHtml } from '../../services/lyrics';
 
+// Extended type for GeniusResult with artist property
+interface GeniusResultWithArtist extends GeniusResult {
+  artist: string;
+}
+
 // All fixture access is by constant key only. No mapping helpers needed.
-
-// Helper to get ID from Spotify URI
-const getId = (uri: string) => uri.split(':').pop()!;
-
-// Helper to construct Genius search query from Spotify track
-const getGeniusQuery = (track: Track) => {
-  const normalizedTitle = track.name.toLowerCase()
-    .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '') // Remove punctuation
-    .replace(/\s+/g, ' ')                      // Normalize whitespace
-    .trim();
-  
-  const normalizedArtist = track.artists[0].name.toLowerCase()
-    .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '') // Remove punctuation
-    .replace(/\s+/g, ' ')                      // Normalize whitespace
-    .trim();
-  
-  return `${normalizedTitle} ${normalizedArtist}`;
-};
 
 export interface SpotifyFixtures {
   tracks: { [key: string]: Track };
@@ -72,7 +57,7 @@ const INSTRUMENTAL_TRACKS = TEST_IDS.SPOTIFY.TRACKS.INSTRUMENTAL;
 const ERROR_CASES = TEST_IDS.SPOTIFY.ERROR_CASES;
 
 // Only load normal fixtures for WITH_LYRICS and INSTRUMENTAL
-const SPOTIFY_TRACK_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key, uri]) => {
+const SPOTIFY_TRACK_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key]) => {
   try {
     acc[key] = loadJsonFixture<Track>('spotify', 'tracks', key);
   } catch (error) {
@@ -81,7 +66,7 @@ const SPOTIFY_TRACK_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRU
   return acc;
 }, {} as SpotifyFixtures['tracks']);
 
-const SPOTIFY_SEARCH_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key, uri]) => {
+const SPOTIFY_SEARCH_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key]) => {
   try {
     const searchData = loadJsonFixture<{ tracks: { items: Track[] } }>('spotify', 'search', key);
     acc[key] = searchData;
@@ -91,16 +76,25 @@ const SPOTIFY_SEARCH_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTR
   return acc;
 }, {} as SpotifyFixtures['search']);
 
-const GENIUS_SEARCH_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key, uri]) => {
+const GENIUS_SEARCH_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key]) => {
   try {
-    acc[key] = loadJsonFixture<GeniusSearchResponse>('genius', 'search', key);
+    const searchData = loadJsonFixture<GeniusSearchResponse>('genius', 'search', key);
+    // Add artist property to each hit result for consistency with extractGeniusData
+    if (searchData.response.hits.length > 0) {
+      searchData.response.hits.forEach(hit => {
+        if (hit.result && !('artist' in hit.result)) {
+          (hit.result as GeniusResultWithArtist).artist = hit.result.primary_artist?.name || '';
+        }
+      });
+    }
+    acc[key] = searchData;
   } catch (error) {
     console.warn(`Failed to load Genius search fixture for track ${key}: ${error}`);
   }
   return acc;
 }, {} as GeniusFixtures['search']);
 
-const GENIUS_LYRICS_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key, uri]) => {
+const GENIUS_LYRICS_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRUMENTAL_TRACKS }).reduce((acc, [key]) => {
   try {
     acc[key] = loadHtmlFixture('genius', 'lyrics', key);
   } catch (error) {
@@ -110,7 +104,7 @@ const GENIUS_LYRICS_FIXTURES = Object.entries({ ...WITH_LYRICS_TRACKS, ...INSTRU
 }, {} as GeniusFixtures['lyrics']);
 
 // For error cases, only load error fixtures
-const SPOTIFY_ERROR_TRACK_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key, uri]) => {
+const SPOTIFY_ERROR_TRACK_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key]) => {
   try {
     acc[key] = loadJsonFixture('spotify', 'tracks', key);
   } catch (error) {
@@ -119,7 +113,7 @@ const SPOTIFY_ERROR_TRACK_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [k
   return acc;
 }, {} as SpotifyFixtures['tracks']);
 
-const SPOTIFY_ERROR_SEARCH_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key, uri]) => {
+const SPOTIFY_ERROR_SEARCH_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key]) => {
   try {
     acc[key] = loadJsonFixture('spotify', 'search', key);
   } catch (error) {
@@ -128,7 +122,7 @@ const SPOTIFY_ERROR_SEARCH_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [
   return acc;
 }, {} as SpotifyFixtures['search']);
 
-const GENIUS_ERROR_SEARCH_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key, uri]) => {
+const GENIUS_ERROR_SEARCH_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key]) => {
   try {
     acc[key] = loadJsonFixture('genius', 'search', key);
   } catch (error) {
@@ -137,7 +131,7 @@ const GENIUS_ERROR_SEARCH_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [k
   return acc;
 }, {} as GeniusFixtures['search']);
 
-const GENIUS_ERROR_LYRICS_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key, uri]) => {
+const GENIUS_ERROR_LYRICS_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [key]) => {
   try {
     acc[key] = loadHtmlFixture('genius', 'lyrics', key);
   } catch (error) {
@@ -147,7 +141,7 @@ const GENIUS_ERROR_LYRICS_FIXTURES = Object.entries(ERROR_CASES).reduce((acc, [k
 }, {} as GeniusFixtures['lyrics']);
 
 // Build playlist fixtures from captured data
-const SPOTIFY_PLAYLIST_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.PLAYLISTS).reduce((acc, [key, uri]) => {
+const SPOTIFY_PLAYLIST_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.PLAYLISTS).reduce((acc, [key]) => {
   try {
     acc[key] = loadJsonFixture('spotify', 'playlists', key);
   } catch (error) {
@@ -157,7 +151,7 @@ const SPOTIFY_PLAYLIST_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.PLAYLISTS).red
 }, {} as SpotifyFixtures['playlists']);
 
 // Load playlist search fixtures from captured data
-const SPOTIFY_PLAYLIST_SEARCH_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.PLAYLISTS).reduce((acc, [key, uri]) => {
+const SPOTIFY_PLAYLIST_SEARCH_FIXTURES = Object.entries(TEST_IDS.SPOTIFY.PLAYLISTS).reduce((acc, [key]) => {
   try {
     const searchData = loadJsonFixture<{ playlists: { items: SimplifiedPlaylist[] } }>('spotify', 'search', key);
     acc[key] = searchData;
@@ -191,13 +185,13 @@ const GENIUS_FIXTURES: GeniusFixtures = {
 };
 
 // Generate maskedLyrics for each WITH_LYRICS_TRACKS entry
-const GENIUS_MASKED_LYRICS_FIXTURES = Object.entries(WITH_LYRICS_TRACKS).reduce((acc, [key, uri]) => {
+const GENIUS_MASKED_LYRICS_FIXTURES = Object.entries(WITH_LYRICS_TRACKS).reduce((acc, [key]) => {
   try {
     const track = SPOTIFY_TRACK_FIXTURES[key];
     const lyricsHtml = GENIUS_LYRICS_FIXTURES[key];
     if (track && lyricsHtml) {
       const lyrics = extractLyricsFromHtml(lyricsHtml);
-      acc[key] = maskedLyricsService.create(
+      acc[key] = createMaskedLyricsService().create(
         track.name,
         track.artists[0].name,
         lyrics
@@ -207,13 +201,7 @@ const GENIUS_MASKED_LYRICS_FIXTURES = Object.entries(WITH_LYRICS_TRACKS).reduce(
     console.warn(`Failed to generate maskedLyrics for ${key}: ${error}`);
   }
   return acc;
-}, {} as Record<string, any>);
-
-// Helper to get fixture with error handling
-const getFixture = <T>(obj: Record<string, T>, key: string, type: string): T => {
-  if (!(key in obj)) throw new Error(`No fixture found for ${type}: ${key}. Available keys: ${Object.keys(obj).join(', ')}`);
-  return obj[key];
-};
+}, {} as Record<string, MaskedLyrics>);
 
 // NEW: Direct key-based fixture access. Use only key constants for lookups.
 export const fixtures = {

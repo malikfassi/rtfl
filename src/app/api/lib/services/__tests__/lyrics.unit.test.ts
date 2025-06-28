@@ -1,8 +1,7 @@
 import { LyricsService } from '../lyrics';
 import { LyricsExtractionError } from '@/app/api/lib/errors/services/lyrics';
-import { setupUnitTest, cleanupUnitTest, UnitTestContext } from '@/app/api/lib/test/env/unit';
+import { setupUnitTest, cleanupUnitTest } from '@/app/api/lib/test/env/unit';
 import { TRACK_KEYS } from '@/app/api/lib/test/constants';
-import { fixtures } from '@/app/api/lib/test/fixtures';
 import { 
   getGeniusUrlFromTrackKey, 
   getExpectedSongMetadata 
@@ -11,10 +10,9 @@ import { unit_validator } from '@/app/api/lib/test/validators';
 
 describe('LyricsService Unit Tests', () => {
   let lyricsService: LyricsService;
-  let context: UnitTestContext;
 
   beforeEach(() => {
-    context = setupUnitTest();
+    setupUnitTest();
     lyricsService = new LyricsService();
   });
 

@@ -1,79 +1,77 @@
 import { NextResponse } from 'next/server';
 import { handleError } from '@/app/api/lib/utils/error-handler';
-import { createGameService, type GameWithSong } from '@/app/api/lib/services/game';
+import { createGameService } from '@/app/api/lib/services/game';
 import { createSongService } from '@/app/api/lib/services/song';
-import { schemas, validateSchema } from '@/app/api/lib/validation';
+import { schemas, validateSchema, validateJsonBody } from '@/app/api/lib/validation';
 import { PrismaClient } from '@prisma/client';
+import type { NextRequest } from 'next/server';
 
-// These types are used for type checking the response
-type ErrorResponse = { error: string };
-type SuccessResponse = GameWithSong;
-type DeleteResponse = { success: boolean };
-type Response = ErrorResponse | SuccessResponse | DeleteResponse;
-
-const prisma = new PrismaClient();
-
-export function makeGET(prisma: PrismaClient) {
-  return async function handler(
-    request: Request,
-    { params }: { params: { date: string } }
-  ): Promise<NextResponse<Response>> {
-    try {
-      const { date } = params;
-      const validatedDate = validateSchema(schemas.date, date);
-      const gameService = await createGameService(undefined, prisma);
-      const game = await gameService.getByDate(validatedDate);
-      return NextResponse.json(game);
-    } catch (error) {
-      return handleError(error);
-    }
-  };
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ date: string }> }
+) {
+  const prisma = new PrismaClient();
+  try {
+    const { params } = context;
+    const { date } = await params;
+    const validatedDate = validateSchema(schemas.date, date);
+    
+    const songService = createSongService(prisma);
+    const gameService = createGameService(songService, prisma);
+    const game = await gameService.getByDate(validatedDate);
+    
+    return NextResponse.json(game);
+  } catch (error) {
+    return handleError(error);
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
-export function makePOST(prisma: PrismaClient) {
-  return async function handler(
-    request: Request,
-    { params }: { params: { date: string } }
-  ): Promise<NextResponse<Response>> {
-    try {
-      const { date } = params;
-      const validatedDate = validateSchema(schemas.date, date);
-      const body = await request.json();
-      const spotifyId = validateSchema(schemas.spotifyId, body.spotifyId);
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ date: string }> }
+) {
+  const prisma = new PrismaClient();
+  try {
+    const { params } = context;
+    const { date } = await params;
+    const validatedDate = validateSchema(schemas.date, date);
+    const validatedBody = await validateJsonBody(request, schemas.adminGameUpdate);
 
-      const [gameService, songService] = await Promise.all([
-        createGameService(undefined, prisma),
-        createSongService(prisma)
-      ]);
+    const songService = createSongService(prisma);
+    const gameService = createGameService(songService, prisma);
 
-      const song = await songService.create(spotifyId);
-      const game = await gameService.createOrUpdate(validatedDate, song.id);
-      return NextResponse.json(game);
-    } catch (error) {
-      return handleError(error);
-    }
-  };
+    const song = await songService.create(validatedBody.spotifyId);
+    const game = await gameService.createOrUpdate(validatedDate, song.id);
+    return NextResponse.json(game);
+  } catch (error) {
+    return handleError(error);
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
-export function makeDELETE(prisma: PrismaClient) {
-  return async function handler(
-    request: Request,
-    { params }: { params: { date: string } }
-  ): Promise<NextResponse<Response>> {
-    try {
-      const { date } = params;
-      const validatedDate = validateSchema(schemas.date, date);
-      const gameService = await createGameService(undefined, prisma);
-      await gameService.delete(validatedDate);
-      return NextResponse.json({ success: true });
-    } catch (error) {
-      return handleError(error);
-    }
-  };
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ date: string }> }
+) {
+  const prisma = new PrismaClient();
+  try {
+    const { params } = context;
+    const { date } = await params;
+    const validatedDate = validateSchema(schemas.date, date);
+    
+    const songService = createSongService(prisma);
+    const gameService = createGameService(songService, prisma);
+    await gameService.delete(validatedDate);
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return handleError(error);
+  } finally {
+    await prisma.$disconnect();
+  }
 }
-
-export const GET = makeGET(prisma);
-export const POST = makePOST(prisma);
-export const DELETE = makeDELETE(prisma);
 
 export const dynamic = 'force-dynamic'; 

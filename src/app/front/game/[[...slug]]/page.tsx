@@ -1,8 +1,9 @@
 import { LyricsGame } from "@/app/front/components/game/LyricsGame";
-import { format } from "date-fns";
 import { redirect } from "next/navigation";
-import { ROUTES, isValidDate, getCurrentDate, matchRoute } from "@/app/front/lib/routes";
-import { notFound } from "next/navigation";
+import { ROUTES, isValidDate, getCurrentDate } from "@/app/front/lib/routes";
+import { getCurrentGame } from "@/app/front/lib/game-server";
+import { isFutureDate } from "@/app/front/lib/utils/date-formatting";
+import { ERROR_MESSAGES } from "@/app/front/lib/error-messages";
 
 export default async function GameCatchAllPage({
   params,
@@ -11,20 +12,6 @@ export default async function GameCatchAllPage({
 }) {
   const { slug } = await params;
   
-  // Handle archive paths by redirecting to the root archive path
-  if (slug?.length === 1 && slug[0] === "archive") {
-    redirect(ROUTES.ARCHIVE.ROOT);
-  }
-  if (slug?.length === 2 && slug[0] === "archive") {
-    redirect(ROUTES.ARCHIVE.BY_MONTH(slug[1]));
-  }
-  if (slug?.length === 2 && slug[0] === "front" && slug[1] === "archive") {
-    redirect(ROUTES.ARCHIVE.ROOT);
-  }
-  if (slug?.length === 3 && slug[0] === "front" && slug[1] === "archive") {
-    redirect(ROUTES.ARCHIVE.BY_MONTH(slug[2]));
-  }
-
   // Treat undefined, [], [""], and ['front', 'game'] as no slug (root path)
   const isRootPath = !slug || 
     slug.length === 0 || 
@@ -37,15 +24,23 @@ export default async function GameCatchAllPage({
   // Check if date is valid - only for non-root paths
   const isValidDatePath = isRootPath ? true : isValidDate(date);
   
-  // Return 404 for invalid paths
+  // Redirect invalid paths to home with error
   if (!isValidDatePath) {
-    notFound();
+    redirect(`${ROUTES.HOME}?error=invalid_date&message=${encodeURIComponent(ERROR_MESSAGES.INVALID_DATE)}`);
   }
+
+  // Check if date is in the future and redirect to rickroll
+  if (isFutureDate(date)) {
+    redirect('/rickroll');
+  }
+
+  // Fetch game data
+  const game = await getCurrentGame(date);
 
   return (
     <div className="min-h-screen bg-background font-mono">
       <div className="p-8">
-        <LyricsGame date={date} game={undefined} rickrollMode={false} />
+        <LyricsGame date={date} game={game} />
       </div>
     </div>
   );

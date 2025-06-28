@@ -1,4 +1,4 @@
-import type { GeniusSearchResponse, GeniusHit } from '../../../types/genius';
+import type { GeniusSearchResponse, GeniusHit } from '@/app/types';
 import { fixtures } from '../../fixtures';
 import { TEST_IDS } from '../../constants';
 

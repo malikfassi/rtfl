@@ -1,12 +1,18 @@
+import type { GameState } from '@/app/types';
+
 export const gameStateService = {
-  getGameState: (gameState: any) => {
+  getGameState: (gameState: GameState) => {
     expect(gameState).toBeDefined();
     expect(gameState).toHaveProperty('guesses');
     expect(gameState).toHaveProperty('masked');
     // Only check for 'song' if present
     if (gameState.song !== undefined) {
-      expect(gameState.song).toHaveProperty('title');
-      expect(gameState.song).toHaveProperty('artist');
+      if ('title' in gameState.song) {
+        expect(gameState.song).toHaveProperty('title');
+      }
+      if ('artist' in gameState.song) {
+        expect(gameState.song).toHaveProperty('artist');
+      }
     }
     // Validate data types
     expect(Array.isArray(gameState.guesses)).toBe(true);

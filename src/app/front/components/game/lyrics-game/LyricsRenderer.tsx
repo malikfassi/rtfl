@@ -1,18 +1,8 @@
 import React from "react";
 import { WordRenderer } from "./WordRenderer";
 import { calculateWordState, splitIntoTokens, isWord, isWhitespace } from "@/app/front/lib/utils/word-processing";
-import { getWordColor, Color } from "@/app/front/lib/utils/color-management";
-
-interface LyricsRendererProps {
-  lyrics: string;
-  foundWords: string[];
-  hoveredWord?: string | null;
-  selectedWord?: string | null;
-  guesses: Array<{ id: string; word: string; valid: boolean; }>;
-  colors: Color[];
-  isComplete?: boolean;
-  showFullLyrics?: boolean;
-}
+import { getWordColor } from "@/app/front/lib/utils/color-management";
+import type { LyricsRendererProps } from "@/app/types";
 
 export function LyricsRenderer({
   lyrics,
@@ -20,22 +10,30 @@ export function LyricsRenderer({
   hoveredWord = null,
   selectedWord = null,
   guesses,
-  colors,
   isComplete = false,
   showFullLyrics = false,
 }: LyricsRendererProps) {
-  const tokens = splitIntoTokens(lyrics);
+  // Handle both string and token array inputs
+  const tokens = Array.isArray(lyrics) 
+    ? lyrics 
+    : splitIntoTokens(lyrics);
   
   return (
     <div className="space-y-4">
       {tokens.map((token, index) => {
-        if (isWhitespace(token)) {
-          return <span key={index}>{token}</span>;
+        const tokenValue = typeof token === 'string' ? token : token.value;
+        
+        if (isWhitespace(tokenValue)) {
+          // Preserve newlines by rendering them as line breaks
+          if (tokenValue.includes('\n')) {
+            return <br key={index} />;
+          }
+          return <span key={index}>{tokenValue}</span>;
         }
         
-        if (isWord(token)) {
+        if (isWord(tokenValue)) {
           const state = calculateWordState(
-            token,
+            tokenValue,
             foundWords,
             hoveredWord,
             selectedWord,
@@ -43,12 +41,12 @@ export function LyricsRenderer({
             showFullLyrics
           );
           
-          const color = getWordColor(token, guesses, colors);
+          const color = getWordColor(tokenValue, guesses);
           
           return (
             <WordRenderer
               key={index}
-              word={token}
+              word={tokenValue}
               isFound={state.isFound}
               shouldShow={state.shouldShow}
               isNewlyFound={state.isNewlyFound}
@@ -59,7 +57,7 @@ export function LyricsRenderer({
           );
         }
         
-        return <span key={index}>{token}</span>;
+        return <span key={index}>{tokenValue}</span>;
       })}
     </div>
   );

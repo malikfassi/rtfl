@@ -1,6 +1,7 @@
+/* eslint-disable */
 // Import test environment setup
-require('./src/lib/test/test-env/environment');
-const { setupTestDb, cleanupTestDb, prisma } = require('./src/lib/test/test-env/db');
+require('./src/app/api/lib/test/env/environment');
+const { setupTestDb, cleanupTestDb, prisma } = require('./src/app/api/lib/test/env/db');
 
 // Global setup
 beforeAll(async () => {

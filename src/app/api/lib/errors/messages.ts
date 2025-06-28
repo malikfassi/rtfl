@@ -1,6 +1,6 @@
 import { ErrorCode } from './codes';
 
-type ErrorMessageFn = (...args: any[]) => string;
+type ErrorMessageFn = ((error: Error) => string) | ((playlistId: string) => string) | ((date: string) => string) | ((spotifyId: string) => string) | (() => string);
 
 export const ErrorMessage: Record<ErrorCode, string | ErrorMessageFn> = {
   // Base

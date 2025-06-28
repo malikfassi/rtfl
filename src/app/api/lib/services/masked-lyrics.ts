@@ -1,4 +1,4 @@
-import type { MaskedLyrics, Token } from '@/app/api/lib/types/lyrics';
+import type { MaskedLyrics, Token } from '@/app/types';
 
 const WORD_REGEX = /\p{L}+|\p{N}+/gu;
 
@@ -101,5 +101,5 @@ export class MaskedLyricsService {
   }
 }
 
-// Export singleton instance
-export const maskedLyricsService = new MaskedLyricsService(); 
+// Factory function for creating new instances
+export const createMaskedLyricsService = () => new MaskedLyricsService(); 

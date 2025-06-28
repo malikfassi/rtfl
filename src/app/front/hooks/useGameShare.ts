@@ -1,19 +1,5 @@
-import { useRef, useEffect } from 'react';
-
-interface GameShareProps {
-  isGameComplete: boolean;
-  lyricsPercent: number;
-  titlePercent: number;
-  artistPercent: number;
-  guessCount: number;
-  date: string;
-}
-
-interface GameShareState {
-  shareText: string;
-  gameUrl: string;
-  handleShare: () => Promise<void>;
-}
+import { useRef, useEffect, useCallback } from 'react';
+import type { GameShareProps, GameShareState } from '@/app/types';
 
 export function useGameShare({
   isGameComplete,
@@ -40,7 +26,7 @@ export function useGameShare({
     : `I'm trying to solve today's RTFL lyrics challenge! Can you help me?\n\nPlay here:`;
 
   // Handle share functionality
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     try {
       const fullText = `${shareText}\n\n${gameUrl}`;
       await navigator.clipboard.writeText(fullText);
@@ -48,7 +34,7 @@ export function useGameShare({
       console.error('Failed to copy to clipboard:', err);
       // You might want to show a toast notification here
     }
-  };
+  }, [shareText, gameUrl]);
 
   // Handle game completion
   useEffect(() => {
@@ -59,7 +45,7 @@ export function useGameShare({
     if (!isGameComplete) {
       hasSharedRef.current = false;
     }
-  }, [isGameComplete]);
+  }, [isGameComplete, handleShare]);
 
   return {
     shareText,

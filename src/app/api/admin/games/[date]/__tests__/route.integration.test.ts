@@ -5,7 +5,8 @@ import { fixtures } from '@/app/api/lib/test/fixtures';
 import { integration_validator } from '@/app/api/lib/test/validators';
 import { ErrorCode } from '@/app/api/lib/errors/codes';
 import { ErrorMessage } from '@/app/api/lib/errors/messages';
-import { makeGET, makePOST } from '../route';
+import { GET, POST } from '../route';
+import { Prisma } from '@prisma/client';
 
 describe('Games by Date API Integration', () => {
   const validSongKey = TRACK_KEYS.PARTY_IN_THE_USA;
@@ -14,10 +15,6 @@ describe('Games by Date API Integration', () => {
   const frenchSong = fixtures.spotify.tracks[frenchSongKey];
   const date = new Date().toISOString().split('T')[0];
   let context: Awaited<ReturnType<typeof setupIntegrationTest>>;
-
-  function getErrorMessage(msg: string | ((...args: any[]) => string), ...args: any[]): string {
-    return typeof msg === 'function' ? msg(...args) : msg;
-  }
 
   beforeEach(async () => {
     context = await setupIntegrationTest();
@@ -29,8 +26,23 @@ describe('Games by Date API Integration', () => {
 
   describe('GET /api/admin/games/[date]', () => {
     beforeEach(async () => {
-      const song = await context.songService.create(validSong.id);
-      await context.gameService.createOrUpdate(date, song.id);
+      // Create song and game directly in database using fixture data
+      const song = await context.prisma.song.create({
+        data: {
+          spotifyId: validSong.id,
+          lyrics: fixtures.genius.lyrics[validSongKey],
+          maskedLyrics: fixtures.genius.maskedLyrics[validSongKey] as unknown as Prisma.InputJsonValue,
+          spotifyData: validSong as unknown as Prisma.InputJsonValue,
+          geniusData: fixtures.genius.search[validSongKey].response.hits[0].result as unknown as Prisma.InputJsonValue,
+        }
+      });
+
+      await context.prisma.game.create({
+        data: {
+          date,
+          songId: song.id
+        }
+      });
     });
 
     test('returns game when found', async () => {
@@ -38,8 +50,7 @@ describe('Games by Date API Integration', () => {
         `http://localhost:3000/api/admin/games/${date}`
       );
 
-      const GET = makeGET(context.prisma);
-      const response = await GET(request, { params: { date } });
+      const response = await GET(request, { params: Promise.resolve({ date }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -52,13 +63,12 @@ describe('Games by Date API Integration', () => {
         `http://localhost:3000/api/admin/games/${nonexistentDate}`
       );
 
-      const GET = makeGET(context.prisma);
-      const response = await GET(request, { params: { date: nonexistentDate } });
+      const response = await GET(request, { params: Promise.resolve({ date: nonexistentDate }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
       expect(data.error).toBe(ErrorCode.GameNotFound);
-      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.GameNotFound], nonexistentDate));
+      expect(data.message).toBe((ErrorMessage[ErrorCode.GameNotFound] as (date: string) => string)(nonexistentDate));
     });
 
     test('returns 400 for invalid date format', async () => {
@@ -67,21 +77,28 @@ describe('Games by Date API Integration', () => {
         `http://localhost:3000/api/admin/games/${invalidDate}`
       );
 
-      const GET = makeGET(context.prisma);
-      const response = await GET(request, { params: { date: invalidDate } });
+      const response = await GET(request, { params: Promise.resolve({ date: invalidDate }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
       expect(data.error).toBe(ErrorCode.ValidationError);
-      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError], invalidDate));
+      expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
     });
   });
 
   describe('POST /api/admin/games/[date]', () => {
     test('creates new game', async () => {
-      // Debug: print the Spotify ID and its length
-      // eslint-disable-next-line no-console
-      console.log('DEBUG: validSong.id =', validSong.id, 'length =', validSong.id.length);
+      // Create song directly in database using fixture data
+      await context.prisma.song.create({
+        data: {
+          spotifyId: validSong.id,
+          lyrics: fixtures.genius.lyrics[validSongKey],
+          maskedLyrics: fixtures.genius.maskedLyrics[validSongKey] as unknown as Prisma.InputJsonValue,
+          spotifyData: validSong as unknown as Prisma.InputJsonValue,
+          geniusData: fixtures.genius.search[validSongKey].response.hits[0].result as unknown as Prisma.InputJsonValue,
+        }
+      });
+      
       const request = new NextRequest(
         `http://localhost:3000/api/admin/games/${date}`,
         {
@@ -92,8 +109,7 @@ describe('Games by Date API Integration', () => {
         }
       );
 
-      const POST = makePOST(context.prisma);
-      const response = await POST(request, { params: { date } });
+      const response = await POST(request, { params: Promise.resolve({ date }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -101,9 +117,35 @@ describe('Games by Date API Integration', () => {
     });
 
     test('updates existing game', async () => {
-      const song1 = await context.songService.create(validSong.id);
-      const song2 = await context.songService.create(frenchSong.id);
-      await context.gameService.createOrUpdate(date, song1.id);
+      // Create both songs directly in database using fixture data
+      const song1 = await context.prisma.song.create({
+        data: {
+          spotifyId: validSong.id,
+          lyrics: fixtures.genius.lyrics[validSongKey],
+          maskedLyrics: fixtures.genius.maskedLyrics[validSongKey] as unknown as Prisma.InputJsonValue,
+          spotifyData: validSong as unknown as Prisma.InputJsonValue,
+          geniusData: fixtures.genius.search[validSongKey].response.hits[0].result as unknown as Prisma.InputJsonValue,
+        }
+      });
+
+      await context.prisma.song.create({
+        data: {
+          spotifyId: frenchSong.id,
+          lyrics: fixtures.genius.lyrics[frenchSongKey],
+          maskedLyrics: fixtures.genius.maskedLyrics[frenchSongKey] as unknown as Prisma.InputJsonValue,
+          spotifyData: frenchSong as unknown as Prisma.InputJsonValue,
+          geniusData: fixtures.genius.search[frenchSongKey].response.hits[0].result as unknown as Prisma.InputJsonValue,
+        }
+      });
+
+      // Create initial game with first song
+      await context.prisma.game.create({
+        data: {
+          date,
+          songId: song1.id
+        }
+      });
+      
       const request = new NextRequest(
         `http://localhost:3000/api/admin/games/${date}`,
         {
@@ -114,8 +156,7 @@ describe('Games by Date API Integration', () => {
         }
       );
 
-      const POST = makePOST(context.prisma);
-      const response = await POST(request, { params: { date } });
+      const response = await POST(request, { params: Promise.resolve({ date }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);

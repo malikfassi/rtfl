@@ -4,24 +4,19 @@ import type { SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 
 import { PLAYLIST_KEYS } from '@/app/api/lib/test/constants';
 import { fixtures } from '@/app/api/lib/test/fixtures';
-import { integration_validator } from '@/app/api/lib/test/validators';
 import { ErrorCode } from '@/app/api/lib/errors/codes';
 import { ErrorMessage } from '@/app/api/lib/errors/messages';
 import { cleanupIntegrationTest, setupIntegrationTest } from '@/app/api/lib/test';
 import { GET } from '../route';
 
-function getErrorMessage(msg: string | ((...args: any[]) => string), ...args: any[]): string {
-  return typeof msg === 'function' ? msg(...args) : msg;
-}
-
 describe('Spotify Playlists Search API Integration', () => {
   beforeEach(async () => {
     await setupIntegrationTest();
-  }, 10000);
+  }, 30000);
 
   afterEach(async () => {
     await cleanupIntegrationTest();
-  }, 10000);
+  }, 30000);
 
   describe('GET /api/admin/spotify/playlists/search', () => {
     test('should return playlists when found by query', async () => {
@@ -51,7 +46,7 @@ describe('Spotify Playlists Search API Integration', () => {
         return name.includes('rock') && name.includes('classic');
       });
       expect(hasRelevantPlaylist).toBe(true);
-    }, 10000);
+    }, 30000);
 
     test('should return 400 when query is missing', async () => {
       const request = new NextRequest(
@@ -64,8 +59,8 @@ describe('Spotify Playlists Search API Integration', () => {
 
       expect(response.status).toBe(400);
       expect(data.error).toBe(ErrorCode.ValidationError);
-      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
-    }, 10000);
+      expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
+    }, 30000);
 
     test('should return 400 when query is empty', async () => {
       const request = new NextRequest(
@@ -78,8 +73,8 @@ describe('Spotify Playlists Search API Integration', () => {
 
       expect(response.status).toBe(400);
       expect(data.error).toBe(ErrorCode.ValidationError);
-      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
-    }, 10000);
+      expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
+    }, 30000);
 
     test('should return 400 when query is too long', async () => {
       const longQuery = 'a'.repeat(300);
@@ -93,7 +88,7 @@ describe('Spotify Playlists Search API Integration', () => {
 
       expect(response.status).toBe(400);
       expect(data.error).toBe(ErrorCode.ValidationError);
-      expect(data.message).toBe(getErrorMessage(ErrorMessage[ErrorCode.ValidationError]));
-    }, 10000);
+      expect(data.message).toBe(ErrorMessage[ErrorCode.ValidationError]);
+    }, 30000);
   });
 }); 

@@ -1,11 +1,11 @@
-import type { Track } from '@spotify/web-api-ts-sdk';
+import type { CustomPlaylist } from '@/app/types';
 import { format, addMonths } from 'date-fns';
 import React, { useCallback, useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/app/front/components/ui/Button';
 import { useAdminGameMutations } from '@/app/front/hooks/useAdmin';
-import { GameStatus, GameStatusInfo } from '@/app/types/admin';
+import { GameStatus, GameStatusInfo } from '@/app/types';
 import { useToast } from '@/app/front/hooks/use-toast';
 
 import { PlaylistBrowser } from './PlaylistBrowser';
@@ -23,7 +23,7 @@ interface BatchGameEditorProps {
   pendingChanges: Record<string, GameStatusInfo>;
   onPendingChanges: (changes: Record<string, GameStatusInfo> | ((prev: Record<string, GameStatusInfo>) => Record<string, GameStatusInfo>)) => void;
   onComplete: () => void;
-  onPlaylistChange?: (playlist: { tracks: Track[] }) => void;
+  onPlaylistChange?: (playlist: CustomPlaylist) => void;
   onReshuffle?: () => void;
 }
 
@@ -36,12 +36,12 @@ export function BatchGameEditor({
   onReshuffle
 }: BatchGameEditorProps) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [selectedPlaylist, setSelectedPlaylist] = useState<{ tracks: Track[] } | null>(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<CustomPlaylist | null>(null);
   const { createGame } = useAdminGameMutations();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const handlePlaylistSelect = useCallback((playlist: { tracks: Track[] }) => {
+  const handlePlaylistSelect = useCallback((playlist: CustomPlaylist) => {
     console.log('BatchGameEditor: Selected playlist with tracks:', playlist.tracks.length);
     setSelectedPlaylist(playlist);
     onPlaylistChange?.(playlist);

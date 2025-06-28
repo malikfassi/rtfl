@@ -1,7 +1,6 @@
 import { SpotifyClient } from '@/app/api/lib/clients/spotify';
 import { fixtures } from '../fixtures';
 import { TRACK_URIS } from '../constants';
-import type { Track, Page, Playlist } from '@spotify/web-api-ts-sdk';
 
 // Helper to get key from real Spotify ID
 function getKeyFromSpotifyId(spotifyId: string): string | undefined {

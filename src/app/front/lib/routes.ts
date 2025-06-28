@@ -9,8 +9,8 @@ export const ROUTES = {
     BY_DATE: (date: string) => `/front/game/${date}` as Route,
   },
   ARCHIVE: {
-    ROOT: '/front/archive',
-    BY_MONTH: (month: string) => `/front/archive/${month}` as Route,
+    ROOT: '/archive',
+    BY_MONTH: (month: string) => `/archive/${month}` as Route,
   },
 } as const;
 

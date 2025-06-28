@@ -1,4 +1,5 @@
 import type { SimplifiedPlaylist,Track } from '@spotify/web-api-ts-sdk';
+import type { CustomPlaylist } from '@/app/types';
 import React, { useEffect, useRef,useState } from 'react';
 
 import { Input } from '@/app/front/components/ui/Input';
@@ -9,7 +10,7 @@ import { usePlaylists, usePlaylistTracks } from '@/app/front/hooks/use-playlists
 import { PlaylistSongsList } from './PlaylistSongsList';
 
 interface PlaylistBrowserProps {
-  onPlaylistSelect: (playlist: { tracks: Track[] }) => void;
+  onPlaylistSelect: (playlist: CustomPlaylist) => void;
   onReshuffle?: () => void;
   songAssignments?: Record<string, string[]>;
 }
@@ -89,10 +90,15 @@ export function PlaylistBrowser({ onPlaylistSelect, onReshuffle, songAssignments
   };
 
   useEffect(() => {
-    if (tracks.length > 0) {
-      onPlaylistSelect({ tracks });
+    if (tracks.length > 0 && selectedPlaylist) {
+      const customPlaylist: CustomPlaylist = {
+        id: selectedPlaylist.id,
+        name: selectedPlaylist.name,
+        tracks: tracks
+      };
+      onPlaylistSelect(customPlaylist);
     }
-  }, [tracks, onPlaylistSelect]);
+  }, [tracks, selectedPlaylist, onPlaylistSelect]);
 
   const renderContent = () => {
     if (isLoadingPlaylists) {

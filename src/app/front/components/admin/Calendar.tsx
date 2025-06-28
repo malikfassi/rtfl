@@ -3,7 +3,7 @@ import { ErrorState } from "../ui/ErrorState";
 import { useAdminGamesWithSurroundingMonths } from "@/app/front/hooks/useAdmin";
 
 export default function Calendar() {
-  const { data: games, isLoading, error, refetch } = useAdminGamesWithSurroundingMonths();
+  const { isLoading, error, refetch } = useAdminGamesWithSurroundingMonths();
 
   if (isLoading) {
     return <LoadingState message="Loading calendar..." />;

@@ -1,11 +1,12 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
+import type { SpotifyClient } from '@/app/types';
 
-import { getSpotifyClient } from '@/app/api/lib/clients/spotify';
 import { validateSchema } from '@/app/api/lib/validation';
 import { searchQuerySchema, spotifyIdSchema } from '@/app/api/lib/validation';
+import { getSpotifyClient } from '@/app/api/lib/clients/spotify';
 
 export class SpotifyService {
-  private spotifyClient = getSpotifyClient();
+  constructor(private spotifyClient: SpotifyClient) {}
 
   public async getTrack(id: string): Promise<Track> {
     const validatedId = validateSchema(spotifyIdSchema, id);
@@ -18,5 +19,11 @@ export class SpotifyService {
   }
 }
 
-// Export singleton instance
-export const spotifyService = new SpotifyService(); 
+// Factory function to create SpotifyService with default client
+export function createSpotifyService(client?: SpotifyClient): SpotifyService {
+  if (client) {
+    return new SpotifyService(client);
+  }
+  
+  return new SpotifyService(getSpotifyClient());
+} 

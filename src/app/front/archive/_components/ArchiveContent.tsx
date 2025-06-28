@@ -2,20 +2,20 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { format, startOfMonth, addMonths, subMonths } from "date-fns";
 import { useGameMonth } from "@/app/front/hooks/usePlayer";
 import { getOrCreatePlayerId } from "@/app/front/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CalendarView } from "@/app/front/components/archive/CalendarView";
 import { ScrambleTitle } from "@/app/front/components/game/ScrambleTitle";
-import { buildArchiveRoute, getCurrentMonth } from "@/app/front/lib/routes";
+import { buildArchiveRoute, getCurrentMonth, ROUTES } from "@/app/front/lib/routes";
 import { parseMonthString } from "@/app/front/lib/utils/date-formatting";
-
-interface ArchiveContentProps {
-  month?: string;
-}
+import { ERROR_MESSAGES } from "@/app/front/lib/error-messages";
+import type { ArchiveContentProps } from "@/app/types";
 
 export function ArchiveContent({ month }: ArchiveContentProps) {
+  const router = useRouter();
   const [playerId, setPlayerId] = useState<string>('');
   const [isClient, setIsClient] = useState(false);
   
@@ -32,9 +32,19 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
     setPlayerId(getOrCreatePlayerId());
   }, []);
 
-  const currentDate = parseMonthString(currentMonth);
-  const prevMonth = format(subMonths(currentDate, 1), "yyyy-MM");
-  const nextMonth = format(addMonths(currentDate, 1), "yyyy-MM");
+  let currentDate: Date;
+  let prevMonth: string;
+  let nextMonth: string;
+  
+  try {
+    currentDate = parseMonthString(currentMonth);
+    prevMonth = format(subMonths(currentDate, 1), "yyyy-MM");
+    nextMonth = format(addMonths(currentDate, 1), "yyyy-MM");
+  } catch (error) {
+    // Redirect invalid months to home with error popup
+    router.push(`${ROUTES.HOME}?error=invalid_month&message=${encodeURIComponent(ERROR_MESSAGES.INVALID_MONTH)}`);
+    return null;
+  }
 
   // Allow navigation to the current month, block only future months
   const isCurrentMonth =

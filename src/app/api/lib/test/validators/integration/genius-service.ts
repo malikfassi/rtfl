@@ -1,6 +1,6 @@
-import type { GeniusSearchResponse, GeniusHit } from '../../../types/genius';
+import type { GeniusSearchResponse, GeniusHit } from '@/app/types';
 import { fixtures } from '../../fixtures';
-import { TRACK_KEYS, TEST_IDS } from '../../constants';
+import { TEST_IDS } from '../../constants';
 
 export const geniusService = {
   search: (key: string, response: GeniusSearchResponse) => {

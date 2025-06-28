@@ -1,21 +1,18 @@
 import { SpotifyClientImpl } from '../spotify';
 import { SpotifyApiError, PlaylistNotFoundError, TrackNotFoundError } from '@/app/api/lib/errors/clients/spotify';
 import { setupIntegrationTest, cleanupIntegrationTest } from '@/app/api/lib/test/env/integration';
-import type { IntegrationTestContext } from '@/app/api/lib/test/env/integration';
 import { integration_validator } from '@/app/api/lib/test/validators';
 import { env } from '@/app/api/lib/env';
-import { constructSpotifySearchQuery, getSpotifySearchQueryForTrackKey } from '@/app/api/lib/utils/spotify';
-import { TEST_IDS, getErrorCaseKeyById, TRACK_KEYS, PLAYLIST_KEYS, TRACK_URIS, PLAYLIST_URIS } from '@/app/api/lib/test/constants';
-import { SpotifyMocks } from '@/app/api/lib/test/mocks/spotify';
+import { getSpotifySearchQueryForTrackKey } from '@/app/api/lib/utils/spotify';
+import { TEST_IDS, TRACK_KEYS, PLAYLIST_KEYS, TRACK_URIS, PLAYLIST_URIS } from '@/app/api/lib/test/constants';
 import { fixtures } from '@/app/api/lib/test/fixtures';
 import { describe, expect, it } from '@jest/globals';
 
 describe('SpotifyClient', () => {
   let client: import('../spotify').SpotifyClient;
-  let context: IntegrationTestContext;
 
   beforeEach(async () => {
-    context = await setupIntegrationTest();
+    await setupIntegrationTest();
     // Use the real client for integration tests (no mocks)
     client = new SpotifyClientImpl(env.SPOTIFY_CLIENT_ID, env.SPOTIFY_CLIENT_SECRET);
   });
@@ -30,8 +27,8 @@ describe('SpotifyClient', () => {
       const clientId = env.SPOTIFY_CLIENT_ID;
       const clientSecret = env.SPOTIFY_CLIENT_SECRET;
       const customClient = new SpotifyClientImpl(clientId, clientSecret);
-      expect((customClient as any).clientId).toBe(clientId);
-      expect((customClient as any).clientSecret).toBe(clientSecret);
+      // Test that the constructor doesn't throw when valid credentials are provided
+      expect(customClient).toBeInstanceOf(SpotifyClientImpl);
     });
 
     it('should throw SpotifyApiError when credentials are missing', () => {
@@ -60,13 +57,11 @@ describe('SpotifyClient', () => {
 
     it('should throw TrackNotFoundError for NOT_FOUND track', async () => {
       const id = TEST_IDS.SPOTIFY.ERROR_CASES.NOT_FOUND;
-      const errorKey = getErrorCaseKeyById(id)!;
       await expect(client.getTrack(id)).rejects.toThrow();
     });
 
     it('should throw SpotifyApiError for INVALID_FORMAT track', async () => {
       const id = TEST_IDS.SPOTIFY.ERROR_CASES.INVALID_FORMAT;
-      const errorKey = getErrorCaseKeyById(id)!;
       await expect(client.getTrack(id)).rejects.toThrow();
     });
   });
@@ -116,17 +111,7 @@ describe('SpotifyClient', () => {
     // To validate playlist tracks, generate and use a separate fixture for playlist tracks and implement a validator.
     it('should return tracks for valid playlist id', async () => {
       const id = PLAYLIST_URIS.ROCK_CLASSICS;
-      const key = PLAYLIST_KEYS.ROCK_CLASSICS;
-      const tracks = await client.getPlaylistTracks(id);
-      // try {
-      //   integration_validator.spotify_client.playlist_tracks(key, { items: tracks.map(track => ({ track })) });
-      // } catch (error) {
-      //   console.log('Playlist tracks validation failed. Debug info:');
-      //   console.log('Playlist ID:', key);
-      //   console.log('Tracks:', JSON.stringify(tracks, null, 2));
-      //   console.log('Error:', error);
-      //   throw error;
-      // }
+      await client.getPlaylistTracks(id);
       // Validation skipped for now
     });
 

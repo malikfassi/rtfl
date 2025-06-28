@@ -14,9 +14,7 @@ export function validateSchema<T>(schema: z.ZodSchema<T>, data: unknown): T {
   } catch (error) {
     if (error instanceof z.ZodError) {
       // Always throw a generic ValidationError using the error system, but include Zod error details as context
-      const msg = typeof ErrorMessage[ErrorCode.ValidationError] === 'function'
-        ? ErrorMessage[ErrorCode.ValidationError]()
-        : ErrorMessage[ErrorCode.ValidationError];
+      const msg = ErrorMessage[ErrorCode.ValidationError] as string;
       const context = error.errors.map(e => e.message).join('; ');
       const validationError = new ValidationError(msg);
       // @ts-expect-error: add context for debugging
@@ -34,7 +32,11 @@ export const dateSchema = z.string()
 
 export const monthSchema = z.string()
   .min(1, 'Month is required')
-  .regex(/^\d{4}-\d{2}$/, 'Invalid month format. Expected YYYY-MM');
+  .regex(/^\d{4}-\d{2}$/, 'Invalid month format. Expected YYYY-MM')
+  .refine((value) => {
+    const [year, month] = value.split('-').map(Number);
+    return month >= 1 && month <= 12 && year >= 1900 && year <= 2100;
+  }, 'Invalid month value. Month must be between 01-12 and year between 1900-2100');
 
 // ID schemas
 export const spotifyIdSchema = z.string()
@@ -83,7 +85,9 @@ export const gameIdSchema = z.string().trim()
 
 export const playerIdSchema = z.string().trim()
   .min(1, 'Player ID is required')
-  .regex(/^[a-z0-9]{25}$/, 'Invalid player ID format');
+  .regex(/^[a-z0-9]+$/, 'Invalid player ID format (expected lowercase letters and numbers only)')
+  .min(10, 'Player ID must be at least 10 characters')
+  .max(50, 'Player ID must be at most 50 characters');
 
 export const wordSchema = z.string().trim()
   .min(1, 'Word is required')
@@ -119,6 +123,16 @@ export const searchSongSchema = z.object({
 
 export const guessRequestSchema = z.object({
   guess: z.string().trim().min(1, 'Guess is required')
+}).strict();
+
+// Admin schemas
+export const adminGameUpdateSchema = z.object({
+  spotifyId: spotifyIdSchema,
+  song: z.object({
+    title: z.string().optional(),
+    artist: z.string().optional(),
+    lyrics: z.string().optional()
+  }).optional()
 }).strict();
 
 // Genius schemas
@@ -202,6 +216,7 @@ export const schemas = {
   searchSong: searchSongSchema,
   maskText: maskTextSchema,
   guessRequest: guessRequestSchema,
+  adminGameUpdate: adminGameUpdateSchema,
   genius: {
     searchResponse: geniusSearchResponseSchema,
     hit: geniusHitSchema,

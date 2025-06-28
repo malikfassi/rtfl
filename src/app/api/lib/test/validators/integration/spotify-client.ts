@@ -1,7 +1,5 @@
 import { Track, SimplifiedPlaylist } from '@spotify/web-api-ts-sdk';
 import { fixtures } from '../../fixtures';
-import { TEST_IDS, getAllTrackIds } from '../../constants';
-import { constructSpotifySearchQuery } from '../../../utils/spotify';
 
 // All fixture access is by constant key only. No mapping helpers used.
 

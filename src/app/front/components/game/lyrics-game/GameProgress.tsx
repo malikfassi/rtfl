@@ -1,18 +1,6 @@
 import React from "react";
 import { cn } from "@/app/front/lib/utils";
-
-interface GameProgressProps {
-  lyricsFound: number;
-  lyricsTotal: number;
-  titleFound: number;
-  titleTotal: number;
-  artistFound: number;
-  artistTotal: number;
-  lyricsWin: boolean;
-  titleWin: boolean;
-  artistWin: boolean;
-  className?: string;
-}
+import type { GameProgressProps } from "@/app/types";
 
 export function GameProgress({
   lyricsFound,
@@ -21,7 +9,6 @@ export function GameProgress({
   titleTotal,
   artistFound,
   artistTotal,
-  lyricsWin,
   titleWin,
   artistWin,
   className

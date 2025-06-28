@@ -1,5 +1,5 @@
 import type { Track, Page, Playlist } from '@spotify/web-api-ts-sdk';
-import type { GeniusSearchResponse } from '../../types/genius';
+import type { GeniusSearchResponse, GeniusServiceInterface } from '@/app/types';
 import { TEST_IDS, TEST_DATES, TEST_PLAYERS } from '../constants';
 import { fixtures } from '../fixtures';
 import { unit_validator } from '../validators/unit';
@@ -30,25 +30,26 @@ export interface UnitTestContext {
   // External clients
   mockSpotifyClient: jest.Mocked<SpotifyClient>;
   mockGeniusClient: jest.Mocked<GeniusClient>;
+  mockGeniusService: jest.Mocked<GeniusServiceInterface>;
 
   // Prisma mock
   mockPrisma: {
     game: {
-      findUnique: jest.Mock<any, any>;
-      upsert: jest.Mock<any, any>;
-      findMany: jest.Mock<any, any>;
+      findUnique: jest.Mock<unknown, [unknown]>;
+      upsert: jest.Mock<unknown, [unknown]>;
+      findMany: jest.Mock<unknown, [unknown]>;
     };
     guess: {
-      findFirst: jest.Mock<any, any>;
-      create: jest.Mock<any, any>;
-      findMany: jest.Mock<any, any>;
+      findFirst: jest.Mock<unknown, [unknown]>;
+      create: jest.Mock<unknown, [unknown]>;
+      findMany: jest.Mock<unknown, [unknown]>;
     };
     song: {
-      create: jest.Mock<any, any>;
-      findFirst: jest.Mock<any, any>;
-      findUnique: jest.Mock<any, any>;
+      create: jest.Mock<unknown, [unknown]>;
+      findFirst: jest.Mock<unknown, [unknown]>;
+      findUnique: jest.Mock<unknown, [unknown]>;
     };
-    $transaction: jest.Mock<any, any>;
+    $transaction: jest.Mock<unknown, [unknown]>;
   };
 
   // Test utilities
@@ -68,12 +69,35 @@ export interface UnitTestContext {
 export function setupUnitTest(): UnitTestContext {
   const mockSpotifyClient = SpotifyMocks.createClient();
   const mockGeniusClient = GeniusMocks.createClient();
+  
+  // Create a mock GeniusService that implements GeniusServiceInterface
+  const mockGeniusService: jest.Mocked<GeniusServiceInterface> = {
+    search: jest.fn(),
+    findMatch: jest.fn()
+  };
 
   // Mock Prisma client
-  const mockPrisma: any = {
-    game: {},
-    guess: {},
-    song: {},
+  let mockPrisma: UnitTestContext['mockPrisma'] = {
+    game: {} as {
+      findUnique: jest.Mock<unknown, [unknown]>;
+      upsert: jest.Mock<unknown, [unknown]>;
+      findMany: jest.Mock<unknown, [unknown]>;
+    },
+    guess: {} as {
+      findFirst: jest.Mock<unknown, [unknown]>;
+      create: jest.Mock<unknown, [unknown]>;
+      findMany: jest.Mock<unknown, [unknown]>;
+    },
+    song: {} as {
+      create: jest.Mock<unknown, [unknown]>;
+      findFirst: jest.Mock<unknown, [unknown]>;
+      findUnique: jest.Mock<unknown, [unknown]>;
+    },
+    $transaction: jest.fn(async (cb: (arg: Omit<UnitTestContext['mockPrisma'], '$transaction'>) => unknown) => cb({
+      game: mockPrisma.game,
+      guess: mockPrisma.guess,
+      song: mockPrisma.song,
+    })) as jest.Mock<unknown, [unknown]>,
   };
   mockPrisma.game.findUnique = jest.fn();
   mockPrisma.game.upsert = jest.fn();
@@ -84,11 +108,6 @@ export function setupUnitTest(): UnitTestContext {
   mockPrisma.song.create = jest.fn();
   mockPrisma.song.findFirst = jest.fn();
   mockPrisma.song.findUnique = jest.fn();
-  mockPrisma.$transaction = jest.fn(async (cb: any) => cb({
-    game: mockPrisma.game,
-    guess: mockPrisma.guess,
-    song: mockPrisma.song,
-  }));
 
   // Mock global fetch for lyrics HTML
   global.fetch = jest.fn().mockImplementation(async (url: string) => {
@@ -115,6 +134,7 @@ export function setupUnitTest(): UnitTestContext {
   return {
     mockSpotifyClient,
     mockGeniusClient,
+    mockGeniusService,
     mockPrisma,
     validator: unit_validator,
     fixtures,

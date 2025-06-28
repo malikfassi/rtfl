@@ -1,9 +1,9 @@
 import { Guess, PrismaClient, Song } from '@prisma/client';
-import { validateSchema, dateSchema, playerIdSchema } from '@/app/api/lib/validation';
+import { validateSchema, dateSchema, playerIdSchema, monthSchema } from '@/app/api/lib/validation';
 import { prisma } from '@/app/api/lib/db';
-import type { MaskedLyrics, Token } from '@/app/api/lib/types/lyrics';
-import type { GameState } from '@/app/api/lib/types/game-state';
-import type { GameWithSongAndGuesses } from '@/app/api/lib/types/game';
+import type { MaskedLyrics, Token } from '@/app/types';
+import type { GameState } from '@/app/types';
+import type { GameWithSongAndGuesses } from '@/app/types';
 import { createGameService } from './game';
 
 export class GameStateService {
@@ -22,6 +22,11 @@ export class GameStateService {
     
     // Get the tokens from maskedLyrics
     const maskedLyrics = song.maskedLyrics as unknown as MaskedLyrics;
+    
+    // Handle case where maskedLyrics is undefined or null
+    if (!maskedLyrics || !maskedLyrics.title || !maskedLyrics.artist || !maskedLyrics.lyrics) {
+      return false;
+    }
     
     // Count guessed tokens for each part (only counting isToGuess tokens)
     const titleAndArtistGuessed = [...maskedLyrics.title, ...maskedLyrics.artist]
@@ -50,6 +55,17 @@ export class GameStateService {
     console.log('mapGameToGameState guesses (word:valid):', compactGuesses.join(', '));
     const isWon = this.isGameWon(game.song, game.guesses);
     const masked = game.song.maskedLyrics as unknown as MaskedLyrics;
+
+    // Handle case where maskedLyrics is undefined or null
+    if (!masked || !masked.title || !masked.artist || !masked.lyrics) {
+      return {
+        id: game.id,
+        date: game.date,
+        masked: { title: [], artist: [], lyrics: [] },
+        guesses: game.guesses,
+        song: undefined
+      };
+    }
 
     // Get set of guessed words
     const guessedWords = new Set(game.guesses.filter(g => g.valid).map(g => g.word.toLowerCase()));
@@ -101,6 +117,11 @@ export class GameStateService {
   }
 
   async getGameStatesByMonth(month: string, userId: string): Promise<GameState[]> {
+    // Validate month format first
+    validateSchema(monthSchema, month);
+    // Validate player ID
+    validateSchema(playerIdSchema, userId);
+
     const startDate = new Date(month + '-01');
     const endDate = new Date(new Date(startDate).setMonth(startDate.getMonth() + 1));
 
@@ -115,9 +136,6 @@ export class GameStateService {
 }
 
 // Export factory function
-export function createGameStateService(client: PrismaClient) {
+export function createGameStateService(client: PrismaClient = prisma) {
   return new GameStateService(client);
-}
-
-// Export singleton instance
-export const gameStateService = new GameStateService(prisma); 
+} 

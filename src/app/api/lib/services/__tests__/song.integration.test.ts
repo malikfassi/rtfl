@@ -6,53 +6,34 @@ import {
   setupIntegrationTest,
   IntegrationTestContext
 } from '@/app/api/lib/test/env/integration';
-import { TRACK_KEYS, TRACK_URIS, TEST_IDS } from '@/app/api/lib/test/constants';
-import { SongService } from '../song';
-import { spotifyService } from '../spotify';
-import { geniusService } from '../genius';
-import { lyricsService } from '../lyrics';
-import { fixtures } from '@/app/api/lib/test/fixtures';
+import { TRACK_KEYS, TRACK_URIS } from '@/app/api/lib/test/constants';
+import { createSongService } from '../song';
+import { createSpotifyService } from '../spotify';
+import { createGeniusService } from '../genius';
+import { createLyricsService } from '../lyrics';
 import { integration_validator } from '@/app/api/lib/test/validators';
 
 describe('SongService Integration', () => {
   let context: IntegrationTestContext;
-  let songService: SongService;
+  let songService: ReturnType<typeof createSongService>;
+  let spotifyService: ReturnType<typeof createSpotifyService>;
+  let geniusService: ReturnType<typeof createGeniusService>;
+  let lyricsService: ReturnType<typeof createLyricsService>;
 
   beforeEach(async () => {
     // Setup integration test context with clean database
     context = await setupIntegrationTest();
     
-    // Create SongService with real database but mocked external services
-    songService = new SongService(context.prisma, spotifyService, geniusService);
-    
-    // Mock external API calls to use fixture data
-    jest.spyOn(geniusService, 'findMatch').mockImplementation(async (title: string, artist: string) => {
-      // Return fixture data based on the track
-      if (title.toLowerCase().includes('party') && artist.toLowerCase().includes('miley')) {
-        return fixtures.genius.search.PARTY_IN_THE_USA.response.hits[0];
-      }
-      if (title.toLowerCase().includes('vie en rose')) {
-        return fixtures.genius.search.LA_VIE_EN_ROSE.response.hits[0];
-      }
-      throw new NoMatchingLyricsError();
-    });
-    
-    jest.spyOn(lyricsService, 'getLyrics').mockImplementation(async (url: string) => {
-      // Return fixture lyrics based on URL
-      if (url.includes('party-in-the-usa')) {
-        return fixtures.genius.lyrics.PARTY_IN_THE_USA || 'Mock Party in the USA lyrics';
-      }
-      if (url.includes('la-vie-en-rose')) {
-        return fixtures.genius.lyrics.LA_VIE_EN_ROSE || 'Mock La Vie en Rose lyrics';
-      }
-      return 'Mock lyrics content';
-    });
+    // Create services with real dependencies
+    spotifyService = createSpotifyService();
+    geniusService = createGeniusService();
+    lyricsService = createLyricsService();
+    songService = createSongService(context.prisma, spotifyService, geniusService);
   });
 
   afterEach(async () => {
     // Cleanup test context and database
     await cleanupIntegrationTest();
-    jest.restoreAllMocks();
   });
 
   describe('create', () => {
@@ -101,9 +82,6 @@ describe('SongService Integration', () => {
       const key = TRACK_KEYS.INSTRUMENTAL_TRACK;
       const trackUri = TRACK_URIS[key];
       const trackId = trackUri.split(':').pop()!;
-      
-      // Mock genius service to throw NoMatchingLyricsError for instrumental
-      jest.spyOn(geniusService, 'findMatch').mockRejectedValueOnce(new NoMatchingLyricsError());
       
       await expect(songService.create(trackId))
         .rejects

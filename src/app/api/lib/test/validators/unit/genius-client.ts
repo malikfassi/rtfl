@@ -1,4 +1,4 @@
-import type { GeniusSearchResponse } from '../../../types/genius';
+import type { GeniusSearchResponse } from '@/app/types';
 import { fixtures } from '../../fixtures';
 import { getExpectedSongMetadata } from '../../utils/genius';
 import { TRACK_KEYS } from '../../constants';
@@ -24,7 +24,19 @@ export const genius_client = {
     expect(response.meta.status).toBe(200);
     expect(response.response).toBeDefined();
     expect(Array.isArray(response.response.hits)).toBe(true);
-    expect(response.response.hits.length).toBeGreaterThan(0);
+    
+    // Check if fixture has empty hits
+    const expectedHits = fixture?.response?.hits || [];
+    const actualHits = response?.response?.hits || [];
+    
+    if (expectedHits.length === 0) {
+      // If the fixture has no hits, just check the response has no hits
+      expect(actualHits.length).toBe(0);
+      return true;
+    }
+    
+    // For fixtures with hits, expect at least one hit
+    expect(actualHits.length).toBeGreaterThan(0);
 
     // Validate each hit has the required structure
     response.response.hits.forEach(hit => {

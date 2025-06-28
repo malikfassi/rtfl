@@ -1,3 +1,4 @@
+// Genius API types - consolidated from API types
 export interface GeniusArtist {
   id: number;
   name: string;

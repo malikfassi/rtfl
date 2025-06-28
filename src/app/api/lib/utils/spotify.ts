@@ -1,5 +1,5 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
-import type { SpotifyData } from '@/app/api/lib/types/spotify';
+import type { SpotifyData } from '@/app/types';
 import { fixtures } from '../test/fixtures';
 
 /**
