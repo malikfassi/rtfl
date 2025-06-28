@@ -12,7 +12,7 @@ import type { GeniusSearchResponse } from '@/app/types';
 import { withRetry } from '@/app/api/lib/utils/retry';
 import { TEST_IDS, isErrorCase, isInstrumental, getAllTrackIds } from '../constants';
 import { extractLyricsFromHtml } from '@/app/api/lib/services/lyrics';
-import { maskedLyricsService } from '@/app/api/lib/services/masked-lyrics';
+import { createMaskedLyricsService } from '@/app/api/lib/services/masked-lyrics';
 
 // Import delay function
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -136,7 +136,7 @@ async function generateSongData(uri: string, key: string): Promise<{
       console.log(`- Extracted lyrics saved to ${lyricsTxtPath}`);
 
       // Generate and save masked lyrics as <KEY>_MASKED.txt
-      const masked = maskedLyricsService.create(
+      const masked = createMaskedLyricsService().create(
         firstHit.result.title,
         firstHit.result.primary_artist?.name || '',
         extractedLyrics

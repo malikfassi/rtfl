@@ -1,5 +1,5 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
-import type { SpotifyClient } from '@/app/types';
+import type { SpotifyClient } from '@/app/api/lib/clients/spotify';
 
 import { validateSchema } from '@/app/api/lib/validation';
 import { searchQuerySchema, spotifyIdSchema } from '@/app/api/lib/validation';

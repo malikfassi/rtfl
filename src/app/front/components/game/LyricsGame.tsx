@@ -12,11 +12,11 @@ import { getOrCreatePlayerId } from '@/app/front/lib/helpers/player';
 import { gameColors } from "@/app/front/lib/utils/color-management";
 import { LoadingState } from "../ui/LoadingState";
 import { ErrorState } from "../ui/ErrorState";
-import type { Game } from "@/app/types";
+import type { GameState } from "@/app/types";
 
 interface LyricsGameProps {
   date: string;
-  game?: Game;
+  game?: GameState;
   disabled?: boolean;
   isAdmin?: boolean;
   onChooseSong?: () => void;

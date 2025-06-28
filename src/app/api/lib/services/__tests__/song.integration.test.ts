@@ -10,7 +10,6 @@ import { TRACK_KEYS, TRACK_URIS } from '@/app/api/lib/test/constants';
 import { createSongService } from '../song';
 import { createSpotifyService } from '../spotify';
 import { createGeniusService } from '../genius';
-import { createLyricsService } from '../lyrics';
 import { integration_validator } from '@/app/api/lib/test/validators';
 
 describe('SongService Integration', () => {
@@ -18,7 +17,6 @@ describe('SongService Integration', () => {
   let songService: ReturnType<typeof createSongService>;
   let spotifyService: ReturnType<typeof createSpotifyService>;
   let geniusService: ReturnType<typeof createGeniusService>;
-  let lyricsService: ReturnType<typeof createLyricsService>;
 
   beforeEach(async () => {
     // Setup integration test context with clean database
@@ -27,7 +25,6 @@ describe('SongService Integration', () => {
     // Create services with real dependencies
     spotifyService = createSpotifyService();
     geniusService = createGeniusService();
-    lyricsService = createLyricsService();
     songService = createSongService(context.prisma, spotifyService, geniusService);
   });
 

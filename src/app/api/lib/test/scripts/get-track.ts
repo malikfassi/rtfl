@@ -1,10 +1,11 @@
 import { getSpotifyClient } from '@/app/api/lib/clients/spotify';
 import { getGeniusClient } from '@/app/api/lib/clients/genius';
-import { lyricsService } from '@/app/api/lib/services/lyrics';
+import { createLyricsService } from '@/app/api/lib/services/lyrics';
 
 async function main() {
   const spotifyClient = getSpotifyClient();
   const geniusClient = getGeniusClient();
+  const lyricsService = createLyricsService();
 
   // Get track from Spotify
   const trackId = '3E7dfMvvCLUddWissuqMwr';

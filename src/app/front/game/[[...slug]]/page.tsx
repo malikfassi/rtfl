@@ -40,7 +40,7 @@ export default async function GameCatchAllPage({
   return (
     <div className="min-h-screen bg-background font-mono">
       <div className="p-8">
-        <LyricsGame date={date} game={game} />
+        <LyricsGame date={date} game={game ?? undefined} />
       </div>
     </div>
   );
