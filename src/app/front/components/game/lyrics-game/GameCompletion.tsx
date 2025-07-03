@@ -40,7 +40,7 @@ export function GameCompletion({ song, foundWords }: GameCompletionProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div data-testid="game-completion" className="space-y-6">
       {/* Spotify Player */}
       {song.spotifyId && (
         <div className="rounded-lg overflow-hidden bg-white/5">

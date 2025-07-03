@@ -15,7 +15,7 @@ export function ErrorState({
   className
 }: ErrorStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
+    <div data-testid="error-state" className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
       <div className="rounded-full bg-accent-error/10 p-3 mb-4">
         <svg
           className="w-6 h-6 text-accent-error"

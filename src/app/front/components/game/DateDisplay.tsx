@@ -33,7 +33,7 @@ export function DateDisplay({ date, className }: DateDisplayProps) {
   const seconds = secondsLeft % 60;
 
   return (
-    <div className={className}>
+    <div data-testid="date-display" className={className}>
       <div className="text-sm text-primary-muted">
         {formatGameDate(date)}
       </div>

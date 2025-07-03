@@ -4,7 +4,7 @@ import { MaskedLyrics } from './MaskedLyrics';
 
 export function GameContent(props: MaskedLyricsProps) {
   return (
-    <div>
+    <div data-testid="game-content">
       <MaskedLyrics {...props} />
     </div>
   );

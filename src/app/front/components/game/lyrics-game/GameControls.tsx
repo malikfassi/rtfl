@@ -63,7 +63,7 @@ export function GameControls({
   };
 
   return (
-    <div>
+    <div data-testid="game-controls">
       <form onSubmit={handleSubmit} className={cn("space-y-2", className)}>
         <div className="relative">
           <input
@@ -73,6 +73,7 @@ export function GameControls({
             onChange={(e) => setGuess(e.target.value)}
             placeholder="Type your guess..."
             disabled={isSubmitting}
+            data-testid="guess-input"
             className={cn(
               "w-full rounded-lg bg-primary-muted/5 px-4 py-2 text-primary-dark border-none focus:border-none focus:ring-2 focus:ring-primary-muted/20",
               "placeholder:text-primary-muted/50",
@@ -82,7 +83,7 @@ export function GameControls({
           />
         </div>
         {error && (
-          <div className="text-xs text-accent-error">{error}</div>
+          <div data-testid="error-message" className="text-xs text-accent-error">{error}</div>
         )}
       </form>
 

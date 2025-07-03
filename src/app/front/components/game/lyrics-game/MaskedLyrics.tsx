@@ -115,7 +115,7 @@ export function MaskedLyrics({
   };
 
   return (
-    <div className="space-y-6 pl-4 sm:pl-8">
+    <div data-testid="masked-lyrics" className="space-y-6 pl-4 sm:pl-8">
       {renderTitleAndArtist()}
 
       {isAdmin && song && (

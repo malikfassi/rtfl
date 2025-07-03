@@ -17,7 +17,7 @@ export function GameHeader({
   const isValidDateFormat = /^\d{4}-\d{2}-\d{2}$/.test(date);
 
   return (
-    <div className={cn("flex flex-col space-y-4", className)}>
+    <div data-testid="game-header" className={cn("flex flex-col space-y-4", className)}>
       <ScrambleTitle title={title} date={date} />
       <div className="flex items-center justify-between">
         {isValidDateFormat ? (

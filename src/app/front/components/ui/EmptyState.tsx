@@ -18,7 +18,7 @@ export function EmptyState({
   className
 }: EmptyStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
+    <div data-testid="empty-state" className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
       <div className="rounded-full bg-primary/10 p-3 mb-4">
         <svg
           className="w-6 h-6 text-primary"

@@ -11,7 +11,7 @@ interface GameSidebarProps {
 
 export function GameSidebar({ progressProps, yesterdayStatsProps, className }: GameSidebarProps) {
   return (
-    <div className={className}>
+    <div data-testid="game-sidebar" className={className}>
       <div className="sticky top-8 space-y-8">
         <GameProgress {...progressProps} />
         <YesterdayStats {...yesterdayStatsProps} />

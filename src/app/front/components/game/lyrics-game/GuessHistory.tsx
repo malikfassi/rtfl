@@ -54,7 +54,7 @@ export function GuessHistory({
     .filter(g => !hideZeroHits || g.hits >= 1);
 
   return (
-    <div className="border-t border-primary-muted/10 pt-4">
+    <div data-testid="guess-history" className="border-t border-primary-muted/10 pt-4">
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => setHideZeroHits(!hideZeroHits)}

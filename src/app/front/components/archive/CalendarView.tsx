@@ -27,7 +27,7 @@ export function CalendarView({ month, games }: CalendarViewProps) {
   const gamesMap = new Map(games.map(game => [game.date, game]));
 
   return (
-    <div className="rounded-lg bg-white/5 p-4">
+    <div data-testid="calendar-view" className="rounded-lg bg-white/5 p-4">
       <div className="grid grid-cols-7 gap-px">
         {/* Week day headers */}
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
@@ -99,6 +99,7 @@ export function CalendarView({ month, games }: CalendarViewProps) {
           return (
             <div
               key={dateStr}
+              data-testid={isGameDay ? (hasProgress ? "game-with-guesses" : "game-without-guesses") : "game-calendar-day"}
               className={`
                 min-h-[80px] sm:min-h-[100px] p-2 sm:p-4 pt-7 relative flex flex-col items-center justify-center rounded-lg transition-all
                 ${isCurrentMonth ? "text-primary" : "text-primary-muted/40"}

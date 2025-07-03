@@ -30,6 +30,7 @@ export function GameProgress({
 
   return (
     <div 
+      data-testid="game-progress"
       className={cn(
         "space-y-3 border border-[#ffe29f] bg-[#fffbe6]/60 rounded-xl p-4",
         className
