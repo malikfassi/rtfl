@@ -58,7 +58,7 @@ export interface FrontendGameState {
   guessSegments: Array<{ id: string; hits: number; colorIndex: number }>;
   shareText: string;
   gameUrl: string;
-  handleGuess: (guess: string) => Promise<void>;
+  handleGuess: (guess: string) => Promise<GameState>;
   handleShare: () => void;
 }
 

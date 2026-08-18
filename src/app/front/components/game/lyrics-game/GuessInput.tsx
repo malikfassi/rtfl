@@ -4,7 +4,7 @@ import { useState, FormEvent, useRef, useEffect } from 'react';
 import { cn } from '@/app/front/lib/utils';
 import type { GuessInputProps } from './types';
 
-export const GuessInput = ({ onGuessSubmit, pendingGuess, disabled, onDuplicateGuess, lastGuessHits }: GuessInputProps & { lastGuessHits?: number }) => {
+export const GuessInput = ({ onGuessSubmit, pendingGuess, disabled, onDuplicateGuess }: GuessInputProps) => {
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -40,11 +40,11 @@ export const GuessInput = ({ onGuessSubmit, pendingGuess, disabled, onDuplicateG
     // Don't reset guessState here - keep the previous state until we know the result
     
     try {
-      await onGuessSubmit(guess);
+      const hits = await onGuessSubmit(guess);
       setInput(guess);
-      if ((lastGuessHits ?? 0) > 0) {
+      if (hits > 0) {
         setGuessState('success');
-        setBubbleText(`+${lastGuessHits}`);
+        setBubbleText(`+${hits}`);
         setBubblePosition({ x: Math.random() * 100 + 25, y: -20 });
         setShowBubble(true);
         setTimeout(() => setShowBubble(false), 4000);

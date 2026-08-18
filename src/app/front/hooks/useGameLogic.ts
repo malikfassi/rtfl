@@ -82,9 +82,11 @@ export function useGameLogic({
     date,
   });
 
-  // Handle guess submission
+  // Handle guess submission - returns the freshly-fetched GameState so
+  // callers can read the just-submitted guess's result without waiting on
+  // a re-render with updated props.
   const handleGuess = async (guess: string) => {
-    await guessMutation.mutateAsync(guess);
+    return guessMutation.mutateAsync(guess);
   };
 
   return {

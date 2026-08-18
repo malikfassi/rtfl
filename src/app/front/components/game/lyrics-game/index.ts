@@ -1,9 +1,7 @@
 export { LyricsGame } from './LyricsGame';
 export { MaskedLyricsDisplay } from './MaskedLyricsDisplay';
-export { GameHeader } from './GameHeader';
 export { GuessInput } from './GuessInput';
 export { GuessHistory } from './GuessHistory';
-export { GameCompletion } from './GameCompletion';
 export { WinPopup } from './WinPopup';
 export { GameTutorial } from './GameTutorial';
 export { PathToVictory } from './PathToVictory';

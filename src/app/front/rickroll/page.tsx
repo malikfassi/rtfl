@@ -40,9 +40,7 @@ export default function RickrollPage() {
       <LyricsGame
         date="rickroll"
         gameState={gameState}
-        onGuess={async (guess: string) => {
-          await guessMutation.mutateAsync(guess);
-        }}
+        onGuess={(guess: string) => guessMutation.mutateAsync(guess)}
         onShowFullLyrics={() => {}}
         playerId={playerId}
       />

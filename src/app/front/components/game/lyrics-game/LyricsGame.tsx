@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ScrambleTitle } from '../ScrambleTitle';
 import { GuessHistory, GuessInput, MaskedLyricsDisplay, WinPopup, GameTutorial, PathToVictory, ShareButton, LyricsLoadingComponent } from './index';
 import { YesterdayStats } from '../YesterdayStats';
-import { calculateGuessHits } from '@/app/front/lib/utils/hit-counting';
+import { countTotalHits } from '@/app/front/lib/utils/hit-counting';
 import { cn } from '@/app/front/lib/utils';
 import type { LyricsGameProps } from './types';
 
@@ -26,7 +26,6 @@ export function LyricsGame({
   const [showTopFog, setShowTopFog] = useState(false);
   const [showBottomFog, setShowBottomFog] = useState(false);
   const [hasShownWinPopup, setHasShownWinPopup] = useState(false);
-  // const [showSharePopup, setShowSharePopup] = useState(false); // For enhanced share button - removed unused variable
 
   // Refs
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -126,22 +125,32 @@ export function LyricsGame({
   //   }
   // }, [gameState?.guesses]);
 
-  // Handle guess submission
-  const handleGuessSubmit = async (guess: string) => {
+  // Handle guess submission. onGuess resolves with the freshly-fetched
+  // GameState from the mutation response - using that directly (rather than
+  // the parent's gameState, which hasn't re-rendered with this guess yet)
+  // avoids the classic stale-props bug where the hit count and selection
+  // shown after submitting reflect the previous guess, not this one.
+  const handleGuessSubmit = async (guess: string): Promise<number> => {
     setPendingGuess(guess);
     try {
-      await onGuess(guess);
-      // After successful guess, select and highlight the new guess
-      if (gameState) {
-        const submittedGuess = gameState.guesses
-          .filter(g => g.word.toLowerCase() === guess.toLowerCase() && g.valid)
-          .pop();
-        if (submittedGuess) {
-          setSelectedGuess({ id: submittedGuess.id, word: submittedGuess.word });
-          setScrollToWord(submittedGuess.word);
-          setHighlightedWord(submittedGuess.word);
-        }
+      const freshState = await onGuess(guess);
+      if (!freshState) return 0;
+
+      const submittedGuess = freshState.guesses
+        .filter(g => g.word.toLowerCase() === guess.toLowerCase() && g.valid)
+        .pop();
+      if (submittedGuess) {
+        setSelectedGuess({ id: submittedGuess.id, word: submittedGuess.word });
+        setScrollToWord(submittedGuess.word);
+        setHighlightedWord(submittedGuess.word);
       }
+
+      return countTotalHits({
+        word: guess,
+        maskedLyricsParts: freshState.masked.lyrics,
+        maskedTitleParts: freshState.masked.title,
+        maskedArtistParts: freshState.masked.artist,
+      });
     } finally {
       setPendingGuess(null);
     }
@@ -281,17 +290,6 @@ export function LyricsGame({
     date
   };
 
-  const lastGuess = !isLoading && gameState.guesses.length > 0 ? gameState.guesses[gameState.guesses.length - 1] : null;
-  const lastGuessHits = lastGuess && !isLoading ? (() => {
-    const hitsArr = calculateGuessHits({
-      guesses: [lastGuess],
-      maskedLyricsParts: gameState.masked.lyrics,
-      maskedTitleParts: gameState.masked.title,
-      maskedArtistParts: gameState.masked.artist,
-    });
-    return hitsArr.length > 0 ? hitsArr[0].hits : 0;
-  })() : 0;
-
   useEffect(() => {
     if (gameState) {
       console.log('[LyricsGame] masked.lyrics:', gameState.masked.lyrics);
@@ -336,7 +334,6 @@ export function LyricsGame({
                 pendingGuess={pendingGuess}
                 disabled={isGameComplete || isLoading}
                 onDuplicateGuess={handleDuplicateGuess}
-                lastGuessHits={lastGuessHits}
               />
               {/* Guess History */}
               <GuessHistory
@@ -424,7 +421,6 @@ export function LyricsGame({
               {/* Share Button */}
               <ShareButton {...shareButtonStats} />
               {/* TODO: Add SpotifyPlayer here when implemented */}
-              {/* TODO: Add more right column content as needed */}
             </div>
           </div>
         </div>
@@ -439,8 +435,6 @@ export function LyricsGame({
         onShowFullLyrics={onShowFullLyrics}
         showFullLyrics={showFullLyrics}
       />
-      {/* Share Popup (TODO: implement real popup) */}
-      {/* {showSharePopup && <SharePopup ... />} */}
       {/* Game Tutorial Popup */}
       <GameTutorial
         isOpen={showTutorial}
