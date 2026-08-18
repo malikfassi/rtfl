@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { cn } from "@/app/front/lib/utils";
 import { calculateGuessHits } from "@/app/front/lib/utils/hit-counting";
+import { getWordColorDeterministic } from "@/app/front/lib/utils/color-management";
 
 interface GuessHistoryProps {
   guesses: Array<{
@@ -19,10 +20,9 @@ interface GuessHistoryProps {
   onWordHover: (word: string | null) => void;
   selectedGuess: { id: string; word: string } | null;
   onGuessSelect: (guess: { id: string; word: string } | null) => void;
-  colors: Array<{ bg: string; text: string; }>;
 }
 
-export function GuessHistory({ 
+const GuessHistoryComponent = ({ 
   guesses, 
   maskedLyrics,
   maskedTitle,
@@ -32,12 +32,11 @@ export function GuessHistory({
   maskedLyricsParts,
   onWordHover,
   selectedGuess,
-  onGuessSelect,
-  colors
-}: GuessHistoryProps) {
+  onGuessSelect
+}: GuessHistoryProps) => {
   const [hideZeroHits, setHideZeroHits] = useState(false);
   
-  // Count hits for each guess using the new utility
+  // Count hits for each guess using the utility
   const guessHits = calculateGuessHits({
     guesses,
     maskedLyrics,
@@ -54,7 +53,8 @@ export function GuessHistory({
     .filter(g => !hideZeroHits || g.hits >= 1);
 
   return (
-    <div data-testid="guess-history" className="border-t border-primary-muted/10 pt-4">
+    <div data-testid="guess-history">
+      {filteredGuesses.length > 0 && (
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => setHideZeroHits(!hideZeroHits)}
@@ -68,11 +68,12 @@ export function GuessHistory({
           {hideZeroHits ? "Show all guesses" : "Hide no-hit guesses"}
         </button>
       </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         {filteredGuesses.map((g) => {
           const index = guesses.findIndex(guess => guess.id === g.id);
-          const color = colors[index % colors.length];
+          const color = getWordColorDeterministic(g.word);
           const isSelected = g.id === selectedGuess?.id;
           
           return (
@@ -95,8 +96,26 @@ export function GuessHistory({
                   onWordHover(null);
                 }
               }}
-              onMouseEnter={() => !isSelected && onWordHover(g.word)}
-              onMouseLeave={() => !isSelected && onWordHover(null)}
+              onMouseEnter={() => {
+                console.log('[GuessHistory] onMouseEnter:', {
+                  word: g.word,
+                  isSelected,
+                  willHover: !isSelected
+                });
+                if (!isSelected) {
+                  onWordHover(g.word);
+                }
+              }}
+              onMouseLeave={() => {
+                console.log('[GuessHistory] onMouseLeave:', {
+                  word: g.word,
+                  isSelected,
+                  willClearHover: !isSelected
+                });
+                if (!isSelected) {
+                  onWordHover(null);
+                }
+              }}
             >
               <span className="font-medium">{g.word}</span>
               {g.valid && (
@@ -113,4 +132,6 @@ export function GuessHistory({
       </div>
     </div>
   );
-} 
+};
+
+export const GuessHistory = React.memo(GuessHistoryComponent);

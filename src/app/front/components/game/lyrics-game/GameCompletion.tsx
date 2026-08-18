@@ -1,74 +1,49 @@
-"use client";
+import type { GameCompletionProps } from './types';
 
-import React, { useState } from "react";
-import { cn } from "@/app/front/lib/utils";
-import type { Song } from "@prisma/client";
-
-interface GameCompletionProps {
-  song: Song;
-  foundWords: string[];
-}
-
-export function GameCompletion({ song, foundWords }: GameCompletionProps) {
-  const [showFullLyrics, setShowFullLyrics] = useState(false);
-
-  // Function to highlight found words in the lyrics
-  const highlightLyrics = () => {
-    return song.lyrics.split("\n").map((line, lineIndex) => (
-      <div key={lineIndex} className="mb-2">
-        {line.split(" ").map((word, wordIndex) => {
-          const isFound = foundWords.includes(word.toLowerCase());
-          return (
-            <span
-              key={`${lineIndex}-${wordIndex}`}
-              className={cn(
-                "transition-all duration-500",
-                isFound 
-                  ? "text-primary hover:text-accent-mint hover:-translate-y-0.5" 
-                  : showFullLyrics 
-                    ? "text-primary-muted" 
-                    : "text-primary/0",
-                "inline-block"
-              )}
-            >
-              {word}{" "}
-            </span>
-          );
-        })}
-      </div>
-    ));
-  };
-
+export const GameCompletion = ({ 
+  songData, 
+  guessCount, 
+  showFullLyrics, 
+  onShowFullLyrics, 
+  onShare 
+}: GameCompletionProps) => {
   return (
-    <div data-testid="game-completion" className="space-y-6">
-      {/* Spotify Player */}
-      {song.spotifyId && (
-        <div className="rounded-lg overflow-hidden bg-white/5">
-          <iframe
-            src={`https://open.spotify.com/embed/track/${song.spotifyId}?utm_source=generator`}
-            width="100%"
-            height="152"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            className="border-0"
-          />
-        </div>
-      )}
-
-      {/* Reveal Lyrics Button */}
-      <div className="flex justify-center">
-        <button
-          onClick={() => setShowFullLyrics(prev => !prev)}
-          className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm text-primary-muted"
-        >
-          {showFullLyrics ? "Hide" : "Reveal"} Full Lyrics
-        </button>
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-lg border border-blue-200 text-center">
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold text-blue-900 mb-2">🎉 Congratulations!</h2>
+        <p className="text-blue-700">You solved today&apos;s lyrics game!</p>
       </div>
-
-      {/* Lyrics Display */}
-      <div className="font-mono text-sm leading-relaxed">
-        {highlightLyrics()}
+      
+      <div className="mb-4">
+        <h3 className="text-xl font-semibold text-blue-800 mb-1">
+          &ldquo;{songData.title || 'Unknown Title'}&rdquo;
+        </h3>
+        <p className="text-blue-600 italic">by {songData.artist || 'Unknown Artist'}</p>
+      </div>
+      
+      <div className="mb-6">
+        <div className="inline-flex flex-col items-center px-4 py-3 bg-white rounded-lg shadow-sm">
+          <span className="text-2xl font-bold text-blue-800">{guessCount}</span>
+          <span className="text-sm text-gray-600">guesses</span>
+        </div>
+      </div>
+      
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <button 
+          onClick={onShowFullLyrics} 
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+          disabled={showFullLyrics}
+        >
+          Show Full Lyrics
+        </button>
+        
+        <button 
+          onClick={onShare} 
+          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+        >
+          Share Your Results
+        </button>
       </div>
     </div>
   );
-} 
+};

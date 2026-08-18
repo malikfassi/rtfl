@@ -1,6 +1,12 @@
-export { GameCompletion } from './GameCompletion';
-export { GameControls } from './GameControls';
-export { GameProgress } from './GameProgress';
+export { LyricsGame } from './LyricsGame';
+export { MaskedLyricsDisplay } from './MaskedLyricsDisplay';
+export { GameHeader } from './GameHeader';
+export { GuessInput } from './GuessInput';
 export { GuessHistory } from './GuessHistory';
-export { MaskedLyrics } from './MaskedLyrics';
-export { YesterdayStats } from '../YesterdayStats'; 
+export { GameCompletion } from './GameCompletion';
+export { WinPopup } from './WinPopup';
+export { GameTutorial } from './GameTutorial';
+export { PathToVictory } from './PathToVictory';
+export { ShareButton } from './ShareButton';
+export { LyricsLoadingComponent } from './LyricsLoadingComponent';
+export type * from './types';

@@ -1,22 +1,16 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import { ScrambleTitle } from '../ScrambleTitle';
-import { cn } from "@/app/front/lib/utils";
+// Removed unused import
 import { addDays, differenceInSeconds } from "date-fns";
-import type { GameHeaderProps } from "@/app/types";
+import type { GameHeaderProps } from './types';
 
-export function GameHeader({
-  title,
-  date,
-  playerId,
-  isAdmin = false,
-  onChooseSong,
-  hideChooseSongButton = false,
-  className
-}: GameHeaderProps) {
+export const GameHeader = ({ date, isGameWon, guessCount }: GameHeaderProps) => {
   // Validate date format (YYYY-MM-DD)
   const isValidDateFormat = /^\d{4}-\d{2}-\d{2}$/.test(date);
 
-  // Countdown logic (from DateDisplay)
+  // Countdown logic (from original DateDisplay)
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
   useEffect(() => {
     if (!isValidDateFormat) return;
@@ -34,31 +28,18 @@ export function GameHeader({
   const seconds = secondsLeft % 60;
 
   return (
-    <div data-testid="game-header" className={cn("flex flex-col space-y-2", className)}>
-      <ScrambleTitle title={title} date={date} />
-      <div className="flex items-center gap-x-2">
-        <div className="text-[10px] font-medium text-accent-info">Player ID</div>
-        <div 
-          className="text-[10px] font-mono text-accent-info/80" 
-          style={{paddingTop: 0, paddingBottom: 0}} 
-          title={playerId}
-        >
-          #{playerId}
-        </div>
-      </div>
+    <div data-testid="game-header" className="flex flex-col space-y-2">
+      <ScrambleTitle date={date} />
       {isValidDateFormat && (
         <div className="text-xs text-primary-muted/60">
           Next game in {hours}h {minutes}m {seconds}s
         </div>
       )}
-      {isAdmin && !hideChooseSongButton && (
-        <button
-          onClick={onChooseSong}
-          className="text-accent-info hover:text-accent-info/80"
-        >
-          Choose Song
-        </button>
+      {isGameWon && (
+        <div className="text-sm text-accent-success font-medium">
+          🎉 Completed with {guessCount} guesses!
+        </div>
       )}
     </div>
   );
-} 
+};

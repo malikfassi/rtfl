@@ -83,13 +83,14 @@ export class GameStateService {
       });
     }
 
-    let songWithTitleArtist: typeof game.song & { title?: string; artist?: string } | undefined = undefined;
+    let songWithTitleArtist: typeof game.song & { title?: string; artist?: string; lyrics?: string } | undefined = undefined;
     if (isWon) {
       const geniusData = game.song.geniusData as { title?: string; artist?: string } | undefined;
       songWithTitleArtist = {
         ...game.song,
         title: geniusData?.title ?? '',
         artist: geniusData?.artist ?? '',
+        lyrics: game.song.lyrics,
       };
     }
 

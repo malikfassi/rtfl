@@ -26,7 +26,7 @@ const nextConfig = {
         },
         {
           source: '/',
-          destination: '/front/game'
+          destination: '/front/game/'
         },
         {
           source: '/:slug((?!_next|api|archive|front).*)*',

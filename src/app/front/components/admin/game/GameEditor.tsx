@@ -1,13 +1,15 @@
 import type { Track } from '@spotify/web-api-ts-sdk';
 import { format } from 'date-fns';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { AdminGame, GameStatusInfo } from '@/app/types';
 
 import { Button } from '@/app/front/components/ui/Button';
 import { useToast } from '@/app/front/hooks/use-toast';
+import { useGameState } from '@/app/front/hooks/usePlayer';
+import { getOrCreatePlayerId } from '@/app/front/lib/utils';
 
 import { SongBrowser } from './SongBrowser';
-import { LyricsGame } from '../../game/LyricsGame';
+import { LyricsGame } from '../../game/lyrics-game';
 
 export type EditorMode = 'preview' | 'search';
 
@@ -35,7 +37,19 @@ export function GameEditor({
   pendingChange
 }: GameEditorProps) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [playerId, setPlayerId] = useState('');
   const { toast } = useToast();
+
+  useEffect(() => {
+    setPlayerId(getOrCreatePlayerId());
+  }, []);
+
+  const previewDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+  const { data: previewGameState } = useGameState(
+    playerId,
+    previewDate,
+    mode === 'preview' && !!playerId && !!previewDate
+  );
 
   if (!selectedDate) {
     return (
@@ -189,12 +203,11 @@ export function GameEditor({
       {mode === 'preview' && (
         <div className="relative">
           <LyricsGame
-            date={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
-            game={undefined}
-            disabled={!game}
-            isAdmin={true}
-            onChooseSong={() => onModeChange('search')}
-            hideChooseSongButton
+            date={previewDate}
+            gameState={previewGameState ?? null}
+            onGuess={async () => {}}
+            onShowFullLyrics={() => {}}
+            playerId={playerId}
           />
         </div>
       )}

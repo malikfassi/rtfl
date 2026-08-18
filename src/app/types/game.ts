@@ -34,6 +34,7 @@ export interface GameState {
   song?: {
     title?: string;
     artist?: string;
+    lyrics?: string;
   };
   stats?: GameStats;
 }

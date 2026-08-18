@@ -286,10 +286,116 @@
   .read-the-docs {
     @apply text-gray-500;
   }
+
+  .submit-button {
+    @apply px-6 py-2 bg-primary text-foreground rounded-md hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed transition-colors font-medium;
+  }
+
+  /* Guess Input Styles - Flat Pastel Design */
+  .guess-input {
+    @apply p-4;
+  }
+
+  .input-container {
+    @apply relative flex items-center;
+  }
+
+  .guess-field {
+    @apply w-full px-4 py-3 border-0 rounded-xl bg-[#f8f9ff] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#b8a6ff]/30 focus:bg-[#f8f9ff] transition-all duration-200 text-base;
+    box-shadow: 0 2px 8px rgba(184, 166, 255, 0.1);
+  }
+
+  .guess-field:disabled {
+    @apply bg-[#f1f2f6] text-muted-foreground cursor-not-allowed;
+    box-shadow: none;
+  }
+
+  .guess-field.pending {
+    @apply bg-[#fff8e6] ring-2 ring-[#ffd93d]/30;
+    box-shadow: 0 2px 8px rgba(255, 217, 61, 0.15);
+  }
+
+  .guess-field.has-content {
+    @apply bg-[#f0f8ff] ring-1 ring-[#b8a6ff]/20;
+    box-shadow: 0 2px 12px rgba(184, 166, 255, 0.15);
+  }
+
+  /* Share Button Styles - Matching Guess Input */
+  .guess-field-share {
+    @apply w-full px-4 py-3 border-0 rounded-xl bg-[#f8f9ff] text-foreground hover:bg-[#f0f8ff] focus:outline-none focus:ring-2 focus:ring-[#b8a6ff]/30 focus:bg-[#f8f9ff] transition-all duration-200 text-base font-medium;
+    box-shadow: 0 2px 8px rgba(184, 166, 255, 0.1);
+  }
+
+  .guess-field-share:disabled {
+    @apply bg-[#f1f2f6] text-muted-foreground cursor-not-allowed;
+    box-shadow: none;
+  }
+
+  .guess-field-share:hover {
+    @apply bg-[#f0f8ff];
+    box-shadow: 0 2px 12px rgba(184, 166, 255, 0.15);
+  }
+
+  .enter-hint {
+    @apply absolute right-3 flex items-center gap-1.5 text-xs text-muted-foreground/60 pointer-events-none;
+    opacity: 0;
+    transform: translateX(4px);
+    transition: all 0.2s ease;
+  }
+
+  .guess-field:focus + .enter-hint,
+  .guess-field.has-content + .enter-hint,
+  .guess-field-share:focus + .enter-hint,
+  .guess-field-share:hover + .enter-hint {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .enter-hint .key {
+    @apply bg-[#e8eaff] text-[#6b5ce7] px-1.5 py-0.5 rounded text-[10px] font-mono font-medium;
+    box-shadow: 0 1px 2px rgba(107, 92, 231, 0.1);
+  }
+
+  .enter-hint .text {
+    @apply text-muted-foreground/50;
+  }
+
+  .pending-feedback {
+    @apply mt-3 text-sm text-[#ffa726] flex items-center gap-2;
+  }
+
+  .loading-dots {
+    @apply flex gap-1;
+  }
+
+  .loading-dots span {
+    @apply w-1.5 h-1.5 bg-[#ffa726] rounded-full animate-pulse;
+  }
+
+  .loading-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .loading-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  .error-feedback {
+    @apply mt-3 text-sm text-[#ff6b6b] flex items-center gap-2;
+  }
+
+  .error-feedback::before {
+    content: "⚠️";
+    font-size: 12px;
+  }
 }
 
 @layer utilities {
   .container {
     @apply max-w-5xl mx-auto px-8;
   }
+} 
+
+.masked-lyric-word {
+  font-family: 'JetBrains Mono', monospace !important;
 } 

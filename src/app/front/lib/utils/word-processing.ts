@@ -1,4 +1,5 @@
 import type { Token } from '@/app/types';
+import { getWordColorDeterministic } from './color-management';
 
 // Re-export for backward compatibility
 export type { Token };
@@ -34,6 +35,9 @@ export function calculateWordState(
   };
 }
 
+/**
+ * @deprecated Use getWordColorDeterministic from color-management instead
+ */
 export function getWordColor(word: string, guesses: Array<{ word: string; valid: boolean }>, colors: Array<{ bg: string; text: string }>) {
   const index = guesses.findIndex(g => g.valid && g.word.toLowerCase() === word.toLowerCase());
   if (index === -1) return undefined;
@@ -45,7 +49,8 @@ export function splitIntoTokens(text: string): string[] {
 }
 
 export function isWord(token: string): boolean {
-  return new RegExp('^(\\p{L}+|\\p{N}+)$', 'u').test(token);
+  // Match Unicode letters, numbers, or underscore strings (masked words)
+  return new RegExp('^(\\p{L}+|\\p{N}+|_+)$', 'u').test(token);
 }
 
 export function isWhitespace(token: string): boolean {

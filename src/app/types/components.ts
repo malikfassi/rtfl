@@ -56,24 +56,14 @@ export interface GameHeaderProps {
 }
 
 export interface MaskedLyricsProps {
-  title: string;
-  artist: string;
-  lyrics: string;
+  title: string | null;
+  artist: string | null;
+  lyrics: string | null;
   maskedTitleParts?: Token[];
   maskedArtistParts?: Token[];
   maskedLyricsParts?: Token[];
-  isComplete?: boolean;
-  foundWords: string[];
-  hoveredWord?: string | null;
-  selectedWord?: string | null;
-  guesses: Array<{
-    id: string;
-    word: string;
-    valid: boolean;
-  }>;
-  colors: Color[];
-  song?: { lyrics: string; } | null;
-  isAdmin?: boolean;
+  highlightedWord?: string;
+  scrollToWord?: string;
   showFullLyrics?: boolean;
 }
 
@@ -92,15 +82,9 @@ export interface WordRendererProps {
 
 export interface LyricsRendererProps {
   lyrics: string | Token[];
-  foundWords: string[];
-  hoveredWord?: string | null;
-  selectedWord?: string | null;
-  colors: Color[];
-  guesses: Array<{ word: string; valid: boolean }>;
-  isComplete?: boolean;
-  showFullLyrics?: boolean;
-  onWordClick?: (word: string) => void;
-  onWordHover?: (word: string | null) => void;
+  highlightedWord?: string;
+  scrollToWord?: string;
+  scrollToActiveGuessRef?: React.RefObject<HTMLSpanElement>;
 }
 
 export interface GuessHistoryProps {

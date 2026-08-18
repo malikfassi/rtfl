@@ -3,7 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/app/front/lib/utils";
 import Link from "next/link";
-import { ScrambleTitleProps } from "./lyrics-game/types";
+interface ScrambleTitleProps {
+  date: string;
+}
 
 const specialChars = "!@#$%^&*()_+FUCKING";
 const baseWord = "FUCKING";

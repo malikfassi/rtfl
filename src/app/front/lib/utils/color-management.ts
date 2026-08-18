@@ -12,6 +12,19 @@ export const gameColors: Color[] = [
 ];
 
 /**
+ * Simple hash function to generate a deterministic number from a string
+ */
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash);
+}
+
+/**
  * Get a color from the game colors array, cycling through the array if index exceeds length
  */
 export function getGameColor(index: number): Color {
@@ -19,7 +32,18 @@ export function getGameColor(index: number): Color {
 }
 
 /**
+ * Get a deterministic color for a word based on the word itself
+ * This eliminates the need to pass the full guesses array
+ */
+export function getWordColorDeterministic(word: string): Color {
+  const hash = hashString(word.toLowerCase());
+  const colorIndex = hash % gameColors.length;
+  return gameColors[colorIndex];
+}
+
+/**
  * Get a color for a word based on its position in the guesses array
+ * @deprecated Use getWordColorDeterministic instead
  */
 export function getWordColor(
   word: string,

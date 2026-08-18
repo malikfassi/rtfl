@@ -1,9 +1,7 @@
-import { LyricsGame } from "@/app/front/components/game/LyricsGame";
+import { LyricsGameWrapper } from "@/app/front/components/game/lyrics-game/LyricsGameWrapper";
 import { redirect } from "next/navigation";
-import { ROUTES, isValidDate, getCurrentDate } from "@/app/front/lib/routes";
-import { getCurrentGame } from "@/app/front/lib/game-server";
+import { getCurrentDate } from "@/app/front/lib/routes";
 import { isFutureDate } from "@/app/front/lib/utils/date-formatting";
-import { ERROR_MESSAGES } from "@/app/front/lib/error-messages";
 
 export default async function GameCatchAllPage({
   params,
@@ -21,27 +19,13 @@ export default async function GameCatchAllPage({
   const today = getCurrentDate();
   const date = isRootPath ? today : slug.join('-');
 
-  // Check if date is valid - only for non-root paths
-  const isValidDatePath = isRootPath ? true : isValidDate(date);
-  
-  // Redirect invalid paths to home with error
-  if (!isValidDatePath) {
-    redirect(`${ROUTES.HOME}?error=invalid_date&message=${encodeURIComponent(ERROR_MESSAGES.INVALID_DATE)}`);
-  }
+  // For invalid dates, let the API handle the error instead of redirecting
+  // The API will return a proper 400 error that the frontend can handle
 
   // Check if date is in the future and redirect to rickroll
   if (isFutureDate(date)) {
     redirect('/rickroll');
   }
 
-  // Fetch game data
-  const game = await getCurrentGame(date);
-
-  return (
-    <div className="min-h-screen bg-background font-mono">
-      <div className="p-8">
-        <LyricsGame date={date} game={game ?? undefined} />
-      </div>
-    </div>
-  );
+  return <LyricsGameWrapper date={date} />;
 } 

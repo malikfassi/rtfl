@@ -2,20 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { format, startOfMonth, addMonths, subMonths } from "date-fns";
 import { useGameMonth } from "@/app/front/hooks/usePlayer";
 import { getOrCreatePlayerId } from "@/app/front/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CalendarView } from "@/app/front/components/archive/CalendarView";
 import { ScrambleTitle } from "@/app/front/components/game/ScrambleTitle";
-import { buildArchiveRoute, getCurrentMonth, ROUTES } from "@/app/front/lib/routes";
+import { buildArchiveRoute, getCurrentMonth } from "@/app/front/lib/routes";
 import { parseMonthString } from "@/app/front/lib/utils/date-formatting";
-import { ERROR_MESSAGES } from "@/app/front/lib/error-messages";
 import type { ArchiveContentProps } from "@/app/types";
 
 export function ArchiveContent({ month }: ArchiveContentProps) {
-  const router = useRouter();
   const [playerId, setPlayerId] = useState<string>('');
   const [isClient, setIsClient] = useState(false);
   
@@ -41,8 +38,9 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
     prevMonth = format(subMonths(currentDate, 1), "yyyy-MM");
     nextMonth = format(addMonths(currentDate, 1), "yyyy-MM");
   } catch (error) {
-    // Redirect invalid months to home with error popup
-    router.push(`${ROUTES.HOME}?error=invalid_month&message=${encodeURIComponent(ERROR_MESSAGES.INVALID_MONTH)}`);
+    // For invalid months, let the API handle the error instead of redirecting
+    // The API will return a proper 400 error that the frontend can handle
+    console.error('Invalid month format:', currentMonth, error);
     return null;
   }
 
@@ -65,7 +63,6 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
             <h1 data-testid="archive-title" className="text-2xl sm:text-3xl md:text-4xl font-bold text-center leading-tight">
               <span className="inline-block align-middle">
                 <ScrambleTitle 
-                  title="Game Archive"
                   date={currentMonth} 
                 />
               </span>
@@ -92,7 +89,6 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
           <h1 data-testid="archive-title" className="text-2xl sm:text-3xl md:text-4xl font-bold text-center leading-tight">
             <span className="inline-block align-middle">
               <ScrambleTitle 
-                title="Game Archive"
                 date={currentMonth} 
               />
             </span>

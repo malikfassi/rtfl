@@ -9,21 +9,17 @@ export const metadata = {
   description: "A game where you guess song lyrics",
 };
 
-export default function RootLayout({
+export default function FrontLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className="h-full bg-background">
-        <Providers>
-          <TooltipProvider>
-            {children}
-            <Toaster />
-          </TooltipProvider>
-        </Providers>
-      </body>
-    </html>
+    <Providers>
+      <TooltipProvider>
+        {children}
+        <Toaster />
+      </TooltipProvider>
+    </Providers>
   );
 } 
