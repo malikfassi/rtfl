@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { LyricsGame } from '@/app/front/components/game/lyrics-game';
+import { LoadingState } from '@/app/front/components/ui/LoadingState';
 import { useGameState, useGuess } from '@/app/front/hooks/usePlayer';
 import { getOrCreatePlayerId } from '@/app/front/lib/utils';
 import { ERROR_MESSAGES } from '@/app/front/lib/error-messages';
@@ -18,14 +19,8 @@ export default function RickrollPage() {
 
   if (isLoading || !gameState) {
     return (
-      <div className="min-h-screen bg-background font-mono">
-        <div className="p-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold mb-4">Loading...</h1>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-background font-mono flex items-center justify-center">
+        <LoadingState message="Loading your rickroll..." />
       </div>
     );
   }

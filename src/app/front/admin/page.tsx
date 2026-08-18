@@ -4,6 +4,7 @@ import type { CustomPlaylist } from '@/app/types';
 import React, { useState } from 'react';
 
 import { AdminDashboard } from '@/app/front/components/admin/game/AdminDashboard';
+import { LoadingState } from '@/app/front/components/ui/LoadingState';
 import { useAdminGames, useAdminGameMutations } from '@/app/front/hooks/useAdmin';
 
 export default function AdminPage() {
@@ -15,7 +16,7 @@ export default function AdminPage() {
     return (
       <div className="p-4">
         <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-        <div className="text-center">Loading...</div>
+        <LoadingState message="Loading games..." />
       </div>
     );
   }

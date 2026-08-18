@@ -4,6 +4,7 @@ import React, { useEffect, useRef,useState } from 'react';
 
 import { Input } from '@/app/front/components/ui/Input';
 import { Button } from '@/app/front/components/ui/Button';
+import { LoadingState } from '@/app/front/components/ui/LoadingState';
 import { useDebounce } from '@/app/front/hooks/useDebounce';
 import { usePlaylists, usePlaylistTracks } from '@/app/front/hooks/use-playlists';
 
@@ -13,10 +14,6 @@ interface PlaylistBrowserProps {
   onPlaylistSelect: (playlist: CustomPlaylist) => void;
   onReshuffle?: () => void;
   songAssignments?: Record<string, string[]>;
-}
-
-function LoadingState() {
-  return <div>Loading...</div>;
 }
 
 function SelectedPlaylistView({ playlist, tracks, isLoading, onReshuffle, songAssignments }: { 
