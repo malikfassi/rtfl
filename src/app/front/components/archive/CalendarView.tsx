@@ -94,7 +94,7 @@ export function CalendarView({ month, games }: CalendarViewProps) {
           // Always clickable if in current month and not in the future
           const isClickable = isCurrentMonth && !isFuture;
           // Gold border for victory
-          const dayBorder = isComplete ? 'border-2 border-[#ffe29f] bg-[#fffbe6]/40' : 'border border-primary-muted/20';
+          const dayBorder = isComplete ? 'border-2 border-accent-warning/60 bg-accent-warning/10' : 'border border-primary-muted/20';
 
           return (
             <div

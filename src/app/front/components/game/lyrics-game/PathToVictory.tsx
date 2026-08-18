@@ -134,7 +134,7 @@ export const PathToVictory = ({
     <div 
       data-testid="game-progress"
       className={cn(
-        "space-y-3 border border-[#ffe29f] bg-[#fffbe6]/60 rounded-xl p-4 relative overflow-hidden"
+        "space-y-3 border border-accent-warning/40 bg-accent-warning/10 rounded-xl p-4 relative overflow-hidden"
       )}
       role="region"
       aria-label="Game Progress"
@@ -142,8 +142,8 @@ export const PathToVictory = ({
       <div className="flex items-center gap-2 text-sm font-medium text-primary-dark">
         Path to Victory
         {isVictory && (
-          <span 
-            className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#ffe29f]/80 text-primary-dark text-xs font-bold border border-[#ffe29f]"
+          <span
+            className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-accent-warning/30 text-primary-dark text-xs font-bold border border-accent-warning/50"
             role="status"
             aria-label="Victory achieved"
           >

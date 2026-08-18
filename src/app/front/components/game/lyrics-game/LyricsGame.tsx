@@ -390,10 +390,10 @@ export function LyricsGame({
                         type="checkbox"
                         checked={showFullLyrics}
                         onChange={e => setShowFullLyrics(e.target.checked)}
-                        className="absolute block w-5 h-5 rounded-full bg-[#ffe29f] border-2 border-[#ffe29f] appearance-none cursor-pointer transition-all duration-200 checked:bg-accent-success checked:border-accent-success"
+                        className="absolute block w-5 h-5 rounded-full bg-accent-warning border-2 border-accent-warning appearance-none cursor-pointer transition-all duration-200 checked:bg-accent-success checked:border-accent-success"
                         style={{ left: showFullLyrics ? '1.2rem' : '0', top: 0, transition: 'left 0.2s' }}
                       />
-                      <span className="block overflow-hidden h-5 rounded-full bg-[#fffbe6]/60 border border-[#ffe29f] w-8"></span>
+                      <span className="block overflow-hidden h-5 rounded-full bg-accent-warning/15 border border-accent-warning/60 w-8"></span>
                     </span>
                   </label>
                 </div>

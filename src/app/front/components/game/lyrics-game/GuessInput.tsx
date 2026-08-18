@@ -102,35 +102,21 @@ export const GuessInput = ({ onGuessSubmit, pendingGuess, disabled, onDuplicateG
     }
   };
   
-  // Get the appropriate styling based on guess state
+  // Get the appropriate styling based on guess state. Built on the theme's
+  // card/accent tokens (not literal hex) so it adapts to dark mode instead
+  // of staying a bright light-mode-only box.
   const getInputStyling = () => {
-    const baseClasses = "w-full px-4 py-3 border-0 rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all duration-200 text-base";
-    
+    const baseClasses = "w-full px-4 py-3 border-0 rounded-xl bg-card text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all duration-200 text-base";
+
     switch (guessState) {
       case 'duplicate':
-        return cn(
-          baseClasses,
-          "bg-[#fff8e6] ring-2 ring-[#ff9800]/30 focus:bg-[#fff8e6]",
-          "focus:ring-[#ff9800]/50"
-        );
+        return cn(baseClasses, "ring-2 ring-accent-warning/40 focus:ring-accent-warning/60");
       case 'success':
-        return cn(
-          baseClasses,
-          "bg-[#f0fff4] ring-2 ring-[#4caf50]/30 focus:bg-[#f0fff4]",
-          "focus:ring-[#4caf50]/50"
-        );
+        return cn(baseClasses, "ring-2 ring-accent-success/40 focus:ring-accent-success/60");
       case 'error':
-        return cn(
-          baseClasses,
-          "bg-[#fff5f5] ring-2 ring-[#f44336]/30 focus:bg-[#fff5f5]",
-          "focus:ring-[#f44336]/50"
-        );
+        return cn(baseClasses, "ring-2 ring-accent-error/40 focus:ring-accent-error/60");
       default:
-        return cn(
-          baseClasses,
-          "bg-[#f8f9ff] ring-1 ring-[#b8a6ff]/20 focus:bg-[#f8f9ff]",
-          "focus:ring-[#b8a6ff]/30"
-        );
+        return cn(baseClasses, "ring-1 ring-primary/20 focus:ring-primary/40");
     }
   };
   
@@ -148,19 +134,11 @@ export const GuessInput = ({ onGuessSubmit, pendingGuess, disabled, onDuplicateG
           disabled={isSubmitting}
           className={cn(
             getInputStyling(),
+            "shadow-sm",
             pendingGuess && 'pending',
             disabled && 'disabled',
             input.trim() && 'has-content'
           )}
-          style={{ 
-            boxShadow: guessState === 'initial' 
-              ? '0 2px 8px rgba(184, 166, 255, 0.1)' 
-              : guessState === 'duplicate'
-              ? '0 2px 8px rgba(255, 152, 0, 0.15)'
-              : guessState === 'success'
-              ? '0 2px 8px rgba(76, 175, 80, 0.15)'
-              : '0 2px 8px rgba(244, 67, 54, 0.15)'
-          }}
         />
         <div className="enter-hint">
           <span className="key">↵</span>

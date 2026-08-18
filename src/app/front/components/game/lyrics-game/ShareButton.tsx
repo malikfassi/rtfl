@@ -128,11 +128,10 @@ export const ShareButton = ({
           onClick={() => setShowPopup(true)}
           disabled={isSharing}
           className={cn(
-            "w-full px-4 py-3 border-0 rounded-xl bg-[#f8f9ff] text-foreground focus:outline-none focus:ring-2 focus:ring-[#b8a6ff]/30 focus:bg-[#f8f9ff] transition-all duration-200 text-base font-medium flex items-center justify-center",
-            isSharing && "opacity-50 cursor-not-allowed bg-[#f1f2f6] text-muted-foreground",
+            "w-full px-4 py-3 border-0 rounded-xl bg-card text-foreground shadow-sm focus:outline-none focus:ring-2 ring-1 ring-primary/20 focus:ring-primary/40 transition-all duration-200 text-base font-medium flex items-center justify-center",
+            isSharing && "opacity-50 cursor-not-allowed",
             "guess-field-share"
           )}
-          style={{ boxShadow: '0 2px 8px rgba(184, 166, 255, 0.1)' }}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />

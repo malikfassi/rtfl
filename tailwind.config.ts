@@ -25,31 +25,31 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#9b87f5", // Main text and interactive elements
-          light: "#D6BCFA", // Subtle backgrounds and borders
-          dark: "#6E59A5", // Emphasized text
-          muted: "#7E69AB", // Secondary text
+          DEFAULT: "hsl(var(--primary))", // Main text and interactive elements
+          light: "hsl(var(--primary-light))", // Subtle backgrounds and borders
+          dark: "hsl(var(--primary-dark))", // Emphasized text
+          muted: "hsl(var(--primary-muted))", // Secondary text
         },
         accent: {
-          DEFAULT: "#abecd6", // Default accent (mint)
-          success: "#abecd6", // Success states (mint)
-          error: "#FF719A", // Error states (pink)
-          warning: "#FFE29F", // Warning states (yellow)
-          info: "#9b87f5", // Info states (primary)
+          DEFAULT: "hsl(var(--accent))",
+          success: "hsl(var(--accent-success))", // green
+          error: "hsl(var(--accent-error))", // red/coral
+          warning: "hsl(var(--accent-warning))", // amber
+          info: "hsl(var(--accent-info))", // blue
         },
         state: {
-          hover: "#abecd6", // Hover state color (mint)
-          active: "#6E59A5", // Active state color (primary dark)
-          disabled: "#7E69AB", // Disabled state color (primary muted)
-          focus: "#9b87f5", // Focus state color (primary)
+          hover: "hsl(var(--state-hover))",
+          active: "hsl(var(--state-active))",
+          disabled: "hsl(var(--state-disabled))",
+          focus: "hsl(var(--state-focus))",
         },
         secondary: {
-          DEFAULT: "#E5DEFF",
-          foreground: "#222222",
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {
-          DEFAULT: "#FF719A",
-          foreground: "#FFFFFF",
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
