@@ -64,8 +64,6 @@ export class GameService {
     if (!song) {
       throw new SongNotFoundError(songId);
     }
-    // Debug logging
-    console.log('[GameService.createOrUpdate] Upserting game:', { validatedDate, songId });
     return await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const game = await tx.game.upsert({
         where: { date: validatedDate },

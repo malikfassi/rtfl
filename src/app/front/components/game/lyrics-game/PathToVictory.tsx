@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/app/front/lib/utils';
 import { gameColors } from '@/app/front/lib/utils/color-management';
 import { calculateGuessHits } from '@/app/front/lib/utils/hit-counting';
@@ -28,22 +28,12 @@ export const PathToVictory = ({
   showFullLyrics?: boolean;
   onToggleFullLyrics?: (val: boolean) => void;
 }) => {
-  // Debug log for incoming props
-  console.debug('[PathToVictory] props:', {
-    lyricsProgress, titleProgress, artistProgress, totalWords, foundWords, isGameComplete, guesses, highlightedWord, maskedLyricsParts, maskedTitleParts, maskedArtistParts
-  });
-  
-  // Debug log for highlightedWord specifically
-  console.debug('[PathToVictory] highlightedWord:', {
-    highlightedWord,
-    type: typeof highlightedWord,
-    isNull: highlightedWord === null,
-    isUndefined: highlightedWord === undefined
-  });
-  
   const [prevFoundWords, setPrevFoundWords] = useState(0);
   const [animateProgress, setAnimateProgress] = useState(false);
-  
+  const [milestoneHit, setMilestoneHit] = useState<number | null>(null);
+  const prevOverallPctRef = useRef(0);
+  const MILESTONES = [25, 50, 75, 100];
+
   // Combined title + artist progress
   const titleArtistProgressTotal = (Array.isArray(maskedTitleParts) ? maskedTitleParts.filter(t => t.isToGuess).length : 0) + 
                           (Array.isArray(maskedArtistParts) ? maskedArtistParts.filter(t => t.isToGuess).length : 0);
@@ -55,14 +45,13 @@ export const PathToVictory = ({
   const titleArtistWinCondition = titleWinCondition && artistWinCondition;
   const isVictory = lyricsWinCondition || titleArtistWinCondition;
 
-  // Trigger animation when progress is made
+  // Trigger a brief highlight flash on the card whenever any progress is made
   useEffect(() => {
     if (foundWords > prevFoundWords) {
       setAnimateProgress(true);
-      setTimeout(() => {
-        setAnimateProgress(false);
-      }, 1500);
+      const t = setTimeout(() => setAnimateProgress(false), 1500);
       setPrevFoundWords(foundWords);
+      return () => clearTimeout(t);
     }
   }, [foundWords, prevFoundWords]);
 
@@ -130,11 +119,25 @@ export const PathToVictory = ({
   const lyricsPct = lyricsTotal > 0 ? Math.round((lyricsWordsFound / lyricsTotal) * 100) : 0;
   const titleArtistPct = titleArtistTotal > 0 ? Math.round(((titleWordsFound + artistWordsFound) / titleArtistTotal) * 100) : 0;
 
+  // Fire a milestone animation whenever overall progress crosses a tier -
+  // an inline animated badge + pulse, not a blocking popup.
+  useEffect(() => {
+    const prev = prevOverallPctRef.current;
+    const crossed = MILESTONES.find(m => prev < m && overallPct >= m);
+    prevOverallPctRef.current = overallPct;
+    if (crossed) {
+      setMilestoneHit(crossed);
+      const t = setTimeout(() => setMilestoneHit(null), 1800);
+      return () => clearTimeout(t);
+    }
+  }, [overallPct]);
+
   return (
     <div 
       data-testid="game-progress"
       className={cn(
-        "space-y-3 border border-accent-warning/40 bg-accent-warning/10 rounded-xl p-4 relative overflow-hidden"
+        "space-y-3 border border-accent-warning/40 bg-accent-warning/10 rounded-xl p-4 relative overflow-hidden transition-colors duration-500",
+        animateProgress && "bg-accent-success/15 border-accent-success/50"
       )}
       role="region"
       aria-label="Game Progress"
@@ -167,18 +170,31 @@ export const PathToVictory = ({
       </div>
       
       {/* Progress Bar Built from Guess History */}
-      <div className="space-y-2">
+      <div className="space-y-2 relative">
         <div className="flex items-center justify-between text-xs">
           <span className="text-primary-muted">Progress</span>
           <span className="font-mono">{overallPct}%</span>
         </div>
-        <SegmentedProgressBar
-          guesses={overallGuessHits}
-          total={overallTotal}
-          highlightedWord={highlightedWord || undefined}
-          barHeight="h-3"
-          ariaLabel="Game Progress"
-        />
+        <div className={cn('relative rounded-full', milestoneHit && 'animate-milestone-pulse')}>
+          <SegmentedProgressBar
+            guesses={overallGuessHits}
+            total={overallTotal}
+            highlightedWord={highlightedWord || undefined}
+            barHeight="h-3"
+            ariaLabel="Game Progress"
+          />
+        </div>
+        {milestoneHit && (
+          <div
+            className="absolute -top-1 right-0 pointer-events-none animate-milestone-badge"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-white text-xs font-bold shadow-lg whitespace-nowrap">
+              {milestoneHit === 100 ? '🏆' : '✨'} {milestoneHit}%
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Lyrics Path */}
@@ -235,19 +251,42 @@ export const PathToVictory = ({
       </div>
 
       <style jsx>{`
-        @keyframes progressGrow {
+        @keyframes milestone-badge {
           0% {
-            transform: scaleX(0.95);
-            filter: brightness(1.2);
+            opacity: 0;
+            transform: translateY(4px) scale(0.75);
           }
-          50% {
-            transform: scaleX(1.05);
-            filter: brightness(1.5);
+          20% {
+            opacity: 1;
+            transform: translateY(-4px) scale(1.1);
+          }
+          35% {
+            transform: translateY(-6px) scale(1);
+          }
+          80% {
+            opacity: 1;
+            transform: translateY(-10px) scale(1);
           }
           100% {
-            transform: scaleX(1);
-            filter: brightness(1);
+            opacity: 0;
+            transform: translateY(-18px) scale(0.9);
           }
+        }
+        :global(.animate-milestone-badge) {
+          animation: milestone-badge 1.8s ease-out forwards;
+        }
+
+        @keyframes milestone-pulse {
+          0%,
+          100% {
+            box-shadow: 0 0 0 0 hsl(var(--primary) / 0.5);
+          }
+          50% {
+            box-shadow: 0 0 0 6px hsl(var(--primary) / 0);
+          }
+        }
+        :global(.animate-milestone-pulse) {
+          animation: milestone-pulse 0.9s ease-out 2;
         }
       `}</style>
     </div>

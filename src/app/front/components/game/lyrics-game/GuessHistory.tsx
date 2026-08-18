@@ -100,21 +100,11 @@ const GuessHistoryComponent = ({
                 }
               }}
               onMouseEnter={() => {
-                console.log('[GuessHistory] onMouseEnter:', {
-                  word: g.word,
-                  isSelected,
-                  willHover: !isSelected
-                });
                 if (!isSelected) {
                   onWordHover(g.word);
                 }
               }}
               onMouseLeave={() => {
-                console.log('[GuessHistory] onMouseLeave:', {
-                  word: g.word,
-                  isSelected,
-                  willClearHover: !isSelected
-                });
                 if (!isSelected) {
                   onWordHover(null);
                 }

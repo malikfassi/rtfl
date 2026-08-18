@@ -13,8 +13,6 @@ export class GameStateService {
   ) {}
 
   private isGameWon(song: Song, guesses: Guess[]): boolean {
-    const compactGuesses = guesses.map(g => `${g.word}:${g.valid ? '✓' : '✗'}`);
-    console.log('isGameWon guesses (word:valid):', compactGuesses.join(', '));
     // Get valid guessed words
     const validGuessedWords = new Set(
       guesses.filter(g => g.valid).map(g => g.word.toLowerCase())
@@ -51,8 +49,6 @@ export class GameStateService {
   }
 
   private mapGameToGameState(game: GameWithSongAndGuesses): GameState {
-    const compactGuesses = game.guesses.map(g => `${g.word}:${g.valid ? '✓' : '✗'}`);
-    console.log('mapGameToGameState guesses (word:valid):', compactGuesses.join(', '));
     const isWon = this.isGameWon(game.song, game.guesses);
     const masked = game.song.maskedLyrics as unknown as MaskedLyrics;
 

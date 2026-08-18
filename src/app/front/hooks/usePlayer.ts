@@ -6,30 +6,25 @@ import { queryKeys } from '@/app/front/lib/query-client';
 
 const playerApi = {
   getCurrentGame: async (userId: string, date: string): Promise<GameState | null> => {
-    console.log('[playerApi.getCurrentGame] userId:', userId, 'date:', date);
     // Primary request for the requested date
     const r = await fetch(`/api/games/${date}`, {
       headers: {
         'x-user-id': userId,
       },
     });
-    console.log('[playerApi.getCurrentGame] fetch /api/games/' + date, 'status:', r.status);
 
     // Happy path – the requested game exists
     if (r.ok) {
-      console.log('[playerApi.getCurrentGame] got real game for', date);
       return await r.json();
     }
 
     // Graceful fallback – known "no-game" statuses
     if ([400, 403, 404].includes(r.status)) {
-      console.log('[playerApi.getCurrentGame] fallback to rickroll for', date);
       const rr = await fetch('/api/games/rickroll', {
         headers: {
           'x-user-id': userId,
         },
       });
-      console.log('[playerApi.getCurrentGame] fetch /api/games/rickroll status:', rr.status);
 
       if (rr.ok) {
         // If it was a 403 (future date), throw an error to preserve the error state
@@ -82,16 +77,12 @@ function isValidDate(date: string) {
 }
 
 export function useGameState(userId: string, date: string, enabled = true) {
-  console.log('[useGameState] userId:', userId, 'date:', date, 'enabled:', enabled);
   return useQuery({
     queryKey: [...queryKeys.games.byDate(date), userId],
     queryFn: () => {
-      console.log('[useGameState.queryFn] userId:', userId, 'date:', date);
       if (!isValidDate(date)) {
-        console.log('[useGameState.queryFn] invalid date, using rickroll');
         return playerApi.getCurrentGame(userId, 'rickroll');
       }
-      console.log('[useGameState.queryFn] valid date, using real game');
       return playerApi.getCurrentGame(userId, date);
     },
     enabled: enabled || !isValidDate(date),

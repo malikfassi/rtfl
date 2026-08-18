@@ -78,12 +78,6 @@ export function LyricsGame({
 
   // Handle word hover from GuessHistory
   const handleWordHover = (word: string | null) => {
-    console.log('[LyricsGame] handleWordHover called:', {
-      word,
-      type: typeof word,
-      isNull: word === null,
-      isUndefined: word === undefined
-    });
     setHighlightedWord(word);
   };
 
@@ -172,29 +166,9 @@ export function LyricsGame({
     }
   };
 
-  // Debug logging for highlightedWord state changes
-  useEffect(() => {
-    console.log('[LyricsGame] highlightedWord state changed:', {
-      highlightedWord,
-      type: typeof highlightedWord,
-      isNull: highlightedWord === null,
-      isUndefined: highlightedWord === undefined
-    });
-  }, [highlightedWord]);
-
   // Check if game is complete (has song data)
   const isGameComplete = !!gameState?.song;
   const isLoading = !gameState;
-
-  // Debug logging for PathToVictory props
-  useEffect(() => {
-    console.log('[LyricsGame] PathToVictory props:', {
-      highlightedWord,
-      isLoading,
-      guessesLength: isLoading ? 0 : gameState?.guesses?.length,
-      gameStateExists: !!gameState
-    });
-  }, [highlightedWord, isLoading, gameState]);
 
   // Placeholder/fake data for loading state
   const loadingGuesses = Array.from({ length: 5 }, () => ({ id: `loading-${Math.random()}`, word: '...', valid: true }));
@@ -294,14 +268,6 @@ export function LyricsGame({
     songInfo: { title: '', artist: '' },
     date
   };
-
-  useEffect(() => {
-    if (gameState) {
-      console.log('[LyricsGame] masked.lyrics:', gameState.masked.lyrics);
-      console.log('[LyricsGame] masked.title:', gameState.masked.title);
-      console.log('[LyricsGame] masked.artist:', gameState.masked.artist);
-    }
-  }, [gameState]);
 
   return (
     <div data-testid="game-container" className="min-h-screen bg-background text-foreground">
