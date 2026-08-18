@@ -9,9 +9,7 @@ describe('GeniusService Unit', () => {
   let service: GeniusService;
 
   beforeEach(() => {
-    service = new GeniusService();
-    // @ts-expect-error: override private
-    service.geniusClient = GeniusMocks.createClient();
+    service = new GeniusService(GeniusMocks.createClient());
   });
 
   it('search returns valid GeniusSearchResponse', async () => {

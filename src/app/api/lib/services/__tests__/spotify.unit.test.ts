@@ -18,9 +18,7 @@ describe('SpotifyService Unit', () => {
   let service: SpotifyService;
 
   beforeEach(() => {
-    service = new SpotifyService();
-    // @ts-expect-error: override private
-    service.spotifyClient = SpotifyMocks.createClient();
+    service = new SpotifyService(SpotifyMocks.createClient());
   });
 
   it('getTrack returns valid Track', async () => {

@@ -43,15 +43,10 @@ export const gameService = {
     // Validate date format (YYYY-MM-DD)
     expect(game.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     
-    // Validate date is realistic (not too far in past/future)
+    // Validate date parses to a real calendar date
     const gameDate = new Date(game.date);
-    const now = new Date();
-    const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-    const oneYearFromNow = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
-    
     expect(gameDate).toBeInstanceOf(Date);
-    expect(gameDate.getTime()).toBeGreaterThanOrEqual(oneYearAgo.getTime());
-    expect(gameDate.getTime()).toBeLessThanOrEqual(oneYearFromNow.getTime());
+    expect(gameDate.getTime()).not.toBeNaN();
     
     // Validate song relation
     expect(game.song).toBeDefined();

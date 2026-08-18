@@ -35,21 +35,21 @@ export interface UnitTestContext {
   // Prisma mock
   mockPrisma: {
     game: {
-      findUnique: jest.Mock<unknown, [unknown]>;
-      upsert: jest.Mock<unknown, [unknown]>;
-      findMany: jest.Mock<unknown, [unknown]>;
+      findUnique: jest.Mock<Promise<unknown>, [unknown]>;
+      upsert: jest.Mock<Promise<unknown>, [unknown]>;
+      findMany: jest.Mock<Promise<unknown>, [unknown]>;
     };
     guess: {
-      findFirst: jest.Mock<unknown, [unknown]>;
-      create: jest.Mock<unknown, [unknown]>;
-      findMany: jest.Mock<unknown, [unknown]>;
+      findFirst: jest.Mock<Promise<unknown>, [unknown]>;
+      create: jest.Mock<Promise<unknown>, [unknown]>;
+      findMany: jest.Mock<Promise<unknown>, [unknown]>;
     };
     song: {
-      create: jest.Mock<unknown, [unknown]>;
-      findFirst: jest.Mock<unknown, [unknown]>;
-      findUnique: jest.Mock<unknown, [unknown]>;
+      create: jest.Mock<Promise<unknown>, [unknown]>;
+      findFirst: jest.Mock<Promise<unknown>, [unknown]>;
+      findUnique: jest.Mock<Promise<unknown>, [unknown]>;
     };
-    $transaction: jest.Mock<unknown, [unknown]>;
+    $transaction: jest.Mock<Promise<unknown>, [unknown]>;
   };
 
   // Test utilities
@@ -79,25 +79,25 @@ export function setupUnitTest(): UnitTestContext {
   // Mock Prisma client
   let mockPrisma: UnitTestContext['mockPrisma'] = {
     game: {} as {
-      findUnique: jest.Mock<unknown, [unknown]>;
-      upsert: jest.Mock<unknown, [unknown]>;
-      findMany: jest.Mock<unknown, [unknown]>;
+      findUnique: jest.Mock<Promise<unknown>, [unknown]>;
+      upsert: jest.Mock<Promise<unknown>, [unknown]>;
+      findMany: jest.Mock<Promise<unknown>, [unknown]>;
     },
     guess: {} as {
-      findFirst: jest.Mock<unknown, [unknown]>;
-      create: jest.Mock<unknown, [unknown]>;
-      findMany: jest.Mock<unknown, [unknown]>;
+      findFirst: jest.Mock<Promise<unknown>, [unknown]>;
+      create: jest.Mock<Promise<unknown>, [unknown]>;
+      findMany: jest.Mock<Promise<unknown>, [unknown]>;
     },
     song: {} as {
-      create: jest.Mock<unknown, [unknown]>;
-      findFirst: jest.Mock<unknown, [unknown]>;
-      findUnique: jest.Mock<unknown, [unknown]>;
+      create: jest.Mock<Promise<unknown>, [unknown]>;
+      findFirst: jest.Mock<Promise<unknown>, [unknown]>;
+      findUnique: jest.Mock<Promise<unknown>, [unknown]>;
     },
     $transaction: jest.fn(async (cb: (arg: Omit<UnitTestContext['mockPrisma'], '$transaction'>) => unknown) => cb({
       game: mockPrisma.game,
       guess: mockPrisma.guess,
       song: mockPrisma.song,
-    })) as jest.Mock<unknown, [unknown]>,
+    })) as jest.Mock<Promise<unknown>, [unknown]>,
   };
   mockPrisma.game.findUnique = jest.fn();
   mockPrisma.game.upsert = jest.fn();
