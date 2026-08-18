@@ -301,7 +301,7 @@ export function LyricsGame({
   }, [gameState]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div data-testid="game-container" className="min-h-screen bg-background text-foreground">
       {/* Game Header with playerId and next game timer */}
       <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex flex-col h-auto max-w-screen-2xl py-2">

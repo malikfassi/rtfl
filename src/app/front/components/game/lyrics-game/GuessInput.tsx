@@ -142,6 +142,8 @@ export const GuessInput = ({ onGuessSubmit, pendingGuess, disabled, onDuplicateG
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your guess..."
+          aria-label="Type your guess"
+          data-testid="guess-input"
           disabled={isSubmitting}
           className={cn(
             getInputStyling(),

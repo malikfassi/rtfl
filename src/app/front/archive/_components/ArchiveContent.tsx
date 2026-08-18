@@ -22,7 +22,7 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
   const currentMonth = month || defaultMonth;
   
   // Only fetch data on client-side
-  const { data: games, isLoading } = useGameMonth(playerId, currentMonth, isClient);
+  const { data: games, isLoading, error } = useGameMonth(playerId, currentMonth, isClient);
 
   useEffect(() => {
     setIsClient(true);
@@ -38,10 +38,15 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
     prevMonth = format(subMonths(currentDate, 1), "yyyy-MM");
     nextMonth = format(addMonths(currentDate, 1), "yyyy-MM");
   } catch (error) {
-    // For invalid months, let the API handle the error instead of redirecting
-    // The API will return a proper 400 error that the frontend can handle
     console.error('Invalid month format:', currentMonth, error);
-    return null;
+    return (
+      <div className="min-h-screen bg-background font-mono">
+        <div className="max-w-4xl mx-auto p-4 sm:p-8 text-center py-12">
+          <div data-testid="invalid-month" className="text-primary-muted text-lg mb-2">Invalid month format</div>
+          <div className="text-primary-muted/60 text-sm">Please use the YYYY-MM format, e.g. {getCurrentMonth()}</div>
+        </div>
+      </div>
+    );
   }
 
   // Allow navigation to the current month, block only future months
@@ -102,6 +107,7 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
           <Link 
             href={buildArchiveRoute(prevMonth)}
             data-testid="prev-month"
+            aria-label="Previous month"
             className="p-2 hover:bg-white/5 rounded-lg transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -110,22 +116,33 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
             {format(currentDate, "MMMM yyyy")}
           </h1>
           {canNavigateNext ? (
-            <Link 
+            <Link
               href={buildArchiveRoute(nextMonth)}
               data-testid="next-month"
+              aria-label="Next month"
               className="p-2 hover:bg-white/5 rounded-lg transition-colors"
             >
               <ChevronRight className="w-5 h-5" />
             </Link>
           ) : (
-            <div data-testid="next-month" className="p-2 opacity-30 cursor-not-allowed">
+            <div
+              data-testid="next-month"
+              aria-label="Next month"
+              aria-disabled="true"
+              className="p-2 opacity-30 cursor-not-allowed"
+            >
               <ChevronRight className="w-5 h-5" />
             </div>
           )}
         </div>
         
-        {/* Calendar View or Empty State */}
-        {hasGames ? (
+        {/* Calendar View, Error, or Empty State */}
+        {error ? (
+          <div data-testid="error-state" className="text-center py-12">
+            <div className="text-primary-muted text-lg mb-2">Couldn&apos;t load games</div>
+            <div className="text-primary-muted/60 text-sm">Something went wrong fetching this month. Try again shortly.</div>
+          </div>
+        ) : hasGames ? (
           <CalendarView month={currentMonth} games={games || []} />
         ) : (
           <div data-testid="empty-month" className="text-center py-12">

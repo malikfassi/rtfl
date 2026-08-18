@@ -189,7 +189,7 @@ export function ScrambleTitle({ date }: ScrambleTitleProps) {
       </span>
       {' '}LYRICS{' '}
       <Link href="/archive" className="group inline-flex items-baseline">
-        <span className="text-xs font-normal text-foreground/70 group-hover:hidden transition-all duration-300">
+        <span data-testid="date-display" className="text-xs font-normal text-foreground/70 group-hover:hidden transition-all duration-300">
           {date}
         </span>
         <span className="hidden group-hover:inline text-xs font-normal text-accent-success whitespace-nowrap transition-all duration-300">
