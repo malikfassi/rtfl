@@ -30,26 +30,31 @@ export function LyricsGame({
   // Refs
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Handle scroll for fog effect
+  // Handle scroll for fog effect. Recomputed on every scroll AND whenever
+  // the container's content actually changes (lyrics finish loading, full
+  // lyrics get toggled on, a guess reveals more words...) via
+  // MutationObserver - a scroll-only, mount-only check leaves the fog stuck
+  // at whatever it was when the loading placeholder was still showing,
+  // before the real (much taller) lyrics replace it.
   useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
     const handleScroll = () => {
-      if (scrollContainerRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-        setShowTopFog(scrollTop > 0);
-        setShowBottomFog(scrollTop < scrollHeight - clientHeight);
-      }
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+      setShowTopFog(scrollTop > 0);
+      setShowBottomFog(scrollTop < scrollHeight - clientHeight - 1);
     };
 
-    const scrollContainer = scrollContainerRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
-      // Initial check
-      handleScroll();
-      
-      return () => {
-        scrollContainer.removeEventListener('scroll', handleScroll);
-      };
-    }
+    scrollContainer.addEventListener('scroll', handleScroll);
+    const mutationObserver = new MutationObserver(handleScroll);
+    mutationObserver.observe(scrollContainer, { childList: true, subtree: true, characterData: true });
+    handleScroll();
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      mutationObserver.disconnect();
+    };
   }, []);
 
   // Tutorial modal localStorage logic
@@ -313,7 +318,7 @@ export function LyricsGame({
 
       {/* Main Content */}
       <div className="container max-w-screen-2xl">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_200px] gap-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_160px] gap-6 py-6">
           {/* Left Column - Game Controls */}
           <div className="lg:col-span-1">
             <div className="sticky top-6 space-y-6">

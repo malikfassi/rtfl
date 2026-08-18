@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/app/front/lib/utils";
 import { calculateGuessHits } from "@/app/front/lib/utils/hit-counting";
 import { getWordColorDeterministic } from "@/app/front/lib/utils/color-management";
@@ -59,12 +60,14 @@ const GuessHistoryComponent = ({
         <button
           onClick={() => setHideZeroHits(!hideZeroHits)}
           className={cn(
-            "text-xs transition-colors duration-200",
-            hideZeroHits 
-              ? "text-accent-error hover:text-accent-error/80" 
-              : "text-primary-muted hover:text-primary-dark"
+            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
+            "border transition-all duration-200",
+            hideZeroHits
+              ? "bg-primary/10 border-primary/30 text-primary-dark hover:bg-primary/15"
+              : "bg-transparent border-border text-primary-muted hover:border-primary/30 hover:text-primary-dark"
           )}
         >
+          {hideZeroHits ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
           {hideZeroHits ? "Show all guesses" : "Hide no-hit guesses"}
         </button>
       </div>

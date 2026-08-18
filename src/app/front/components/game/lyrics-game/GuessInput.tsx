@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, FormEvent, useRef, useEffect } from 'react';
+import { AlertCircle } from 'lucide-react';
 import { cn } from '@/app/front/lib/utils';
 import type { GuessInputProps } from './types';
 
@@ -193,9 +194,10 @@ export const GuessInput = ({ onGuessSubmit, pendingGuess, disabled, onDuplicateG
           Checking &ldquo;{pendingGuess}&rdquo;...
         </div>
       )}
-      
+
       {errorMessage && (
         <div className="error-feedback">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
           {errorMessage}
         </div>
       )}
