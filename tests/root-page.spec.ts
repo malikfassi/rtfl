@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TODAY } from './playwright-seed';
+import { format } from 'date-fns';
 
 test.describe('Root Page (Today\'s Game)', () => {
   test.beforeEach(async ({ page }) => {
@@ -8,116 +8,91 @@ test.describe('Root Page (Today\'s Game)', () => {
   });
 
   test('should load today\'s game successfully', async ({ page }) => {
-    // Wait for the page to load
     await page.waitForLoadState('networkidle');
-    
+
     // Check that we're on the game page
     await expect(page).toHaveURL('/');
-    
+
     // Check that the main game container is present
     await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
   });
 
   test('should display game components correctly', async ({ page }) => {
     await page.waitForLoadState('networkidle');
-    
-    // Check for main game components
-    await expect(page.locator('[data-testid="game-header"]')).toBeVisible();
-    await expect(page.locator('[data-testid="game-content"]')).toBeVisible();
-    await expect(page.locator('[data-testid="game-sidebar"]')).toBeVisible();
-    
-    // Check for game controls
-    await expect(page.locator('[data-testid="game-controls"]')).toBeVisible();
-    
-    // Check for lyrics display
-    await expect(page.locator('[data-testid="masked-lyrics"]')).toBeVisible();
-    
-    // Check for progress indicator
+
+    // Check for the components that actually exist on LyricsGame.
+    // Note: there is a GameHeader.tsx file with data-testid="game-header",
+    // but it's dead code - never imported by LyricsGame.tsx, which builds
+    // its header inline instead - so that testid never appears in the DOM.
     await expect(page.locator('[data-testid="game-progress"]')).toBeVisible();
+    // guess-history collapses to zero visible size when this (freshly
+    // random) player has no guesses yet - check it's rendered rather than
+    // requiring nonzero size.
+    await expect(page.locator('[data-testid="guess-history"]')).toBeAttached();
+    await expect(page.locator('[data-testid="masked-lyrics"]')).toBeVisible();
   });
 
   test('should show correct date information', async ({ page }) => {
     await page.waitForLoadState('networkidle');
-    
-    // Check that today's date is displayed
-    const todayFormatted = new Date(TODAY).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    
+
+    // ScrambleTitle renders the raw ISO date (yyyy-MM-dd, local time, same as
+    // getCurrentDate() in lib/routes.ts), not a long weekday-format string.
+    const todayFormatted = format(new Date(), 'yyyy-MM-dd');
     await expect(page.locator('[data-testid="date-display"]')).toContainText(todayFormatted);
   });
 
   test('should allow user interaction with game controls', async ({ page }) => {
     await page.waitForLoadState('networkidle');
-    
-    // Check that input field is present and enabled
+
+    // There is no separate submit button - the form submits on Enter
     const inputField = page.locator('[data-testid="guess-input"]');
     await expect(inputField).toBeVisible();
     await expect(inputField).toBeEnabled();
-    
-    // Check that submit button is present
-    await expect(page.locator('[data-testid="submit-guess"]')).toBeVisible();
   });
 
   test('should display game state correctly for new game', async ({ page }) => {
     await page.waitForLoadState('networkidle');
-    
-    // For a new game, we should see:
-    // - No previous guesses
-    // - Game not completed
-    // - Progress at 0%
-    
-    const guessHistory = page.locator('[data-testid="guess-history"]');
-    if (await guessHistory.isVisible()) {
-      await expect(guessHistory).toContainText('No guesses yet');
-    }
-    
-    // Check that game completion is not shown
-    await expect(page.locator('[data-testid="game-completion"]')).not.toBeVisible();
+
+    // Today's seeded game has zero guesses for this (freshly random) player -
+    // guess-history collapses to zero visible size when empty (no min-height
+    // set), so check it's rendered rather than requiring nonzero size.
+    await expect(page.locator('[data-testid="guess-history"]')).toBeAttached();
+
+    // A fresh game shouldn't show the win popup
+    await expect(page.getByText('Congratulations', { exact: false })).not.toBeVisible();
   });
 
   test('should handle game interactions properly', async ({ page }) => {
     await page.waitForLoadState('networkidle');
-    
-    // Test entering a guess
+
+    // Submit a guess via Enter (no submit button exists)
     const inputField = page.locator('[data-testid="guess-input"]');
-    await inputField.fill('Test Guess');
-    
-    // Submit the guess
-    await page.locator('[data-testid="submit-guess"]').click();
-    
-    // Wait for the guess to be processed
+    await inputField.fill('testguess');
+    await inputField.press('Enter');
     await page.waitForTimeout(1000);
-    
-    // Check that the input is cleared after submission
-    await expect(inputField).toHaveValue('');
+
+    // GuessInput keeps and re-selects the submitted word rather than clearing it
+    await expect(inputField).toHaveValue('testguess');
   });
 
-  test('should display error states appropriately', async ({ page }) => {
+  test('should not error on empty submission', async ({ page }) => {
     await page.waitForLoadState('networkidle');
-    
-    // Test submitting empty guess
-    await page.locator('[data-testid="submit-guess"]').click();
-    
-    // Should show validation error
-    await expect(page.locator('[data-testid="error-message"]')).toBeVisible();
+
+    // Submitting an empty guess is a client-side no-op (handleSubmit returns
+    // early when the trimmed value is empty) - no error UI, no crash.
+    const inputField = page.locator('[data-testid="guess-input"]');
+    await inputField.press('Enter');
+    await expect(inputField).toHaveValue('');
   });
 
   test('should have proper accessibility features', async ({ page }) => {
     await page.waitForLoadState('networkidle');
-    
+
     // Check for proper heading structure
-    await expect(page.locator('h1')).toBeVisible();
-    
-    // Check for proper form labels
+    await expect(page.locator('h1').first()).toBeVisible();
+
+    // Guess input has an aria-label
     const inputField = page.locator('[data-testid="guess-input"]');
     await expect(inputField).toHaveAttribute('aria-label');
-    
-    // Check for proper button labels
-    const submitButton = page.locator('[data-testid="submit-guess"]');
-    await expect(submitButton).toHaveAttribute('aria-label');
   });
-}); 
+});

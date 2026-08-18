@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { format } from 'date-fns';
 
 test.beforeEach(async ({ page }) => {
   // Set up a valid player ID in localStorage using cuid
@@ -65,16 +66,19 @@ test('should show the archive root page for /archive', async ({ page }) => {
   await page.goto('/archive');
   await waitForPlayerId(page);
   // Wait for the main archive heading (the one with ScrambleTitle)
-  await expect(page.locator('h1.text-2xl.sm\\:text-3xl.md\\:text-4xl.font-bold.text-center.leading-tight')).toBeVisible();
-  // Check for the month heading (e.g., June 2025)
-  await expect(page.getByRole('heading', { name: /june 2025|july 2025|august 2025|september 2025|october 2025|november 2025|december 2025|january 2025|february 2025|march 2025|april 2025|may 2025/i })).toBeVisible();
+  await expect(page.locator('[data-testid="archive-title"]')).toBeVisible();
+  // Check for the current month heading, computed dynamically rather than a
+  // hardcoded year (a fixed year list goes stale the moment the calendar
+  // rolls past it - this is what broke the original version of this test).
+  const currentMonthName = format(new Date(), 'MMMM yyyy');
+  await expect(page.getByRole('heading', { name: currentMonthName })).toBeVisible();
 });
 
 test('should show archive page for valid month format', async ({ page }) => {
   await page.goto('/archive/2024-01');
   await waitForPlayerId(page);
   // Should show archive content
-  await expect(page.locator('h1.text-2xl.sm\\:text-3xl.md\\:text-4xl.font-bold.text-center.leading-tight')).toBeVisible();
+  await expect(page.locator('[data-testid="archive-title"]')).toBeVisible();
   await expect(page.getByRole('heading', { name: /january 2024/i })).toBeVisible();
 });
 
@@ -84,41 +88,38 @@ test('should handle valid date paths', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /read the.*lyrics/i })).toBeVisible();
 });
 
-// Routing error tests - should redirect to home with error popup
-test('should redirect invalid URLs to home with error popup', async ({ page }) => {
+// Invalid/malformed URLs and dates - the app deliberately does NOT redirect
+// or show an error popup for these. usePlayer's useGameState falls back to
+// fetching the rickroll game in place whenever the date string doesn't parse
+// as YYYY-MM-DD (or the real API 404s/400s on it), so the page stays put and
+// renders the rickroll game's content instead of a blank or error state.
+test('should gracefully fall back to the rickroll game for an invalid single-segment URL', async ({ page }) => {
   await page.goto('/invalid-url');
   await waitForPlayerId(page);
-  // Wait for redirect to complete
-  await page.waitForURL('/');
-  // Should show error popup
-  await expect(page.getByText('Page not found')).toBeVisible();
+  await expect(page).toHaveURL('/invalid-url');
+  await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
 });
 
-test('should redirect invalid multi-segment URLs to home with error popup', async ({ page }) => {
+test('should gracefully fall back to the rickroll game for an invalid multi-segment URL', async ({ page }) => {
   await page.goto('/invalid/url/with/multiple/segments');
   await waitForPlayerId(page);
-  // Wait for redirect to complete
-  await page.waitForURL('/');
-  // Should show error popup
-  await expect(page.getByText('Page not found')).toBeVisible();
+  await expect(page).toHaveURL('/invalid/url/with/multiple/segments');
+  await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
 });
 
-test('should redirect invalid date format to home with error popup', async ({ page }) => {
+test('should gracefully fall back to the rickroll game for an invalid date format', async ({ page }) => {
   await page.goto('/2024/13/01');
   await waitForPlayerId(page);
-  // Wait for redirect to complete with error parameters
-  await page.waitForURL(/\?error=invalid_date/);
-  // Should show error popup
-  await expect(page.getByText('Invalid date format. Please use YYYY-MM-DD')).toBeVisible();
+  await expect(page).toHaveURL('/2024/13/01');
+  await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
 });
 
-test('should redirect invalid archive month to home with error popup', async ({ page }) => {
+test('should show an inline message for an invalid archive month', async ({ page }) => {
   await page.goto('/archive/invalid-month-format');
   await waitForPlayerId(page);
-  // Wait for redirect to complete with error parameters
-  await page.waitForURL(/\?error=invalid_month/);
-  // Should show error popup
-  await expect(page.getByText('Invalid month format. Please use YYYY-MM')).toBeVisible();
+  // No redirect - stays on the same URL with an inline message
+  await expect(page).toHaveURL('/archive/invalid-month-format');
+  await expect(page.locator('[data-testid="invalid-month"]')).toBeVisible();
 });
 
 // Future date tests - should redirect to rickroll page
@@ -140,7 +141,7 @@ test('should show normal archive behavior for future archive dates', async ({ pa
   // Should stay on archive page (no redirect)
   await expect(page).toHaveURL(`/archive/${futureMonth}`);
   // Should show archive content normally
-  await expect(page.locator('h1.text-2xl.sm\\:text-3xl.md\\:text-4xl.font-bold.text-center.leading-tight')).toBeVisible();
+  await expect(page.locator('[data-testid="archive-title"]')).toBeVisible();
   // Should show the future month heading
   const futureDate = new Date();
   futureDate.setDate(futureDate.getDate() + 1);
@@ -148,10 +149,11 @@ test('should show normal archive behavior for future archive dates', async ({ pa
   await expect(page.getByRole('heading', { name: monthName })).toBeVisible();
 });
 
-test('should handle game not found gracefully', async ({ page }) => {
+test('should gracefully fall back to the rickroll game for a date with no game', async ({ page }) => {
   await page.goto(getPastDateWithNoGamePath());
   await waitForPlayerId(page);
-  // Should show game not found error
-  await expect(page.getByText('Game not found')).toBeVisible();
-  await expect(page.getByText('The requested game could not be found')).toBeVisible();
-}); 
+  // No "not found" message exists - the app falls back to the rickroll game
+  // in place, same as any other date it can't find a real game for.
+  await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
+  await expect(page.locator('[data-testid="masked-lyrics"]')).toBeVisible();
+});

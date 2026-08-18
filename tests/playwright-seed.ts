@@ -24,7 +24,7 @@ const TODAY = new Date().toISOString().split('T')[0];
 const YESTERDAY = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 const TWO_DAYS_AGO = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 const THREE_DAYS_AGO = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-const FUTURE_DATE = '2025-12-25';
+const FUTURE_DATE = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 const INVALID_DATE = '2024-13-45';
 
 // Test players
