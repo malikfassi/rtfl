@@ -1,36 +1,9 @@
 'use client';
 
-import type { CustomPlaylist } from '@/app/types';
-import React, { useState } from 'react';
+import React from 'react';
 
-import { AdminDashboard } from '@/app/front/components/admin/game/AdminDashboard';
-import { LoadingState } from '@/app/front/components/ui/LoadingState';
-import { useAdminGames, useAdminGameMutations } from '@/app/front/hooks/useAdmin';
+import { AdminScheduler } from '@/app/front/components/admin/scheduling/AdminScheduler';
 
 export default function AdminPage() {
-  const [selectedPlaylist, setSelectedPlaylist] = useState<CustomPlaylist | null>();
-  const { data: games, isLoading } = useAdminGames();
-  const { createGame, deleteGame } = useAdminGameMutations();
-
-  if (isLoading) {
-    return (
-      <div className="p-4">
-        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-        <LoadingState message="Loading games..." />
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-      <AdminDashboard 
-        games={games || []}
-        onCreateGame={createGame.mutate}
-        onDeleteGame={deleteGame.mutate}
-        selectedPlaylist={selectedPlaylist ?? undefined}
-        onPlaylistChange={setSelectedPlaylist}
-      />
-    </div>
-  );
-} 
+  return <AdminScheduler />;
+}

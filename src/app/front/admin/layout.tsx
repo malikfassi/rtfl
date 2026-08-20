@@ -1,13 +1,9 @@
+// The scheduler owns its own viewport lock and surfaces, the same way the game
+// and archive pages do - this layout no longer imposes a light-theme shell.
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {children}
-      </div>
-    </div>
-  );
-} 
+  return <>{children}</>;
+}
