@@ -50,3 +50,6 @@ prisma/*.db-journal
 prisma/test-dbs/
 test-results/
 playwright-report/
+
+# Local Claude Code settings
+.claude/settings.json
