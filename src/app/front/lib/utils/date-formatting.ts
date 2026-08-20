@@ -79,6 +79,18 @@ export function getDaysBetween(date1: string, date2: string): number {
 }
 
 /**
+ * Day counter shown in the header ("day 847"). No launch-date epoch exists
+ * in the data model today, so this approximates from a fixed reference date
+ * rather than claiming a real game-number — swap `RTFL_EPOCH` for the
+ * actual first-game date if/when one is tracked.
+ */
+const RTFL_EPOCH = '2024-01-01';
+export function getDayNumber(dateStr: string): number {
+  if (!isValidDate(dateStr)) return 0;
+  return getDaysBetween(RTFL_EPOCH, dateStr) + 1;
+}
+
+/**
  * Parse a month string (YYYY-MM) into a Date object
  * @param monthStr - Month string in YYYY-MM format
  * @returns Date object set to the first day of the month

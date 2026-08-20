@@ -1,43 +1,43 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { ScrambleTitle } from '../ScrambleTitle';
-import { GuessHistory, GuessInput, MaskedLyricsDisplay, WinPopup, GameTutorial, PathToVictory, ShareButton, LyricsLoadingComponent } from './index';
 import { YesterdayStats } from '../YesterdayStats';
-import { countTotalHits } from '@/app/front/lib/utils/hit-counting';
+import { GuessHistory, GuessInput, MaskedLyricsDisplay, MaskedTitleArtist, MaskedLyricsBody, PathToVictory, ShareButton, LyricsLoadingComponent } from './index';
+import { calculateGuessHits, countTotalHits } from '@/app/front/lib/utils/hit-counting';
+import { getWordColorDeterministic } from '@/app/front/lib/utils/color-management';
+import { calculateGameProgress } from '@/app/front/lib/utils/progress-calculations';
+import { getDayNumber, isValidDate } from '@/app/front/lib/utils/date-formatting';
 import { cn } from '@/app/front/lib/utils';
 import type { LyricsGameProps } from './types';
 
-export function LyricsGame({
-  gameState, 
-  onGuess, 
-  onShowFullLyrics, 
-  date,
-  playerId
-}: LyricsGameProps) {
-  // UI state
-  const [selectedGuess, setSelectedGuess] = useState<{ id: string; word: string } | null>(null);
+type SelectedGuess = { id: string; word: string } | null;
+
+export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
+  const [selectedGuess, setSelectedGuess] = useState<SelectedGuess>(null);
   const [highlightedWord, setHighlightedWord] = useState<string | null>(null);
   const [scrollToWord, setScrollToWord] = useState<string | null>(null);
+  // Bumped alongside scrollToWord so selecting the same word twice still
+  // scrolls - the word alone is an unchanged dependency the second time.
+  const [scrollTick, setScrollTick] = useState(0);
   const [pendingGuess, setPendingGuess] = useState<string | null>(null);
-  const [showWinPopup, setShowWinPopup] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [showFullLyrics, setShowFullLyrics] = useState(false);
+  // Owned here rather than inside PathToVictory: that component unmounts
+  // whenever a refetch briefly drops gameState, which would silently close
+  // the panel the player just opened.
+  const [victoryOpen, setVictoryOpen] = useState(false);
   const [showTopFog, setShowTopFog] = useState(false);
   const [showBottomFog, setShowBottomFog] = useState(false);
-  const [hasShownWinPopup, setHasShownWinPopup] = useState(false);
 
-  // Refs
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // The desktop and mobile layouts are both mounted at all times (one is
+  // hidden by a `lg:` class), so they need separate refs - sharing one meant
+  // the second element to mount silently overwrote the first, pointing the
+  // fog listener and scroll-to-word at the hidden pane.
+  const desktopScrollRef = useRef<HTMLDivElement>(null);
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
 
-  // Handle scroll for fog effect. Recomputed on every scroll AND whenever
-  // the container's content actually changes (lyrics finish loading, full
-  // lyrics get toggled on, a guess reveals more words...) via
-  // MutationObserver - a scroll-only, mount-only check leaves the fog stuck
-  // at whatever it was when the loading placeholder was still showing,
-  // before the real (much taller) lyrics replace it.
   useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
+    const scrollContainer = desktopScrollRef.current;
     if (!scrollContainer) return;
 
     const handleScroll = () => {
@@ -57,78 +57,30 @@ export function LyricsGame({
     };
   }, []);
 
-  // Tutorial modal localStorage logic
+  // Esc releases the locked highlight, from anywhere on the page.
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const dontShow = localStorage.getItem('lyricsGameDontShowTutorial');
-      if (!dontShow) setShowTutorial(true);
-    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedGuess(null);
+        setHighlightedWord(null);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
-  const handleDontShowTutorial = () => {
-    localStorage.setItem('lyricsGameDontShowTutorial', '1');
-    setShowTutorial(false);
-  };
 
-  // Win condition detection
-  useEffect(() => {
-    if (gameState && gameState.song && !showWinPopup) {
-      setShowWinPopup(true);
-    }
-  }, [gameState]);
+  const handleWordHover = (word: string | null) => setHighlightedWord(word);
 
-  // Handle word hover from GuessHistory
-  const handleWordHover = (word: string | null) => {
-    setHighlightedWord(word);
-  };
-
-  // Handle guess selection from GuessHistory
-  const handleGuessSelect = (guess: { id: string; word: string } | null) => {
+  const handleGuessSelect = (guess: SelectedGuess) => {
     setSelectedGuess(guess);
-    if (guess) {
-      setScrollToWord(guess.word);
-      setHighlightedWord(guess.word);
-    } else {
-      setScrollToWord(null);
-      setHighlightedWord(null);
-    }
+    setScrollToWord(guess?.word ?? null);
+    if (guess) setScrollTick(t => t + 1);
+    if (!guess) setHighlightedWord(null);
   };
 
-  // Handle successful guess - select the last valid guess
-  const handleSuccessfulGuess = (word: string) => {
-    if (!gameState) return;
-    
-    // Find the last valid guess and select it
-    const lastValidGuess = gameState.guesses
-      .filter(g => g.valid)
-      .pop();
-    
-    if (lastValidGuess) {
-      setSelectedGuess({ id: lastValidGuess.id, word: lastValidGuess.word });
-      setScrollToWord(lastValidGuess.word);
-      setHighlightedWord(lastValidGuess.word);
-    }
-  };
-
-  // Auto-select the most recent valid guess when guesses change
-  // useEffect(() => {
-  //   if (gameState?.guesses && gameState.guesses.length > 0) {
-  //     const mostRecentValidGuess = gameState.guesses
-  //       .filter(g => g.valid)
-  //       .pop();
-  //     
-  //     if (mostRecentValidGuess) {
-  //       setSelectedGuess({ id: mostRecentValidGuess.id, word: mostRecentValidGuess.word });
-  //       setScrollToWord(mostRecentValidGuess.word);
-  //       setHighlightedWord(mostRecentValidGuess.word);
-  //     }
-  //   }
-  // }, [gameState?.guesses]);
-
-  // Handle guess submission. onGuess resolves with the freshly-fetched
-  // GameState from the mutation response - using that directly (rather than
-  // the parent's gameState, which hasn't re-rendered with this guess yet)
-  // avoids the classic stale-props bug where the hit count and selection
-  // shown after submitting reflect the previous guess, not this one.
+  // onGuess resolves with the freshly-fetched GameState from the mutation
+  // response - using that directly (rather than the parent's gameState,
+  // which hasn't re-rendered with this guess yet) avoids a stale-props read.
   const handleGuessSubmit = async (guess: string): Promise<number> => {
     setPendingGuess(guess);
     try {
@@ -141,6 +93,7 @@ export function LyricsGame({
       if (submittedGuess) {
         setSelectedGuess({ id: submittedGuess.id, word: submittedGuess.word });
         setScrollToWord(submittedGuess.word);
+        setScrollTick(t => t + 1);
         setHighlightedWord(submittedGuess.word);
       }
 
@@ -155,34 +108,23 @@ export function LyricsGame({
     }
   };
 
-  // Handle duplicate guess - find and select the existing guess
   const handleDuplicateGuess = (guess: string) => {
     if (!gameState) return;
     const existingGuess = gameState.guesses.find(g => g.word.toLowerCase() === guess.toLowerCase());
     if (existingGuess) {
       setSelectedGuess({ id: existingGuess.id, word: existingGuess.word });
       setScrollToWord(existingGuess.word);
+      setScrollTick(t => t + 1);
       setHighlightedWord(existingGuess.word);
     }
   };
 
-  // Check if game is complete (has song data)
-  const isGameComplete = !!gameState?.song;
   const isLoading = !gameState;
+  const revealed = !!gameState?.song; // gameState.song presence IS the win state
+  const hasGuessed = (gameState?.guesses.length ?? 0) > 0;
+  const activeWord = selectedGuess?.word ?? highlightedWord;
+  const dayNumber = getDayNumber(date);
 
-  // Placeholder/fake data for loading state
-  const loadingGuesses = Array.from({ length: 5 }, () => ({ id: `loading-${Math.random()}`, word: '...', valid: true }));
-  const loadingMasked = Array.from({ length: 10 }, () => ({ value: '_', isToGuess: false }));
-
-  // Show win popup logic
-  useEffect(() => {
-    if (isGameComplete && !hasShownWinPopup) {
-      setShowWinPopup(true);
-      setHasShownWinPopup(true);
-    }
-  }, [isGameComplete, hasShownWinPopup]);
-
-  // Countdown timer for next game
   const [nextGameTimer, setNextGameTimer] = useState('00:00:00');
   useEffect(() => {
     const updateTimer = () => {
@@ -190,231 +132,357 @@ export function LyricsGame({
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(0, 0, 0, 0);
-      
       const diff = tomorrow.getTime() - now.getTime();
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
       setNextGameTimer(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
     };
-    
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Get player ID from gameState or use provided playerId
-  const displayPlayerId = playerId || 'anonymous';
+  const validGuesses = gameState?.guesses.filter(g => g.valid) ?? [];
+  const foundWordsAll = Array.from(new Set(validGuesses.map(g => g.word.toLowerCase())));
 
-  // Real PathToVictory progress computation
-  const pathToVictoryProps = gameState ? (() => {
-    // Count total words in each section
-    const titleWords = gameState.masked.title.filter(token => token.isToGuess).length;
-    const artistWords = gameState.masked.artist.filter(token => token.isToGuess).length;
-    const lyricsWords = gameState.masked.lyrics.filter(token => token.isToGuess).length;
-    
-    // Count found words in each section
-    const validGuesses = gameState.guesses.filter(g => g.valid).map(g => g.word.toLowerCase());
-    
-    const titleFound = gameState.masked.title
-      .filter(token => token.isToGuess)
-      .filter(token => validGuesses.includes(token.value.toLowerCase())).length;
-    
-    const artistFound = gameState.masked.artist
-      .filter(token => token.isToGuess)
-      .filter(token => validGuesses.includes(token.value.toLowerCase())).length;
-    
-    const lyricsFound = gameState.masked.lyrics
-      .filter(token => token.isToGuess)
-      .filter(token => validGuesses.includes(token.value.toLowerCase())).length;
-    
-    // Calculate total words and found words
-    const totalWords = titleWords + artistWords + lyricsWords;
-    const foundWords = titleFound + artistFound + lyricsFound;
-    
-    return {
-      lyricsProgress: { found: lyricsFound, total: lyricsWords },
-      titleProgress: { found: titleFound, total: titleWords },
-      artistProgress: { found: artistFound, total: artistWords },
-      totalWords,
-      foundWords,
-      isGameComplete
-    };
-  })() : {
-    lyricsProgress: { found: 0, total: 0 },
-    titleProgress: { found: 0, total: 0 },
-    artistProgress: { found: 0, total: 0 },
-    totalWords: 0,
-    foundWords: 0,
-    isGameComplete: false
-  };
+  const progress = gameState ? calculateGameProgress({
+    foundWords: foundWordsAll,
+    maskedLyricsParts: gameState.masked.lyrics,
+    maskedTitleParts: gameState.masked.title,
+    maskedArtistParts: gameState.masked.artist,
+  }) : null;
 
-  // Placeholder for ShareButton stats (TODO: real logic)
-  const shareButtonStats = gameState ? {
-    gameStats: {
-      totalGuesses: gameState.guesses.length,
-      correctGuesses: gameState.guesses.filter(g => g.valid).length,
-      accuracy: gameState.guesses.length ? Math.round(100 * gameState.guesses.filter(g => g.valid).length / gameState.guesses.length) : 0,
-      wordsFound: gameState.guesses.filter(g => g.valid).length
-    },
-    songInfo: {
-      title: gameState.song?.title,
-      artist: gameState.song?.artist
-    },
-    date
-  } : {
-    gameStats: { totalGuesses: 0, correctGuesses: 0, accuracy: 0, wordsFound: 0 },
-    songInfo: { title: '', artist: '' },
-    date
-  };
+  const lyricsSegments = gameState ? calculateGuessHits({
+    guesses: validGuesses,
+    maskedLyricsParts: gameState.masked.lyrics,
+  }).filter(g => g.hits > 0).map(g => ({ id: g.id, word: g.word, hits: g.hits })) : [];
 
-  return (
-    <div data-testid="game-container" className="min-h-screen bg-background text-foreground">
-      {/* Game Header with playerId and next game timer */}
-      <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex flex-col h-auto max-w-screen-2xl py-2">
-          <ScrambleTitle date={date} />
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-muted-foreground">Player: {displayPlayerId}</span>
-            <span className="text-xs text-muted-foreground">Next game in: {nextGameTimer}</span>
+  const creditsSegments = gameState ? calculateGuessHits({
+    guesses: validGuesses,
+    maskedTitleParts: gameState.masked.title,
+    maskedArtistParts: gameState.masked.artist,
+  }).filter(g => g.hits > 0).map(g => ({ id: g.id, word: g.word, hits: g.hits })) : [];
+
+  // Every guess with its hit count, misses included - the mobile chip row
+  // needs the zero-hit ones too, so this can't be filtered like the bars.
+  const allGuessHits = gameState ? calculateGuessHits({
+    guesses: gameState.guesses,
+    maskedLyricsParts: gameState.masked.lyrics,
+    maskedTitleParts: gameState.masked.title,
+    maskedArtistParts: gameState.masked.artist,
+  }) : [];
+
+  const overallSegments = allGuessHits
+    .filter(g => g.valid && g.hits > 0)
+    .map(g => ({ id: g.id, word: g.word, hits: g.hits }));
+
+  const lyricsPct = progress?.lyrics.percent ?? 0;
+  const lyricsWin = !!progress && progress.lyrics.progress.total > 0 && progress.lyrics.progress.found / progress.lyrics.progress.total >= 0.8;
+  const titleWin = !!progress && progress.title.progress.total > 0 && progress.title.progress.found === progress.title.progress.total;
+  const artistWin = !!progress && progress.artist.progress.total > 0 && progress.artist.progress.found === progress.artist.progress.total;
+  const creditsWin = titleWin && artistWin;
+  const winStamp = revealed ? (lyricsWin && creditsWin ? 'won on both' : lyricsWin ? 'won on the lyrics' : 'won on the credits') : null;
+
+  const wordsFound = overallSegments.length;
+  const guessesUsed = validGuesses.length;
+  const bestWordHits = overallSegments.reduce((max, s) => Math.max(max, s.hits), 0);
+
+  const rail = (
+    <>
+      <div className="px-5 py-[18px] border-b border-rtfl-line-soft">
+        {isLoading ? (
+          <div className="flex flex-col gap-3">
+            <span className="block w-24 h-[22px] rounded-[5px] bg-rtfl-raised animate-rtfl-breathe" />
+            <span className="block w-full h-2 rounded-full bg-rtfl-raised animate-rtfl-breathe" />
           </div>
-        </div>
+        ) : (
+          <PathToVictory
+            lyricsProgress={progress!.lyrics.progress}
+            titleProgress={progress!.title.progress}
+            artistProgress={progress!.artist.progress}
+            lyricsSegments={lyricsSegments}
+            creditsSegments={creditsSegments}
+            highlightedWord={activeWord}
+            onHoverWord={handleWordHover}
+            onSelectWord={handleGuessSelect}
+            victoryOpen={victoryOpen}
+            onToggleVictory={() => setVictoryOpen(v => !v)}
+          />
+        )}
       </div>
 
-      {/* Main Content */}
-      <div className="container max-w-screen-2xl">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_160px] gap-6 py-6">
-          {/* Left Column - Game Controls */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-6 space-y-6">
-              {/* Path To Victory */}
-              <PathToVictory 
-                {...pathToVictoryProps} 
-                guesses={isLoading ? loadingGuesses : gameState.guesses}
-                highlightedWord={highlightedWord}
-                maskedLyricsParts={isLoading ? loadingMasked : gameState.masked.lyrics}
-                maskedTitleParts={isLoading ? loadingMasked : gameState.masked.title}
-                maskedArtistParts={isLoading ? loadingMasked : gameState.masked.artist}
-                showFullLyrics={showFullLyrics}
-                onToggleFullLyrics={setShowFullLyrics}
-              />
-              {/* Guess Input */}
-              <GuessInput
-                onGuessSubmit={handleGuessSubmit}
-                pendingGuess={pendingGuess}
-                disabled={isGameComplete || isLoading}
-                onDuplicateGuess={handleDuplicateGuess}
-              />
-              {/* Guess History */}
-              <GuessHistory
-                guesses={isLoading ? loadingGuesses : gameState.guesses}
-                maskedLyrics={isLoading ? '...' : gameState.masked.lyrics.map(t => t.value).join(' ')}
-                maskedTitle={isLoading ? '...' : gameState.masked.title.map(t => t.value).join(' ')}
-                maskedArtist={isLoading ? '...' : gameState.masked.artist.map(t => t.value).join(' ')}
-                maskedTitleParts={isLoading ? loadingMasked : gameState.masked.title}
-                maskedArtistParts={isLoading ? loadingMasked : gameState.masked.artist}
-                maskedLyricsParts={isLoading ? loadingMasked : gameState.masked.lyrics}
-                onWordHover={handleWordHover}
-                selectedGuess={selectedGuess}
-                onGuessSelect={handleGuessSelect}
-              />
-              {/* Yesterday Stats (placeholder for now) */}
-              {isGameComplete && (
-                <YesterdayStats currentDate={date} />
-              )}
+      <div className="px-5 py-[18px] border-b border-rtfl-line-soft flex flex-col gap-2">
+        {!hasGuessed && (
+          <p className="m-0 font-sans text-[12px] leading-[1.5] text-rtfl-ink-2">
+            Guess any word. Every match reveals it everywhere in the song.
+          </p>
+        )}
+        <GuessInput
+          onGuessSubmit={handleGuessSubmit}
+          pendingGuess={pendingGuess}
+          disabled={revealed || isLoading}
+          placeholder={revealed ? 'solved for today' : 'Type your guess...'}
+          onDuplicateGuess={handleDuplicateGuess}
+        />
+      </div>
+
+      <div className="px-5 py-[18px] flex-1 min-h-0 flex flex-col gap-3">
+        {isLoading ? (
+          <div className="flex flex-wrap gap-[6px]">
+            {[62, 48, 74, 55].map((w, i) => (
+              <span key={i} style={{ width: w }} className="h-[26px] rounded-[7px] bg-rtfl-raised animate-rtfl-breathe" />
+            ))}
+          </div>
+        ) : (
+          <GuessHistory
+            guesses={gameState.guesses}
+            maskedTitleParts={gameState.masked.title}
+            maskedArtistParts={gameState.masked.artist}
+            maskedLyricsParts={gameState.masked.lyrics}
+            onWordHover={handleWordHover}
+            selectedGuess={selectedGuess}
+            onGuessSelect={handleGuessSelect}
+          />
+        )}
+      </div>
+
+      {revealed && gameState?.song && (
+        <div className="px-5 py-[18px] border-t border-rtfl-line-soft flex flex-col gap-3 animate-rtfl-rise">
+          <span className="font-sans text-[11px] tracking-[0.14em] uppercase text-rtfl-ink-2">now playing</span>
+          <div className="flex items-center gap-3 p-3 border border-rtfl-line rounded-[10px] bg-rtfl-bg">
+            <span className="w-[42px] h-[42px] rounded-[6px] bg-rtfl-raised flex items-center justify-center text-rtfl-ink-2 text-[15px]">▶</span>
+            <span className="flex flex-col gap-[3px] min-w-0">
+              <span className="font-sans text-[13px] text-rtfl-ink truncate">{gameState.song.title}</span>
+              <span className="font-sans text-[11px] text-rtfl-ink-2 truncate">{gameState.song.artist}</span>
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Guarded on a real date: the rickroll route passes the literal
+          "rickroll", which would derive a NaN "yesterday" and fire a doomed
+          stats request. */}
+      {revealed && isValidDate(date) && (
+        <div className="px-5 pb-[18px] animate-rtfl-rise">
+          <YesterdayStats currentDate={date} />
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <div className="h-screen overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex flex-col items-center max-sm:items-stretch">
+      <div className="w-full max-w-[1320px] border border-rtfl-line rounded-[14px] max-sm:rounded-none max-sm:border-none flex flex-col overflow-hidden m-6 max-sm:m-0 flex-1 min-h-0">
+        <header className="flex items-end justify-between gap-6 px-6 py-[18px] max-sm:px-5 max-sm:py-[12px] max-sm:pb-3 border-b border-rtfl-line-soft bg-rtfl-surface">
+          <div className="flex flex-col gap-[6px] max-sm:gap-[3px]">
+            <ScrambleTitle />
+            <div className="flex items-center gap-[14px] max-sm:hidden">
+              <Link href="/archive" className="font-sans text-[12px] text-rtfl-ink-2 hover:text-rtfl-ink flex items-center gap-[6px]">
+                <span className="text-rtfl-ink-3">◀</span>{date}
+              </Link>
+              <span className="font-sans text-[12px] text-rtfl-ink-3">day {dayNumber}</span>
             </div>
+            <Link href="/archive" className="hidden max-sm:block font-sans text-[11px] text-rtfl-ink-3">
+              {date} · day {dayNumber}
+            </Link>
+          </div>
+          <div className="flex flex-col items-end gap-1 max-sm:flex-row max-sm:items-baseline max-sm:gap-2">
+            <span className="max-sm:hidden font-sans text-[10px] tracking-[0.16em] uppercase text-rtfl-ink-3">next song</span>
+            <span className="font-mono text-[17px] max-sm:text-[12px] font-medium text-rtfl-accent tabular-nums">{nextGameTimer}</span>
+          </div>
+        </header>
+
+        {/* Desktop: two-column body */}
+        <div className="hidden lg:grid grid-cols-[328px_1fr] flex-1 min-h-0">
+          <div className="border-r border-rtfl-line-soft bg-rtfl-surface flex flex-col overflow-y-auto min-h-0">
+            {rail}
           </div>
 
-          {/* Center Column - Lyrics Display */}
-          <div className="lg:col-span-1">
-            <div 
-              ref={scrollContainerRef}
-              className="h-[calc(100vh-8rem)] overflow-y-auto pr-0 no-scrollbar relative scrollbar-hide"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none'
-              }}
-            >
-              {/* Fog fadeout effect - only show when scrolling */}
-              <div className={cn(
-                "absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none transition-opacity duration-300",
-                showTopFog ? "opacity-100" : "opacity-0"
-              )} />
-              <div className={cn(
-                "absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none transition-opacity duration-300",
-                showBottomFog ? "opacity-100" : "opacity-0"
-              )} />
-              
-              {/* Reveal lyrics button - only show when victory is achieved */}
-              {isGameComplete && (
-                <div className="absolute top-4 right-4 z-20">
-                  <label className="flex items-center cursor-pointer select-none bg-background/80 backdrop-blur rounded-lg px-3 py-2 border border-border/50">
-                    <span className="mr-2 text-xs text-primary-muted/80">Reveal lyrics</span>
-                    <span className="relative inline-block w-8 align-middle select-none transition duration-200 ease-in">
-                      <input
-                        type="checkbox"
-                        checked={showFullLyrics}
-                        onChange={e => setShowFullLyrics(e.target.checked)}
-                        className="absolute block w-5 h-5 rounded-full bg-accent-warning border-2 border-accent-warning appearance-none cursor-pointer transition-all duration-200 checked:bg-accent-success checked:border-accent-success"
-                        style={{ left: showFullLyrics ? '1.2rem' : '0', top: 0, transition: 'left 0.2s' }}
-                      />
-                      <span className="block overflow-hidden h-5 rounded-full bg-accent-warning/15 border border-accent-warning/60 w-8"></span>
-                    </span>
-                  </label>
-                </div>
-              )}
-              
+          <div className="flex flex-col min-w-0 min-h-0">
+            <div className="px-[56px] pt-10 pb-[26px] border-b border-rtfl-line-soft">
               {isLoading ? (
-                <LyricsLoadingComponent />
+                <div className="flex gap-[0.42em]">
+                  <span className="block w-[7ch] h-[30px] rounded-[5px] bg-rtfl-raised animate-rtfl-breathe" />
+                  <span className="block w-[4ch] h-[30px] rounded-[5px] bg-rtfl-raised animate-rtfl-breathe" />
+                </div>
               ) : (
-                <MaskedLyricsDisplay
-                  title={showFullLyrics ? gameState.song?.title : undefined}
-                  artist={showFullLyrics ? gameState.song?.artist : undefined}
-                  lyrics={showFullLyrics ? gameState.song?.lyrics : undefined}
+                <MaskedTitleArtist
                   maskedTitleParts={gameState.masked.title}
                   maskedArtistParts={gameState.masked.artist}
-                  maskedLyricsParts={gameState.masked.lyrics}
-                  highlightedWord={highlightedWord}
-                  scrollToWord={scrollToWord}
-                  showFullLyrics={showFullLyrics}
-                  scrollContainerRef={scrollContainerRef}
+                  highlightedWord={activeWord}
                   guesses={gameState.guesses}
-                  clickedGuess={selectedGuess}
+                  revealed={revealed}
                 />
               )}
             </div>
+            <div ref={desktopScrollRef} className="relative flex-1 overflow-y-auto px-[56px] pt-[34px] pb-[44px]">
+              <div className={cn("absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-rtfl-bg to-transparent pointer-events-none transition-opacity duration-300", showTopFog ? "opacity-100" : "opacity-0")} />
+              <div className={cn("absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-rtfl-bg to-transparent pointer-events-none transition-opacity duration-300", showBottomFog ? "opacity-100" : "opacity-0")} />
+              {isLoading ? (
+                <LyricsLoadingComponent />
+              ) : (
+                <MaskedLyricsBody
+                  maskedLyricsParts={gameState.masked.lyrics}
+                  highlightedWord={activeWord}
+                  scrollToWord={scrollToWord}
+                  scrollTick={scrollTick}
+                  scrollContainerRef={desktopScrollRef}
+                  guesses={gameState.guesses}
+                  revealed={revealed}
+                />
+              )}
+            </div>
+
+            {revealed && winStamp && (
+              <div className="border-t border-rtfl-line-soft bg-rtfl-surface px-[56px] py-[22px] flex items-end justify-between gap-8 flex-wrap animate-rtfl-rise">
+                <div className="flex flex-col gap-2">
+                  <span className="font-sans text-[12px] text-rtfl-hit">✓ {winStamp}</span>
+                  <div className="flex gap-10">
+                    <span className="flex flex-col gap-[5px]">
+                      <span className="font-mono font-bold text-[26px] tabular-nums text-rtfl-hit">{wordsFound}</span>
+                      <span className="font-sans text-[11px] uppercase tracking-[0.12em] text-rtfl-ink-2">you found</span>
+                    </span>
+                    <span className="flex flex-col gap-[5px]">
+                      <span className="font-mono font-bold text-[26px] tabular-nums">{guessesUsed}</span>
+                      <span className="font-sans text-[11px] uppercase tracking-[0.12em] text-rtfl-ink-2">guesses used</span>
+                    </span>
+                  </div>
+                  <span className="font-sans text-[11px] text-rtfl-ink-3">dimmed words came with the win</span>
+                </div>
+                <ShareButton
+                  wordsFound={wordsFound}
+                  guessesUsed={guessesUsed}
+                  bestWordHits={bestWordHits}
+                  overallPercent={lyricsPct}
+                  segments={lyricsSegments}
+                  total={progress?.lyrics.progress.total ?? 0}
+                  date={date}
+                  dayNumber={dayNumber}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile: stacked, pinned bottom bar */}
+        <div className="flex lg:hidden flex-col flex-1 min-h-0">
+          <div className="px-5 py-3 border-b border-rtfl-line-soft flex flex-col gap-2">
+            {!isLoading && (
+              <PathToVictory
+                lyricsProgress={progress!.lyrics.progress}
+                titleProgress={progress!.title.progress}
+                artistProgress={progress!.artist.progress}
+                lyricsSegments={lyricsSegments}
+                creditsSegments={creditsSegments}
+                highlightedWord={activeWord}
+                onHoverWord={handleWordHover}
+                onSelectWord={handleGuessSelect}
+                victoryOpen={victoryOpen}
+                onToggleVictory={() => setVictoryOpen(v => !v)}
+              />
+            )}
           </div>
 
-          {/* Right Column - Share, Stats, Spotify */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-6 space-y-6">
-              {/* Share Button */}
-              <ShareButton {...shareButtonStats} />
-              {/* TODO: Add SpotifyPlayer here when implemented */}
+          <div ref={mobileScrollRef} className="relative flex-1 overflow-y-auto px-5 pt-[22px] pb-[26px] flex flex-col gap-5">
+            {isLoading ? (
+              <LyricsLoadingComponent />
+            ) : (
+              <MaskedLyricsDisplay
+                maskedTitleParts={gameState.masked.title}
+                maskedArtistParts={gameState.masked.artist}
+                maskedLyricsParts={gameState.masked.lyrics}
+                highlightedWord={activeWord}
+                scrollToWord={scrollToWord}
+                scrollTick={scrollTick}
+                scrollContainerRef={mobileScrollRef}
+                guesses={gameState.guesses}
+                revealed={revealed}
+              />
+            )}
+          </div>
+
+          {revealed && winStamp && (
+            <div className="border-t border-rtfl-line-soft bg-rtfl-surface px-5 py-4 flex flex-col gap-[14px] animate-rtfl-rise">
+              <span className="font-sans text-[12px] text-rtfl-hit">✓ {winStamp}</span>
+              <div className="flex justify-between gap-3">
+                <span className="flex flex-col gap-1">
+                  <span className="font-mono font-bold text-[20px] tabular-nums text-rtfl-hit">{wordsFound}</span>
+                  <span className="font-sans text-[9.5px] uppercase tracking-[0.12em] text-rtfl-ink-2">found</span>
+                </span>
+                <span className="flex flex-col gap-1">
+                  <span className="font-mono font-bold text-[20px] tabular-nums">{guessesUsed}</span>
+                  <span className="font-sans text-[9.5px] uppercase tracking-[0.12em] text-rtfl-ink-2">guesses</span>
+                </span>
+              </div>
+              {gameState?.song && (
+                <div className="flex items-center gap-[11px] p-3 border border-rtfl-line rounded-[10px] bg-rtfl-bg">
+                  <span className="w-[38px] h-[38px] rounded-[6px] bg-rtfl-raised flex items-center justify-center text-rtfl-ink-2 text-[14px] shrink-0">▶</span>
+                  <span className="flex flex-col gap-[3px] min-w-0 flex-1">
+                    <span className="font-sans text-[13px] text-rtfl-ink truncate">{gameState.song.title}</span>
+                    <span className="font-sans text-[11px] text-rtfl-ink-2 truncate">{gameState.song.artist}</span>
+                  </span>
+                </div>
+              )}
+              <ShareButton
+                wordsFound={wordsFound}
+                guessesUsed={guessesUsed}
+                bestWordHits={bestWordHits}
+                overallPercent={lyricsPct}
+                segments={lyricsSegments}
+                total={progress?.lyrics.progress.total ?? 0}
+                date={date}
+                dayNumber={dayNumber}
+              />
             </div>
+          )}
+
+          <div className="border-t border-rtfl-line-soft bg-rtfl-surface px-4 pt-3 pb-[22px] flex flex-col gap-[10px]">
+            <div className="flex gap-[6px] overflow-x-auto min-h-[28px] items-center">
+              {!hasGuessed && (
+                <span className="font-sans text-[11.5px] text-rtfl-ink-3 whitespace-nowrap">
+                  Guess any word — matches light up everywhere.
+                </span>
+              )}
+              {[...allGuessHits].reverse().slice(0, 6).map(g => {
+                const color = getWordColorDeterministic(g.word);
+                const isSelected = selectedGuess?.id === g.id;
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => g.valid && handleGuessSelect(isSelected ? null : { id: g.id, word: g.word })}
+                    className="inline-flex items-baseline gap-[5px] px-[10px] py-[5px] rounded-[7px] font-mono text-[12.5px] whitespace-nowrap"
+                    style={{
+                      background: !g.valid
+                        ? 'rgba(255,255,255,.028)'
+                        : isSelected
+                          ? `${color}2e`
+                          : 'rgba(255,255,255,.045)',
+                      color: g.valid ? color : '#7a818d',
+                      textDecoration: g.valid ? 'none' : 'line-through',
+                      boxShadow: g.valid && isSelected ? `inset 0 0 0 1px ${color}80` : 'none',
+                    }}
+                  >
+                    <span>{g.word}</span>
+                    {g.valid && g.hits > 0 && (
+                      <span style={{ opacity: 0.72 }} className="text-[10.5px]">×{g.hits}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <GuessInput
+              onGuessSubmit={handleGuessSubmit}
+              pendingGuess={pendingGuess}
+              disabled={revealed || isLoading}
+              placeholder={revealed ? 'solved for today' : 'Type your guess...'}
+              inlineFeedback
+              onDuplicateGuess={handleDuplicateGuess}
+            />
           </div>
         </div>
       </div>
-
-      {/* Win Condition Popup */}
-      <WinPopup
-        isOpen={showWinPopup}
-        onClose={() => setShowWinPopup(false)}
-        gameStats={shareButtonStats.gameStats}
-        onShare={() => {/* Share functionality handled by ShareButton component */}}
-        onShowFullLyrics={onShowFullLyrics}
-        showFullLyrics={showFullLyrics}
-      />
-      {/* Game Tutorial Popup */}
-      <GameTutorial
-        isOpen={showTutorial}
-        onClose={() => setShowTutorial(false)}
-        onDontShowAgain={handleDontShowTutorial}
-      />
-      {/* Show Full Lyrics Button (floating) */}
-      {/* Remove the floating purple 'show full lyrics' button at the bottom right.
-          Only pass showFullLyrics to MaskedLyricsDisplay, and do not reveal lyrics on win by default. */}
     </div>
   );
 }

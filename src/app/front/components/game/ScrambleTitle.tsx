@@ -1,21 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { cn } from "@/app/front/lib/utils";
-import Link from "next/link";
-interface ScrambleTitleProps {
-  date: string;
-}
+import { identityColors } from "@/app/front/lib/utils/color-management";
 
 const specialChars = "!@#$%^&*()_+FUCKING";
 const baseWord = "FUCKING";
-const colors = [
-  "text-accent-error",      // Vibrant pink
-  "text-accent-warning",    // Bright yellow
-  "text-accent-success",    // Mint green
-  "text-primary-light",     // Light purple
-  "text-primary-dark",      // Dark purple
-];
 
 // === ScrambleTitle Animation Constants ===
 // Duration of the entire scramble animation phase (ms)
@@ -35,7 +24,7 @@ const WOBBLE_ROTATE_RANGE = 6; // deg, rotation range
 
 // Helper to get a random color
 function getRandomColor() {
-  return colors[Math.floor(Math.random() * colors.length)];
+  return identityColors[Math.floor(Math.random() * identityColors.length)];
 }
 // Helper to get a random wobble transform
 function getRandomWobble() {
@@ -56,7 +45,14 @@ interface Letter {
   color: string;
 }
 
-export function ScrambleTitle({ date }: ScrambleTitleProps) {
+export function ScrambleTitle() {
+  // Randomized wobble/colour would otherwise diverge between the server
+  // render and the client's first render (Math.random() isn't
+  // deterministic across them). Render the plain word until mounted, then
+  // start the loop — avoids a hydration mismatch for one imperceptible tick.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const [phase, setPhase] = useState<Phase>('scrambling');
   const [restingLetters, setRestingLetters] = useState<Letter[]>([]);
   const [hoverColors, setHoverColors] = useState<string[]>(baseWord.split('').map(getRandomColor));
@@ -136,7 +132,9 @@ export function ScrambleTitle({ date }: ScrambleTitleProps) {
 
   // Render letters based on phase
   let displayLetters: Letter[];
-  if (phase === 'scrambling') {
+  if (!mounted) {
+    displayLetters = baseWord.split('').map(char => ({ char, transform: 'none', isScrambling: false, color: 'inherit' }));
+  } else if (phase === 'scrambling') {
     displayLetters = letters.map(l => ({
       ...l,
       transform: getRandomWobble(),
@@ -157,10 +155,10 @@ export function ScrambleTitle({ date }: ScrambleTitleProps) {
   }
 
   return (
-    <h1 className="text-2xl font-bold uppercase tracking-wider">
-      READ THE{' '}
+    <h1 className="m-0 font-mono font-bold uppercase tracking-[0.1em] text-[19px] max-sm:text-[13px] text-rtfl-ink flex items-baseline gap-[0.5ch]">
+      <span>READ THE</span>
       <span
-        className="inline-flex overflow-hidden group font-mono cursor-pointer"
+        className="inline-flex overflow-hidden cursor-default"
         style={{ width: '7ch' }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -168,15 +166,12 @@ export function ScrambleTitle({ date }: ScrambleTitleProps) {
         {displayLetters.map((letter, index) => (
           <span
             key={index}
-            className={cn(
-              "inline-block transition-all duration-100 relative text-center",
-              letter.color
-            )}
+            className="inline-block relative text-center"
             style={{
               transform: letter.transform,
               width: '1ch',
               minWidth: '1ch',
-              cursor: phase === 'hover' ? 'pointer' : undefined,
+              color: letter.color,
               transition: 'transform 0.15s cubic-bezier(0.4,0.2,0.2,1), color 0.15s, opacity 0.15s, font-size 0.15s',
               opacity: letter.isScrambling ? 0.7 : 1,
               fontSize: '1em',
@@ -187,15 +182,7 @@ export function ScrambleTitle({ date }: ScrambleTitleProps) {
           </span>
         ))}
       </span>
-      {' '}LYRICS{' '}
-      <Link href="/archive" className="group inline-flex items-baseline">
-        <span data-testid="date-display" className="text-xs font-normal text-foreground/70 group-hover:hidden transition-all duration-300">
-          {date}
-        </span>
-        <span className="hidden group-hover:inline text-xs font-normal text-accent-success whitespace-nowrap transition-all duration-300">
-          Go to archive →
-        </span>
-      </Link>
+      <span>LYRICS</span>
     </h1>
   );
-} 
+}

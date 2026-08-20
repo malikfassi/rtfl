@@ -36,7 +36,6 @@ export default function RickrollPage() {
         date="rickroll"
         gameState={gameState}
         onGuess={(guess: string) => guessMutation.mutateAsync(guess)}
-        onShowFullLyrics={() => {}}
         playerId={playerId}
       />
     </div>

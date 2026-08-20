@@ -5,62 +5,34 @@ interface LyricsLoadingComponentProps {
   className?: string;
 }
 
-// Varying widths read as more "text-like" than uniform bars.
-const LINE_WIDTHS = ['92%', '78%', '85%', '65%', '90%', '72%', '80%', '60%'];
+const LINES: Array<Array<number>> = [
+  [3, 5, 4, 7],
+  [2, 6, 4, 3, 5],
+  [4, 8, 3],
+  [6, 3, 5],
+];
 
-function ShimmerBar({ width }: { width: string }) {
+function Block({ ch, delayMs }: { ch: number; delayMs: number }) {
   return (
-    <div
-      className="h-4 rounded-md bg-muted relative overflow-hidden"
-      style={{ width }}
-    >
-      <div className="shimmer-sweep" />
-    </div>
+    <span
+      className="block rounded-[4px] bg-rtfl-raised animate-rtfl-breathe"
+      style={{ width: `${ch}ch`, height: '17px', animationDelay: `${delayMs}ms` }}
+    />
   );
 }
 
 export function LyricsLoadingComponent({ className = '' }: LyricsLoadingComponentProps) {
+  let delay = 0;
   return (
-    <div className={cn('space-y-6', className)}>
-      {/* Title and artist placeholders */}
-      <div className="space-y-2">
-        <ShimmerBar width="55%" />
-        <ShimmerBar width="35%" />
-      </div>
-
-      {/* Lyrics placeholder */}
-      <div className="space-y-3 pt-2">
-        {LINE_WIDTHS.map((width, index) => (
-          <ShimmerBar key={index} width={width} />
-        ))}
-      </div>
-
-      <style jsx>{`
-        .shimmer-sweep {
-          position: absolute;
-          inset: 0;
-          transform: translateX(-100%);
-          background: linear-gradient(
-            90deg,
-            transparent,
-            hsl(var(--foreground) / 0.08),
-            transparent
-          );
-          animation: shimmer-sweep 1.6s ease-in-out infinite;
-        }
-
-        @keyframes shimmer-sweep {
-          100% {
-            transform: translateX(100%);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .shimmer-sweep {
-            animation: none;
-          }
-        }
-      `}</style>
+    <div className={cn('flex flex-col gap-[14px]', className)}>
+      {LINES.map((line, lineIdx) => (
+        <div key={lineIdx} className="flex gap-[0.42em] items-baseline">
+          {line.map((ch, i) => {
+            delay += 60;
+            return <Block key={i} ch={ch} delayMs={delay % 400} />;
+          })}
+        </div>
+      ))}
     </div>
   );
 }

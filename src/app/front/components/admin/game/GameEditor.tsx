@@ -206,7 +206,6 @@ export function GameEditor({
             date={previewDate}
             gameState={previewGameState ?? null}
             onGuess={async () => {}}
-            onShowFullLyrics={() => {}}
             playerId={playerId}
           />
         </div>
