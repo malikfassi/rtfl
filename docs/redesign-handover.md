@@ -40,18 +40,24 @@ formats" section that traces design requirements back to real code.
 
 ### Todo — ordered by what I'd do next
 
-1. **Restore the e2e `data-testid`s** the redesign dropped (see §4). This is
-   the most urgent item: 11 selectors the Playwright suite depends on no
-   longer exist, including `game-container`, used 18 times.
-2. **Test against a real scheduled song.** All manual verification so far used
-   the rickroll song only. §2 explains how to seed real games.
-3. **Decide the stanza question** (see §5) — needs a product call.
-4. **Check the share PNG's fonts.** `html-to-image` must inline the Google
+1. ~~Restore the e2e `data-testid`s~~ — **done 2026-08-20**, see §4.
+2. ~~Test against a real scheduled song~~ — **done 2026-08-20**. The five games
+   from §2 were seeded into `dev.db` and the game screen (both layouts) plus
+   the archive were checked against Billie Jean and Beat It rather than the
+   rickroll.
+3. ~~Run the Playwright suite end to end~~ — **done 2026-08-20**. 51/51 green,
+   twice in a row. See §4 for how to run it without fighting over port 3000.
+4. **Decide the stanza question** (see §5) — needs a product call.
+5. **Check the share PNG's fonts.** `html-to-image` must inline the Google
    fonts; nobody has looked at the produced PNG to confirm it isn't falling
    back to a system face.
-5. Rewrite the e2e assertions that test deleted behaviour (win modal,
-   "work in progress" badge, player-id display).
-6. Optional: build the admin screen.
+6. **Style the calendar's out-of-month days.** `CalendarView` fills the grid
+   from `startOfWeek(monthStart)` to `endOfWeek(monthEnd)`, so 35–42 cells
+   render and up to 11 of them belong to the neighbouring months. `isCurrentMonth`
+   only decides whether a cell is clickable, never how it looks, so July 31
+   is indistinguishable from an unplayed August 1. Neither the README nor the
+   prototype says what these cells should do.
+7. Optional: build the admin screen.
 
 ---
 
@@ -182,23 +188,70 @@ DB and runs `playwright-seed.ts` (see §2). Run with `npm run test:e2e`.
 > `.env.test` while seeding through *that* server, which may be on `.env`
 > (dev.db). Stop other dev servers before running e2e.
 
-**The redesign broke this suite.** These `data-testid`s no longer exist:
+**The redesign broke this suite — repaired 2026-08-20.** What was wrong and
+what was done about it:
 
-| Testid | Uses | Verdict |
+| Testid | Uses | Resolution |
 |---|---|---|
-| `game-container` | 18 | restore — dropped incidentally |
-| `archive-container`, `archive-title` | 4 + 5 | restore |
-| `prev-month`, `next-month` | 4 + 4 | restore (month nav is now `◀ ▶` links) |
-| `game-without-guesses` | 3 | restore — CalendarView now only emits two variants |
-| `game-header` | 1 | restore |
-| `empty-month` | 1 | restore — the empty-month branch was dropped |
-| `wip-badge` | 2 | **test must change** — badge deleted on purpose |
-| `user-id-display` | 2 | **test must change** — player id no longer surfaced |
-| `date-display` | 2 | **test must change** — replaced by a permanent archive link |
-| `getByText('Congratulations')` | 1 | **test must change** — win modal deleted |
+| `game-container` | 18 | restored on `LyricsGame`'s root |
+| `archive-container` | 4 | restored on the archive card |
+| `archive-title` | 5 | restored on the `◀ August 2026 ▶` line — per README §3 the redesign's archive header has no separate page heading, so the month line *is* the title |
+| `prev-month`, `next-month` | 4 + 4 | restored on the `◀ ▶` links, on both branches of the `canNavigateNext` ternary so the disabled `aria-disabled="true"` case keeps its handle |
+| `game-without-guesses` | 3 | `CalendarView` back to three variants: no game / with this player's guesses / without |
+| `game-header` | 0 | **nothing was broken** — it only ever appeared in a comment in `root-page.spec.ts`, never in an assertion. Added to the real `<header>` anyway |
+| `empty-month` | 1 | **test changed** — the redesign has no empty-month state; a month with no games renders the ordinary grid. The test now asserts the calendar plus zero played days |
+| `wip-badge` | 2 | **tests replaced** — badge deleted on purpose; the two dead tests became one covering the header's played/solved/streak stats |
+| `user-id-display` | 2 | ditto |
+| `date-display` | 2 | restored — the date is still shown, as the permanent archive link |
+| `getByText('Congratulations')` | 1 | **test changed** — the modal became an inline panel, so the assertion now targets the `won on the …` stamp |
 
-Restoring the first six is cheap and keeps the coverage honest; the last four
-assert behaviour the redesign intentionally removed.
+**Two breaks the first pass missed**, both found by counting matches in a live
+DOM rather than grepping:
+
+- **Duplicated testids.** The desktop and mobile layouts are *both* mounted at
+  all times (one hidden by an `lg:` class), so `guess-input`, `game-progress`
+  and `date-display` each resolve to two elements and every `.fill()` /
+  `toBeVisible()` on them trips Playwright's strict mode. The specs now use
+  `[data-testid="…"]:visible`, which picks the rendered layout at any viewport.
+  Verified: exactly one visible match at both 375px and 1400px.
+- **`masked-lyrics` only existed on mobile.** It lives on the
+  `MaskedLyricsDisplay` wrapper, which the desktop layout never renders — the
+  desktop pane builds `MaskedTitleArtist` + `MaskedLyricsBody` itself. So four
+  `toBeVisible()` assertions failed at Playwright's desktop viewport even
+  though the element was in the DOM. The desktop lyrics pane now carries the
+  same testid, and those four assertions use `:visible` too.
+
+Also fixed: `archive-page.spec.ts` expected `Loading games...` where the
+redesign writes `Loading games…` with a real ellipsis.
+
+**Two more failures surfaced only once the suite actually ran:**
+
+- `should display games on correct dates` was **racy by construction**. It did
+  `await locator.count()` and compared the number by hand; `count()` takes one
+  snapshot and never retries, so under parallel load it read the grid before
+  React Query had resolved the month and saw zero. It passed in isolation and
+  failed in a full run. Now a single web-first `toHaveCount(4)`.
+- The rickroll banner's `🎵` is no longer a heading. The old assertion used
+  `getByRole('heading', { name: '🎵' })` precisely *because* the page used to
+  carry two competing `h1`s — the redesign fixed that by demoting the banner to
+  a span, which broke the workaround. Matched by text now, the same way the
+  equivalent assertion in `routes.spec.ts` always did.
+
+### Running it without fighting over port 3000
+
+`playwright.config.ts` now reads **`PLAYWRIGHT_PORT`** (default 3000) and
+derives `use.baseURL`, `webServer.url` and the server's own `PORT` from it. It
+also pins `process.env.PLAYWRIGHT_BASE_URL`, so `global-setup` can no longer
+seed one server while the tests drive another.
+
+```bash
+PLAYWRIGHT_PORT=3100 npx playwright test
+```
+
+This matters more than it looks: with `reuseExistingServer: true` and an
+unrelated dev server on 3000, the plain `npm run test:e2e` adopts *that* server
+and runs global setup — a full wipe and reseed — straight through it. Verified
+on the port-scoped path: `test.db` is what gets rebuilt, `dev.db` is untouched.
 
 ---
 
