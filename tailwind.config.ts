@@ -18,6 +18,9 @@ export default {
       },
     },
     extend: {
+      screens: {
+        'max-sm': { max: '639px' },
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -63,18 +66,42 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // 2026 redesign tokens — namespaced to avoid colliding with the
+        // legacy HSL tokens above, which stay for admin/shared ui primitives
+        // that are out of scope for this pass. See globals.css.
+        rtfl: {
+          bg: "var(--rtfl-bg)",
+          surface: "var(--rtfl-surface)",
+          raised: "var(--rtfl-raised)",
+          line: "var(--rtfl-line)",
+          "line-soft": "var(--rtfl-line-soft)",
+          ink: "var(--rtfl-ink)",
+          "ink-2": "var(--rtfl-ink-2)",
+          "ink-3": "var(--rtfl-ink-3)",
+          "ink-ghost": "var(--rtfl-ink-ghost)",
+          accent: "var(--rtfl-accent)",
+          "accent-ink": "var(--rtfl-accent-ink)",
+          "accent-bg": "var(--rtfl-accent-bg)",
+          "accent-line": "var(--rtfl-accent-line)",
+          focus: "var(--rtfl-focus)",
+          hit: "var(--rtfl-hit)",
+          duplicate: "var(--rtfl-duplicate)",
+          miss: "var(--rtfl-miss)",
+          error: "var(--rtfl-error)",
+        },
       },
       fontFamily: {
         mono: ["JetBrains Mono", "monospace"],
-        sans: ["Inter", "sans-serif"],
+        sans: ["Space Grotesk", "sans-serif"],
+        grotesk: ["Space Grotesk", "sans-serif"],
       },
       keyframes: {
         enter: {
-          '0%': { 
+          '0%': {
             opacity: '0',
             transform: 'translateY(-20px)'
           },
-          '100%': { 
+          '100%': {
             opacity: '1',
             transform: 'translateY(0)'
           }
@@ -83,11 +110,51 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(-10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        rtflWave: {
+          from: { opacity: '0', transform: 'translateY(5px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        rtflRise: {
+          from: { opacity: '0', transform: 'translateY(10px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        rtflCount: {
+          from: { opacity: '0', transform: 'translateY(3px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        rtflBreathe: {
+          '0%, 100%': { opacity: '.34' },
+          '50%': { opacity: '.85' },
+        },
+        rtflPopIn: {
+          '0%': { transform: 'scaleX(0.02)' },
+          '60%': { transform: 'scaleX(1.02)' },
+          '100%': { transform: 'scaleX(1)' },
+        },
+        rtflBarFlash: {
+          '0%': { boxShadow: '0 0 0 0 rgba(255,255,255,0)' },
+          '35%': { boxShadow: '0 0 0 3px rgba(255,255,255,0.10)' },
+          '100%': { boxShadow: '0 0 0 0 rgba(255,255,255,0)' },
+        },
+        rtflSweep: {
+          from: { transform: 'translateX(-100%)' },
+          to: { transform: 'translateX(220%)' },
+        },
       },
       animation: {
         enter: 'enter 0.5s ease-out',
         'word-reveal': 'word-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
-      }
+        'rtfl-wave': 'rtflWave 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'rtfl-rise': 'rtflRise 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'rtfl-count': 'rtflCount 180ms ease-out both',
+        'rtfl-breathe': 'rtflBreathe 1.5s ease-in-out infinite',
+        'rtfl-pop-in': 'rtflPopIn 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'rtfl-bar-flash': 'rtflBarFlash 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'rtfl-sweep': 'rtflSweep 1100ms 120ms cubic-bezier(0.2, 0.8, 0.2, 1) both',
+      },
+      transitionTimingFunction: {
+        rtfl: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

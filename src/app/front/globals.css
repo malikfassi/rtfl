@@ -1,10 +1,70 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* 2026 redesign tokens. Additive and unconditional (dark-only, not gated
+     behind .dark) so redesigned surfaces can't accidentally render in the
+     legacy light palette below. Namespaced `rtfl-*` to avoid colliding with
+     the legacy tokens, which stay in place for admin and shared ui/*
+     primitives that are out of scope for this redesign. */
+  :root {
+    --rtfl-bg: #0f1115;
+    --rtfl-surface: #12151a;
+    --rtfl-raised: #1c2027;
+    --rtfl-line: #262b33;
+    --rtfl-line-soft: #1c2027;
+
+    --rtfl-ink: #f2f3f5;
+    --rtfl-ink-2: #8b929e;
+    --rtfl-ink-3: #7a818d;
+    --rtfl-ink-ghost: #3d4450;
+
+    --rtfl-accent: #b9a6ff;
+    --rtfl-accent-ink: #d3c6ff;
+    --rtfl-accent-bg: #1a1630;
+    --rtfl-accent-line: #4b3f7d;
+    --rtfl-focus: #9b7bf5;
+
+    --rtfl-hit: #7ee0b0;
+    --rtfl-duplicate: #f5c96b;
+    --rtfl-miss: #8b929e;
+    --rtfl-error: #ffb0a3;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--rtfl-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  @keyframes rtflWave    { from { opacity: 0; transform: translateY(5px);  } to { opacity: 1; transform: none; } }
+  @keyframes rtflRise    { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes rtflCount   { from { opacity: 0; transform: translateY(3px);  } to { opacity: 1; transform: none; } }
+  @keyframes rtflBreathe { 0%, 100% { opacity: .34; } 50% { opacity: .85; } }
+  @keyframes rtflPopIn   { 0% { transform: scaleX(0.02); } 60% { transform: scaleX(1.02); } 100% { transform: scaleX(1); } }
+  /* Soft outline pulse across a whole progress row when a guess scores. */
+  @keyframes rtflBarFlash {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+    35%  { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  }
+  /* One-shot light sweep across a bar that has just been completed. */
+  @keyframes rtflSweep { from { transform: translateX(-100%); } to { transform: translateX(220%); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+    }
+  }
+
   :root {
     /* Base colors */
     --background: 250 20% 98%;
@@ -97,9 +157,8 @@
   body {
     color: rgb(var(--foreground-rgb));
     background: rgb(var(--background-rgb));
-    font-family: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    font-family: 'JetBrains Mono', monospace;
+    -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     font-feature-settings: "rlig" 1, "calt" 1;
     @apply bg-background text-foreground;
@@ -250,43 +309,6 @@
     @apply text-muted text-sm hover:text-primary;
   }
 
-  /* Logo and Animations */
-  .logo {
-    @apply h-24 p-6 transition-[filter] duration-300;
-    will-change: filter;
-  }
-
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-
-  .logo.react:hover {
-    filter: drop-shadow(0 0 2em #61dafbaa);
-  }
-
-  @keyframes logo-spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    a:nth-of-type(2) .logo {
-      animation: logo-spin infinite 20s linear;
-    }
-  }
-
-  .card {
-    @apply p-8;
-  }
-
-  .read-the-docs {
-    @apply text-gray-500;
-  }
-
   .submit-button {
     @apply px-6 py-2 bg-primary text-foreground rounded-md hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed transition-colors font-medium;
   }
@@ -328,52 +350,10 @@
     @apply text-muted-foreground/50;
   }
 
-  .pending-feedback {
-    @apply mt-3 text-sm text-[#b8860b] flex items-center gap-2;
-    @apply bg-[#fff3d6] border border-[#ffd93d]/50 rounded-lg px-3 py-2;
-    animation: feedbackEnter 0.2s ease-out;
-  }
-
-  .loading-dots {
-    @apply flex gap-1;
-  }
-
-  .loading-dots span {
-    @apply w-1.5 h-1.5 bg-[#e0a800] rounded-full animate-pulse;
-  }
-
-  .loading-dots span:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-
-  .loading-dots span:nth-child(3) {
-    animation-delay: 0.4s;
-  }
-
-  .error-feedback {
-    @apply mt-3 text-sm font-medium text-[#d6336c] flex items-center gap-2;
-    @apply bg-[#ffe3ec] border border-[#ff6b9d]/40 rounded-lg px-3 py-2;
-    animation: feedbackEnter 0.2s ease-out;
-  }
-
-  @keyframes feedbackEnter {
-    from {
-      opacity: 0;
-      transform: translateY(-4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 }
 
 @layer utilities {
   .container {
     @apply max-w-5xl mx-auto px-8;
   }
-} 
-
-.masked-lyric-word {
-  font-family: 'JetBrains Mono', monospace !important;
 } 
