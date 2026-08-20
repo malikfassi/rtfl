@@ -1,381 +1,158 @@
 # Frontend Codebase Analysis
 
-## Executive Summary
-
-This analysis examines the frontend codebase for code quality, maintainability, and architectural issues. The codebase shows several areas needing attention: overly complex components, duplicate code, inconsistent patterns, and opportunities for better separation of concerns.
+**Snapshot: 2026-08-20, branch `redesign-2026`.** Every file and line count below
+was checked against the tree at that point. The previous revision of this
+document had drifted badly — it analysed a dozen files that no longer exist and
+listed as outstanding several problems that had already been fixed — so treat
+this as a fresh survey rather than an edit of the old one.
 
 ## 🔴 Critical Issues
 
-### 1. **Massive Components** 
-- `LyricsGame.tsx` (484 lines) - Monolithic component doing too much
-- `MaskedLyrics.tsx` (270 lines) - Heavy rendering logic
+### 1. **`LyricsGame.tsx` is still the problem child**
+- 513 lines, and it has *grown* since the last survey (484). The redesign moved
+  the win state and the share card into it rather than out.
 
-### 2. **Duplicate Utility Functions**
-- Two separate `cn()` functions in `/utils/index.ts` and `/utils.ts`
-- Similar date formatting in multiple places
-- Redundant Spotify utility functions
+### 2. **Dead code in `lib/`**
+Four modules under `src/app/front/lib/` have no importers anywhere in the repo
+(~313 lines):
 
-## 📁 File-by-File Analysis
+| File | Lines | Note |
+|---|---|---|
+| `lib/services/admin-service.ts` | 107 | Duplicates the inline `adminApi` in `hooks/useAdmin.ts` |
+| `lib/services/game-service.ts` | 91 | Distinct from the validators' own `game-service.ts` under `api/lib/test/` |
+| `lib/services/player-service.ts` | 87 | Overlaps `hooks/usePlayer.ts` |
+| `lib/game-server.ts` | 28 | Single `getCurrentGame` export |
+
+This is the residue of a half-finished "extract an API service layer" effort:
+the service files were written, but the hooks kept their own inline `fetch`
+calls and nothing was ever switched over. Either adopt them or delete them —
+right now they are a second, silently stale copy of the data layer.
+
+### 3. **Large rendering components**
+- `MaskedLyricsDisplay.tsx` (266) — the renamed successor to the old
+  `MaskedLyrics.tsx`; still the heaviest rendering path
+- `AssignPanel.tsx` (265) — search state and assignment concerns in one place
+
+## ✅ Fixed since the last survey
+
+Recorded so nobody re-opens them:
+
+- **Duplicate `cn()`** — gone. `lib/utils.ts` is now a two-line re-export of
+  `lib/helpers`, which holds the single definition.
+- **Shared logic extraction** — hit counting, progress and word processing now
+  live in `lib/utils/{hit-counting,progress-calculations,word-processing}.ts`.
+- **Custom hooks** — `useGameLogic`, `useGameProgress` and `useGameShare` were
+  split out of `LyricsGame` as recommended.
+- **The broken `useGameMonth` reference** — the hook is real now
+  (`hooks/usePlayer.ts:103`) and `ArchiveContent` uses it. The `front/page.tsx`
+  that misused it no longer exists.
+- **Debug logging** — no `console.log` remains anywhere under `src/app/front/`.
+- **The old admin tree** — `components/admin/game/` (7 components, 1321 lines)
+  was deleted once `AdminScheduler` replaced it, along with seven now-unused
+  `components/ui/` primitives.
+
+## 📁 Current Structure
 
 ### **Pages & Routing**
 
-#### `src/app/front/[date]/page.tsx` ✅ **GOOD**
-- **Lines**: 20
-- **Issues**: None major
-- **Strengths**: Clean, simple page component
-- **Recommendations**: None needed
+| File | Lines | Notes |
+|---|---|---|
+| `game/[[...slug]]/page.tsx` | 30 | The single game route |
+| `rickroll/page.tsx` | 37 | Fallback game |
+| `admin/page.tsx` | 9 | Renders `AdminScheduler` and nothing else |
+| `admin/layout.tsx` | 9 | |
+| `archive/page.tsx` | 7 | |
+| `archive/[month]/page.tsx` | 8 | Clean delegation |
+| `layout.tsx` / `providers.tsx` | 24 / 15 | |
 
-#### `src/app/front/game/[[...slug]]/page.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 51
-- **Issues**:
-  - Complex routing logic in component
-  - Multiple console.log statements (debug code)
-  - Date validation logic should be extracted
-- **Recommendations**:
-  - Extract routing logic to custom hook
-  - Remove debug logs
-  - Create date validation utility
+The `[date]/page.tsx`, `game/[date]/page.tsx` and `front/page.tsx` routes
+analysed in the previous revision are all gone; routing collapsed onto the
+optional-catch-all.
 
-#### `src/app/front/game/[date]/page.tsx` 🔴 **BAD**
-- **Lines**: 93
-- **Issues**:
-  - Manual game fetching instead of using existing hooks
-  - Duplicate error handling patterns
-  - Client-side component doing server-like work
-  - State management could be simplified
-- **Recommendations**:
-  - Remove this file and use [[...slug]] pattern
-  - Or refactor to use existing hooks
+### **Components — Game**
 
-#### `src/app/front/admin/page.tsx` ✅ **GOOD**
-- **Lines**: 9
-- **Strengths**: Now just renders `AdminScheduler`; the loading UI, data
-  fetching and playlist state it used to hold moved into the scheduling
-  components
+| File | Lines | Status |
+|---|---|---|
+| `lyrics-game/LyricsGame.tsx` | 513 | 🔴 See Critical #1 |
+| `lyrics-game/MaskedLyricsDisplay.tsx` | 266 | 🔴 Heavy rendering |
+| `ScrambleTitle.tsx` | 188 | ⚠️ Animation logic worth extracting |
+| `lyrics-game/PathToVictory.tsx` | 159 | |
+| `lyrics-game/GuessInput.tsx` | 151 | |
+| `lyrics-game/ShareButton.tsx` | 140 | |
+| `lyrics-game/SegmentedProgressBar.tsx` | 130 | |
+| `lyrics-game/GuessHistory.tsx` | 118 | |
+| `lyrics-game/LyricsGameWrapper.tsx` | 99 | |
+| `YesterdayStats.tsx` | 74 | |
+| `lyrics-game/LyricsLoadingComponent.tsx` | 38 | |
 
-#### `src/app/front/archive/[month]/page.tsx` ✅ **GOOD**
-- **Lines**: 12
-- **Issues**: None
-- **Strengths**: Perfect delegation pattern
+`GameControls.tsx`, `GameProgress.tsx`, `GameCompletion.tsx`, `DateDisplay.tsx`,
+`GameTutorial.tsx` and `WinPopup.tsx` no longer exist.
 
-#### `src/app/front/archive/page.tsx` ✅ **GOOD**
-- **Lines**: 8
-- **Issues**: None
-- **Strengths**: Simple, clean
+### **Components — Admin**
 
-#### `src/app/front/page.tsx` 🔴 **BAD**
-- **Lines**: 115
-- **Issues**:
-  - Uses non-existent `useGameMonth` hook
-  - Will cause runtime errors
-  - Duplicate loading states
-  - Inconsistent with rest of app architecture
-- **Recommendations**:
-  - Fix hook usage or remove file
-  - Use consistent loading components
-  - Align with app patterns
+The admin screen is `components/admin/scheduling/`:
 
-### **Components - Game**
+| File | Lines | Role |
+|---|---|---|
+| `AssignPanel.tsx` | 265 | Playlist/track picking, via `use-playlists` + `useDebounce` |
+| `AdminScheduler.tsx` | 186 | Screen root; owns month/date, wires `useAdminGames` and `useAdminGameMutations` |
+| `QueueRail.tsx` | 146 | The day rail |
+| `day-model.ts` | 79 | `QueueDay` construction and track formatting |
+| `TrackRow.tsx` | 75 | |
+| `StatusPill.tsx` | 29 | |
 
-#### `src/app/front/components/game/LyricsGame.tsx` 🔴 **CRITICAL - NEEDS MAJOR REFACTORING**
-- **Lines**: 484 (WAY TOO LONG)
-- **Issues**:
-  - Massive component doing everything
-  - Complex state management (13+ useState/useEffect)
-  - Mixed concerns: game logic, UI, API calls, state management
-  - Deeply nested conditional rendering
-  - Repeated calculations
-  - Hardcoded styles and logic
-  - Rickroll mode logic embedded
-  - Share functionality embedded
-  - Progress calculation logic embedded
-- **Recommendations**:
-  ```
-  Split into smaller components:
-  - GameContainer (layout/structure)
-  - GameHeader (title, date, player info)  
-  - GameContent (main game area)
-  - GameSidebar (controls, progress, media)
-  - ShareModal (share functionality)
-  - RickrollNotice (notice modal)
-  
-  Extract custom hooks:
-  - useGameLogic (game state and logic)
-  - useGameProgress (progress calculations)
-  - useGameShare (share functionality)
-  - useRickrollMode (rickroll handling)
-  ```
+### **Components — Archive & UI**
 
-#### `src/app/front/components/game/ScrambleTitle.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 171
-- **Issues**:
-  - Complex animation logic mixed with component
-  - Multiple useState for letter management
-  - Hardcoded values and styles
-  - Animation logic could be extracted
-- **Recommendations**:
-  - Extract animation logic to custom hook
-  - Create configuration object for animation settings
-  - Simplify component to focus on rendering
-
-#### `src/app/front/components/game/YesterdayStats.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 123
-- **Issues**:
-  - Complex difficulty calculation logic
-  - Hardcoded styling and icons
-  - Mixed business logic and presentation
-- **Recommendations**:
-  - Extract difficulty calculation to utility
-  - Create icon mapping configuration
-  - Simplify component structure
-
-#### `src/app/front/components/game/DateDisplay.tsx` ✅ **GOOD**
-- **Lines**: 50
-- **Issues**: None major
-- **Strengths**: Single responsibility, clean logic
-
-### **Components - Game Subcomponents**
-
-#### `src/app/front/components/game/lyrics-game/GameControls.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 175
-- **Issues**:
-  - Complex hit counting logic duplicated
-  - Token vs regex fallback logic complex
-  - Focus management mixed with business logic
-- **Recommendations**:
-  - Extract hit counting to utility function
-  - Create custom hook for focus management
-  - Simplify token processing logic
-
-#### `src/app/front/components/game/lyrics-game/GameProgress.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 130
-- **Issues**:
-  - Complex progress calculation
-  - Hardcoded percentage values (80%)
-  - Mixed calculation and presentation logic
-- **Recommendations**:
-  - Extract progress calculations to custom hook
-  - Create configuration for win conditions
-  - Simplify component to pure presentation
-
-#### `src/app/front/components/game/lyrics-game/GuessHistory.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 149
-- **Issues**:
-  - Duplicate hit counting logic (same as GameControls)
-  - Complex filtering and sorting
-  - Color management mixed in
-- **Recommendations**:
-  - Extract shared hit counting logic
-  - Create custom hook for guess processing
-  - Simplify color application
-
-#### `src/app/front/components/game/lyrics-game/MaskedLyrics.tsx` 🔴 **BAD**
-- **Lines**: 270
-- **Issues**:
-  - Extremely complex rendering logic
-  - Multiple rendering paths (token vs string)
-  - Word-by-word processing is expensive
-  - Deeply nested conditional rendering
-  - Debug logging left in production code
-- **Recommendations**:
-  ```
-  Major refactoring needed:
-  - Split into LyricsRenderer and WordRenderer components
-  - Extract word processing logic to utility
-  - Create custom hook for word highlighting
-  - Memoize expensive calculations
-  - Remove debug code
-  ```
-
-#### `src/app/front/components/game/lyrics-game/GameCompletion.tsx` ✅ **GOOD**
-- **Lines**: 74
-- **Issues**: Minor - could extract lyrics highlighting
-- **Strengths**: Focused component, clear purpose
-
-### **Components - Admin**
-
-> The `components/admin/game/` tree analysed in earlier revisions of this
-> document (`AdminDashboard`, `Calendar`, `BatchGameEditor`, `GameEditor`,
-> `PlaylistBrowser`, `PlaylistSongsList`, `SongBrowser`) no longer exists. The
-> admin screen was rebuilt as `components/admin/scheduling/` and the old tree
-> was deleted once nothing imported it.
-
-#### `src/app/front/components/admin/scheduling/AdminScheduler.tsx`
-- **Lines**: 186
-- **Role**: Screen root — owns the selected month and date, builds the queue days
-  from `useAdminGames`, and wires create/delete through `useAdminGameMutations`
-
-#### `src/app/front/components/admin/scheduling/AssignPanel.tsx`
-- **Lines**: 265
-- **Role**: Playlist and track picking for the selected day, via `use-playlists`
-  and `useDebounce`
-- **Issues**: The largest of the scheduling components; search state and
-  assignment concerns sit in the same component
-
-#### `src/app/front/components/admin/scheduling/QueueRail.tsx`
-- **Lines**: 146
-- **Role**: The day rail — renders the month's queue days and handles selection
-
-#### **Other Scheduling Components** ✅ **GOOD**
-- `TrackRow.tsx` (75), `StatusPill.tsx` (29) and the `day-model.ts` (77) helper
-  are small and single-purpose
-
-### **Components - Archive**
-
-#### `src/app/front/components/archive/ArchiveContent.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 96
-- **Issues**:
-  - Date parsing logic could be extracted
-  - Navigation logic mixed with rendering
-  - Hardcoded work-in-progress badge
-- **Recommendations**:
-  - Extract date utilities to separate file
-  - Create navigation hook
-  - Make work-in-progress configurable
-
-#### `src/app/front/components/archive/CalendarView.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 166
-- **Issues**:
-  - Complex progress calculation logic repeated
-  - Long inline calculations in render
-  - Multiple concerns mixed (data processing + UI)
-- **Recommendations**:
-  - Extract progress calculations to utilities
-  - Create custom hook for game state processing
-  - Simplify rendering logic
-
-### **Components - UI**
-
-#### **UI Components** ✅ **GOOD**
-What remains is well-structured, focused, and in use:
-- `Tooltip.tsx` (28 lines)
-- `toast.tsx` and `toaster.tsx` (standard implementations)
-
-> `Button.tsx`, `Input.tsx`, `LoadingState.tsx`, `LoadingSpinner.tsx`,
-> `List.tsx`, `EmptyState.tsx` and `ErrorState.tsx` were deleted. The first
-> three were used only by the old `components/admin/game/` tree and died with
-> it; the rest already had no consumers at all.
+- `archive/_components/ArchiveContent.tsx` (128) — note the path; it moved out
+  of `components/archive/`
+- `components/archive/CalendarView.tsx` (129)
+- `components/ui/` is down to `toast.tsx` (128), `toaster.tsx` (34) and
+  `Tooltip.tsx` (28) — all three reachable from `layout.tsx`
 
 ### **Hooks**
 
-#### `src/app/front/hooks/usePlayer.ts` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 132
-- **Issues**:
-  - Complex API logic mixed with hook logic
-  - Fallback logic for rickroll mode is complex
-  - Multiple concerns in one file (player API + game state + month games)
-- **Recommendations**:
-  - Split into separate API layer and hooks
-  - Extract rickroll logic to separate hook
-  - Create dedicated API service files
-
-#### `src/app/front/hooks/useAdmin.ts` ⚠️ **NEEDS REFACTORING** 
-- **Lines**: 122
-- **Issues**:
-  - Large API object with multiple methods
-  - Mixed concerns (admin games + track search)
-  - Complex query invalidation logic
-- **Recommendations**:
-  - Split adminApi into separate service files
-  - Create separate hooks for different admin features
-  - Simplify query management
-
-#### **Other Hooks** ✅ **GOOD**
-- `useDebounce.ts` (17 lines) - Perfect
-- `useGameStats.ts` (22 lines) - Simple and focused  
-- `use-playlists.ts` (55 lines) - Well structured
-- `use-toast.ts` (193 lines) - Standard implementation
+| File | Lines | Notes |
+|---|---|---|
+| `use-toast.ts` | 192 | Standard shadcn implementation |
+| `usePlayer.ts` | 110 | ⚠️ Player API + game state + month games in one file |
+| `useGameLogic.ts` | 93 | |
+| `useAdmin.ts` | 67 | Inline `adminApi`; see Critical #2 |
+| `useGameShare.ts` / `use-playlists.ts` | 54 / 54 | |
+| `useGameProgress.ts` | 37 | |
+| `useDebounce.ts` | 16 | |
 
 ### **Utils & Lib**
 
-#### `src/app/front/lib/utils.ts` vs `src/app/front/lib/utils/index.ts` 🔴 **DUPLICATE CODE**
-- **Issue**: Two files defining the same `cn()` function
-- **Recommendation**: Consolidate into single utils file
+Live: `lib/utils/{date-formatting,hit-counting,progress-calculations,color-management,word-processing}.ts`,
+`lib/routes.ts`, `lib/query-client.ts`, `lib/error-messages.ts`,
+`lib/helpers/{index,date,player,spotify}.ts`.
 
-#### **Utility Files** ✅ **MOSTLY GOOD**
-- Individual utility files are focused and clean
-- Good separation of concerns
-- Could benefit from consolidation
+`lib/helpers/spotify.ts` is small but load-bearing again — `day-model.ts` uses
+`getTrackTitle`/`getTrackArtist` to read `Song.spotifyData`, which arrives as
+untyped JSON. `getTrackId` is currently unused.
 
-### **Layout & Configuration**
-
-#### `src/app/front/layout.tsx` ✅ **GOOD**
-- **Lines**: 29
-- **Issues**: None
-- **Strengths**: Clean, focused layout
-
-#### `src/app/front/globals.css` ⚠️ **NEEDS REVIEW**
-- **Lines**: 295
-- **Issues**: 
-  - Very large CSS file
-  - Mixed concerns (base styles, components, utilities)
-  - Many unused CSS classes
-- **Recommendations**:
-  - Split into multiple CSS modules
-  - Remove unused classes
-  - Organize by feature/component
-
-#### `src/app/front/providers.tsx` ✅ **GOOD**
-- **Lines**: 13
-- **Issues**: None
-- **Strengths**: Simple, focused
+For the dead modules under `lib/`, see Critical #2.
 
 ## 🎯 Recommendations by Priority
 
-### **Priority 1: Critical Refactoring**
+### **Priority 1**
+1. **Resolve the `lib/` service layer** — adopt the four orphaned modules or
+   delete them. Leaving a stale second copy of the data layer is the highest
+   risk item here.
+2. **Split `LyricsGame.tsx`** — 513 lines and growing.
 
-1. **Split LyricsGame.tsx** - Break into 6-8 smaller components
-2. **Fix duplicate utilities** - Consolidate cn() functions 
-3. **Refactor MaskedLyrics.tsx** - Extract rendering logic
-4. **Fix page.tsx routing issues** - Resolve non-existent hooks
+### **Priority 2**
+1. **Refactor `MaskedLyricsDisplay.tsx`** — split rendering from word processing.
+2. **Split `AssignPanel.tsx`** — separate search state from assignment.
+3. **Split `usePlayer.ts`** — three concerns in one hook.
 
-### **Priority 2: Architecture Improvements**
-
-1. **Extract shared logic** - Hit counting, progress calculations
-2. **Create API service layer** - Separate API calls from hooks
-3. **Standardize loading/error states** - Reusable components
-
-### **Priority 3: Code Quality**
-
-1. **Remove debug code** - Console.logs and debug statements
-2. **Extract complex calculations** - To utility functions  
-3. **Simplify state management** - Reduce useState complexity
-4. **Organize CSS** - Split globals.css into modules
-
-### **Priority 4: Performance & UX**
-
-1. **Memoize expensive calculations** - Word processing, progress
-2. **Extract custom hooks** - Reusable state logic
-3. **Optimize re-renders** - Better component splitting
-4. **Improve loading states** - Consistent UX patterns
-
-## 📊 Summary Statistics
-
-- **Total Files Analyzed**: 47
-- **Lines of Code**: ~4,000+
-- **🔴 Critical Issues**: 8 files
-- **⚠️ Needs Refactoring**: 14 files  
-- **✅ Good**: 25 files
-- **Average File Size**: 85 lines
-- **Largest Files**: LyricsGame (484), Calendar (280), MaskedLyrics (270)
-
-## 🏆 Best Practices Found
-
-1. **Good component separation** in UI components
-2. **Consistent TypeScript usage** throughout
-3. **Good custom hook patterns** in smaller hooks
-4. **Clean utility functions** in focused files
-5. **Proper error handling patterns** in API calls
-
-## 🚨 Anti-Patterns Found
-
-1. **God components** - Components doing too much
-2. **Mixed concerns** - UI logic with business logic
-3. **Duplicate code** - Same logic in multiple places
-4. **Complex useEffect chains** - Hard to follow dependencies
-5. **Inline complex calculations** - Should be extracted
-6. **Debug code in production** - Console.logs left in
+### **Priority 3**
+1. **Extract `ScrambleTitle`'s animation logic** to a hook.
+2. **Review `globals.css`** (171 lines, down from 295 after the token rewrite) —
+   less urgent than it was.
 
 ---
 
-**Next Steps**: Start with Priority 1 items, focusing on breaking down the largest components first. This will have the biggest impact on maintainability and developer experience. 
+**Maintenance note**: this document goes stale fast — the previous revision
+described a tree that had moved on by roughly a dozen files. If it drifts again,
+prefer regenerating it wholesale over patching sections.
