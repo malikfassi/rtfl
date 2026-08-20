@@ -20,7 +20,12 @@ export async function GET(request: Request): Promise<NextResponse<Response>> {
     
     const client = await getSpotifyClient();
     const playlistsPage = await client.searchPlaylists(query);
-    return NextResponse.json({ playlists: playlistsPage.items });
+    // Spotify's playlist search returns null items - around ten in a page of
+    // fifty - for playlists the caller can't see. Drop them here so the
+    // declared SimplifiedPlaylist[] is actually true and no caller has to
+    // re-discover it by crashing.
+    const playlists = playlistsPage.items.filter(playlist => !!playlist);
+    return NextResponse.json({ playlists });
   } catch (error) {
     return handleError(error);
   }

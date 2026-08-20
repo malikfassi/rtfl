@@ -22,7 +22,12 @@ export async function GET(
     const validatedId = validateSchema(spotifyIdSchema, id);
     return Promise.resolve(getSpotifyClient())
       .then((client: SpotifyClient) => client.getPlaylistTracks(validatedId))
-      .then((tracks: Track[]) => NextResponse.json({ tracks }))
+      // Same as the playlist search: a playlist can hold entries Spotify
+      // returns as null, and local files that carry no id and so can never be
+      // scheduled. Neither belongs in a Track[].
+      .then((tracks: Track[]) =>
+        NextResponse.json({ tracks: tracks.filter(track => !!track && !!track.id) }),
+      )
       .catch((error: unknown) => handleError(error));
   } catch (error) {
     return handleError(error);
