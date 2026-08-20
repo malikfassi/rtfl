@@ -21,7 +21,10 @@ export function AdminScheduler() {
   const monthDate = parseMonthString(month);
   const today = getTodayDate();
 
-  const { data: games = [], isLoading } = useAdminGames(monthDate);
+  // isPending rather than isLoading: isLoading is `isPending && isFetching`, so
+  // it drops back to false during retry backoff - and that gap is exactly when
+  // the counts below would otherwise report an unloaded month as fully empty.
+  const { data: games = [], isPending, isError, error: loadError } = useAdminGames(monthDate);
   const { createGame, deleteGame } = useAdminGameMutations();
 
   const days: QueueDay[] = useMemo(() => {
@@ -71,50 +74,62 @@ export function AdminScheduler() {
 
   // Each write triggers a Genius scrape server-side, so these run one at a
   // time rather than as a burst of parallel requests.
+  // Callers clear the banner themselves before calling in - clearing it here
+  // would wipe a notice the caller had just set (see handleScheduleMany).
   const runSequentially = async (
     key: string,
     jobs: Array<() => Promise<unknown>>,
   ) => {
     setBusy(key);
-    setError(null);
+    let done = 0;
     try {
       for (const job of jobs) {
         await job();
+        done += 1;
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      const reason = e instanceof Error ? e.message : "Something went wrong";
+      // A run that stops halfway otherwise looks like it did nothing at all,
+      // or like it finished - say how far it actually got.
+      setError(
+        jobs.length > 1 ? `${reason} - stopped after ${done} of ${jobs.length}.` : reason,
+      );
     } finally {
       setBusy(null);
     }
   };
 
-  const handleSchedule = (spotifyId: string, dates: string[]) =>
-    runSequentially(
+  const handleSchedule = (spotifyId: string, dates: string[]) => {
+    setError(null);
+    return runSequentially(
       `schedule:${spotifyId}`,
       dates.map(date => () => createGame.mutateAsync({ date, spotifyId })),
     );
+  };
 
   const handleScheduleMany = (tracks: Track[], dates: string[]) => {
     // One distinct track per day, in playlist order. A playlist shorter than
     // the selection fills what it can rather than repeating songs - a repeated
     // song across two days would be a silent duplicate answer.
     const pairs = dates.slice(0, tracks.length).map((date, i) => ({ date, track: tracks[i] }));
-    if (pairs.length < dates.length) {
-      setError(
-        `Playlist has ${tracks.length} tracks for ${dates.length} selected days - filled the first ${pairs.length}.`,
-      );
-    }
+    setError(
+      pairs.length < dates.length
+        ? `Playlist has ${tracks.length} tracks for ${dates.length} selected days - filling the first ${pairs.length}.`
+        : null,
+    );
     return runSequentially(
       "schedule:batch",
       pairs.map(({ date, track }) => () => createGame.mutateAsync({ date, spotifyId: track.id })),
     );
   };
 
-  const handleRemove = (dates: string[]) =>
-    runSequentially(
+  const handleRemove = (dates: string[]) => {
+    setError(null);
+    return runSequentially(
       `remove:${dates[0]}`,
       dates.map(date => () => deleteGame.mutateAsync(date)),
     );
+  };
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-rtfl-bg font-mono text-rtfl-ink">
@@ -135,22 +150,38 @@ export function AdminScheduler() {
                 </Link>
               </div>
             </div>
-            <span
-              className={
-                unscheduledAhead.length > 0
-                  ? "rounded-full bg-rtfl-duplicate/10 p-[5px_11px] font-sans text-[11.5px] text-rtfl-duplicate"
-                  : "rounded-full bg-rtfl-hit/10 p-[5px_11px] font-sans text-[11.5px] text-rtfl-hit"
-              }
-            >
-              {unscheduledAhead.length > 0
-                ? `${unscheduledAhead.length} ${unscheduledAhead.length === 1 ? "day" : "days"} unscheduled`
-                : "every day ahead is scheduled"}
-            </span>
+            {/* With no games loaded every day looks empty, so a plain count
+                here would confidently report the whole month as unscheduled
+                while it is really still loading - or failing to load. */}
+            {isPending || isError ? (
+              <span
+                className={
+                  isError
+                    ? "rounded-full bg-rtfl-error/10 p-[5px_11px] font-sans text-[11.5px] text-rtfl-error"
+                    : "rounded-full bg-rtfl-raised p-[5px_11px] font-sans text-[11.5px] text-rtfl-ink-2"
+                }
+              >
+                {isError ? "could not load this month" : "loading…"}
+              </span>
+            ) : (
+              <span
+                className={
+                  unscheduledAhead.length > 0
+                    ? "rounded-full bg-rtfl-duplicate/10 p-[5px_11px] font-sans text-[11.5px] text-rtfl-duplicate"
+                    : "rounded-full bg-rtfl-hit/10 p-[5px_11px] font-sans text-[11.5px] text-rtfl-hit"
+                }
+              >
+                {unscheduledAhead.length > 0
+                  ? `${unscheduledAhead.length} ${unscheduledAhead.length === 1 ? "day" : "days"} unscheduled`
+                  : "every day ahead is scheduled"}
+              </span>
+            )}
           </header>
 
-          {error && (
+          {(error || loadError) && (
             <p className="m-0 border-b border-rtfl-line-soft bg-rtfl-error/10 p-[10px_24px] font-sans text-[12.5px] text-rtfl-error">
-              {error}
+              {error ??
+                (loadError instanceof Error ? loadError.message : "Could not load this month.")}
             </p>
           )}
 
@@ -159,7 +190,8 @@ export function AdminScheduler() {
               month={month}
               days={days}
               selected={selected}
-              isLoading={isLoading}
+              isLoading={isPending}
+              isError={isError}
               onSelect={handleSelect}
               onMonthChange={m => {
                 setMonth(m);

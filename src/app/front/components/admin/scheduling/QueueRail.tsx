@@ -14,6 +14,8 @@ interface QueueRailProps {
   days: QueueDay[];
   selected: string[];
   isLoading: boolean;
+  /** The month failed to load, so `days` is a month of placeholders. */
+  isError: boolean;
   onSelect: (date: string, mode: SelectMode) => void;
   onMonthChange: (month: string) => void;
   onSelectAllEmpty: () => void;
@@ -24,6 +26,7 @@ export function QueueRail({
   days,
   selected,
   isLoading,
+  isError,
   onSelect,
   onMonthChange,
   onSelectAllEmpty,
@@ -41,6 +44,7 @@ export function QueueRail({
   }, [month, isLoading]);
 
   const monthDate = parseMonthString(month);
+  const noData = isLoading || isError;
   const emptyCount = days.filter(d => d.status === "empty" && d.date >= today).length;
 
   const shiftMonth = (delta: number) => {
@@ -73,29 +77,42 @@ export function QueueRail({
             ▶
           </button>
         </div>
+        {/* Without a loaded month every day counts as empty, so naming a number
+            here would be a guess dressed up as a fact. */}
         <button
           type="button"
           onClick={onSelectAllEmpty}
-          disabled={emptyCount === 0}
+          disabled={noData || emptyCount === 0}
           className={cn(
             "self-start font-sans text-[11px] text-rtfl-ink-2 hover:text-rtfl-ink",
-            emptyCount === 0 && "cursor-not-allowed text-rtfl-ink-3 hover:text-rtfl-ink-3",
+            (noData || emptyCount === 0) &&
+              "cursor-not-allowed text-rtfl-ink-3 hover:text-rtfl-ink-3",
           )}
         >
-          select the {emptyCount} unscheduled {emptyCount === 1 ? "day" : "days"} ahead
+          {noData
+            ? "select the unscheduled days ahead"
+            : `select the ${emptyCount} unscheduled ${emptyCount === 1 ? "day" : "days"} ahead`}
         </button>
       </div>
 
       <div ref={listRef} className="flex min-h-0 flex-1 flex-col gap-[6px] overflow-y-auto p-[14px]">
-        {isLoading
-          ? [0, 1, 2, 3, 4, 5].map(i => (
-              <span
-                key={i}
-                style={{ animationDelay: `${i * 60}ms` }}
-                className="block h-[68px] animate-rtfl-breathe rounded-[9px] bg-rtfl-raised"
-              />
-            ))
-          : days.map(day => {
+        {isLoading ? (
+          [0, 1, 2, 3, 4, 5].map(i => (
+            <span
+              key={i}
+              style={{ animationDelay: `${i * 60}ms` }}
+              className="block h-[68px] animate-rtfl-breathe rounded-[9px] bg-rtfl-raised"
+            />
+          ))
+        ) : isError ? (
+          // Listing the days here would render every one as "nothing
+          // scheduled", which reads as a confirmed empty month rather than as a
+          // month we failed to read.
+          <p className="m-0 p-[12px_13px] font-sans text-[12px] text-rtfl-ink-3">
+            Could not load {month}.
+          </p>
+        ) : (
+          days.map(day => {
               const isSelected = selected.includes(day.date);
               const isToday = day.date === today;
               const isPast = day.date < today;
@@ -139,7 +156,8 @@ export function QueueRail({
                   )}
                 </button>
               );
-            })}
+          })
+        )}
       </div>
     </div>
   );
