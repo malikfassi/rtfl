@@ -194,7 +194,7 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
         {isLoading ? (
           <div className="flex flex-col gap-3">
             <span className="block w-24 h-[22px] rounded-[5px] bg-rtfl-raised animate-rtfl-breathe" />
-            <span className="block w-full h-2 rounded-full bg-rtfl-raised animate-rtfl-breathe" />
+            <span className="block w-full h-2 rounded-full bg-rtfl-raised animate-rtfl-breathe" style={{ animationDelay: '80ms' }} />
           </div>
         ) : (
           <PathToVictory
@@ -231,7 +231,11 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
         {isLoading ? (
           <div className="flex flex-wrap gap-[6px]">
             {[62, 48, 74, 55].map((w, i) => (
-              <span key={i} style={{ width: w }} className="h-[26px] rounded-[7px] bg-rtfl-raised animate-rtfl-breathe" />
+              <span
+                key={i}
+                style={{ width: w, animationDelay: `${200 + i * 60}ms` }}
+                className="h-[26px] rounded-[7px] bg-rtfl-raised animate-rtfl-breathe"
+              />
             ))}
           </div>
         ) : (
@@ -277,15 +281,21 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
         <header className="flex items-end justify-between gap-6 px-6 py-[18px] max-sm:px-5 max-sm:py-[12px] max-sm:pb-3 border-b border-rtfl-line-soft bg-rtfl-surface">
           <div className="flex flex-col gap-[6px] max-sm:gap-[3px]">
             <ScrambleTitle />
-            <div className="flex items-center gap-[14px] max-sm:hidden">
-              <Link href="/archive" className="font-sans text-[12px] text-rtfl-ink-2 hover:text-rtfl-ink flex items-center gap-[6px]">
-                <span className="text-rtfl-ink-3">◀</span>{date}
-              </Link>
-              <span className="font-sans text-[12px] text-rtfl-ink-3">day {dayNumber}</span>
-            </div>
-            <Link href="/archive" className="hidden max-sm:block font-sans text-[11px] text-rtfl-ink-3">
-              {date} · day {dayNumber}
-            </Link>
+            {isLoading ? (
+              <span className="font-sans text-[12px] max-sm:text-[11px] text-rtfl-ink-2">loading today&apos;s song</span>
+            ) : (
+              <>
+                <div className="flex items-center gap-[14px] max-sm:hidden">
+                  <Link href="/archive" className="font-sans text-[12px] text-rtfl-ink-2 hover:text-rtfl-ink flex items-center gap-[6px]">
+                    <span className="text-rtfl-ink-3">◀</span>{date}
+                  </Link>
+                  <span className="font-sans text-[12px] text-rtfl-ink-3">day {dayNumber}</span>
+                </div>
+                <Link href="/archive" className="hidden max-sm:block font-sans text-[11px] text-rtfl-ink-3">
+                  {date} · day {dayNumber}
+                </Link>
+              </>
+            )}
           </div>
           <div className="flex flex-col items-end gap-1 max-sm:flex-row max-sm:items-baseline max-sm:gap-2">
             <span className="max-sm:hidden font-sans text-[10px] tracking-[0.16em] uppercase text-rtfl-ink-3">next song</span>
@@ -302,9 +312,15 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
           <div className="flex flex-col min-w-0 min-h-0">
             <div className="px-[56px] pt-10 pb-[26px] border-b border-rtfl-line-soft">
               {isLoading ? (
-                <div className="flex gap-[0.42em]">
-                  <span className="block w-[7ch] h-[30px] rounded-[5px] bg-rtfl-raised animate-rtfl-breathe" />
-                  <span className="block w-[4ch] h-[30px] rounded-[5px] bg-rtfl-raised animate-rtfl-breathe" />
+                <div className="flex flex-col gap-[10px]">
+                  <div className="flex gap-[0.42em] font-mono text-[30px]">
+                    <span className="block w-[7ch] h-[30px] rounded-[5px] bg-rtfl-raised animate-rtfl-breathe" />
+                    <span className="block w-[4ch] h-[30px] rounded-[5px] bg-rtfl-raised animate-rtfl-breathe" style={{ animationDelay: '90ms' }} />
+                  </div>
+                  <div className="flex gap-[0.42em] font-mono text-[15px]">
+                    <span className="block w-[3ch] h-[15px] rounded-[4px] bg-rtfl-raised animate-rtfl-breathe" style={{ animationDelay: '140ms' }} />
+                    <span className="block w-[6ch] h-[15px] rounded-[4px] bg-rtfl-raised animate-rtfl-breathe" style={{ animationDelay: '190ms' }} />
+                  </div>
                 </div>
               ) : (
                 <MaskedTitleArtist
