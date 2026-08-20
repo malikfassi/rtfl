@@ -8,8 +8,6 @@ This analysis examines the frontend codebase for code quality, maintainability, 
 
 ### 1. **Massive Components** 
 - `LyricsGame.tsx` (484 lines) - Monolithic component doing too much
-- `AdminDashboard.tsx` (251 lines) - Complex admin interface with mixed concerns
-- `Calendar.tsx` (280 lines) - Calendar with complex state management
 - `MaskedLyrics.tsx` (270 lines) - Heavy rendering logic
 
 ### 2. **Duplicate Utility Functions**
@@ -49,16 +47,11 @@ This analysis examines the frontend codebase for code quality, maintainability, 
   - Remove this file and use [[...slug]] pattern
   - Or refactor to use existing hooks
 
-#### `src/app/front/admin/page.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 39
-- **Issues**:
-  - Hardcoded loading UI
-  - Type definitions should be in separate file
-  - Mixed concerns (UI + data fetching)
-- **Recommendations**:
-  - Extract LoadingState component
-  - Move interfaces to types file
-  - Extract playlist state to custom hook
+#### `src/app/front/admin/page.tsx` ✅ **GOOD**
+- **Lines**: 9
+- **Strengths**: Now just renders `AdminScheduler`; the loading UI, data
+  fetching and playlist state it used to hold moved into the scheduling
+  components
 
 #### `src/app/front/archive/[month]/page.tsx` ✅ **GOOD**
 - **Lines**: 12
@@ -201,76 +194,31 @@ This analysis examines the frontend codebase for code quality, maintainability, 
 
 ### **Components - Admin**
 
-#### `src/app/front/components/admin/game/AdminDashboard.tsx` 🔴 **BAD**
-- **Lines**: 251
-- **Issues**:
-  - Complex state management (7+ useState)
-  - Multiple useEffect hooks with complex dependencies
-  - Event handling mixed with business logic
-  - Auto-assignment logic is complex
-  - Mixed UI and data management concerns
-- **Recommendations**:
-  ```
-  Split into smaller components:
-  - AdminCalendar (calendar with selection)
-  - AdminGameEditor (single game editing)
-  - AdminBatchEditor (batch operations)
-  - AdminActions (action buttons and controls)
-  
-  Extract custom hooks:
-  - useAdminSelection (date selection logic)
-  - useAdminActions (game CRUD operations)
-  - usePendingChanges (pending changes management)
-  ```
+> The `components/admin/game/` tree analysed in earlier revisions of this
+> document (`AdminDashboard`, `Calendar`, `BatchGameEditor`, `GameEditor`,
+> `PlaylistBrowser`, `PlaylistSongsList`, `SongBrowser`) no longer exists. The
+> admin screen was rebuilt as `components/admin/scheduling/` and the old tree
+> was deleted once nothing imported it.
 
-#### `src/app/front/components/admin/game/Calendar.tsx` 🔴 **BAD**
-- **Lines**: 280
-- **Issues**:
-  - Complex date calculation logic
-  - Mouse handling for drag selection is complex
-  - Multiple rendering functions mixed in component
-  - State management spread across component
-- **Recommendations**:
-  - Extract CalendarDay as separate component
-  - Create custom hook for date calculations
-  - Extract drag selection logic to hook
-  - Simplify rendering logic
+#### `src/app/front/components/admin/scheduling/AdminScheduler.tsx`
+- **Lines**: 186
+- **Role**: Screen root — owns the selected month and date, builds the queue days
+  from `useAdminGames`, and wires create/delete through `useAdminGameMutations`
 
-#### `src/app/front/components/admin/game/BatchGameEditor.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 190
-- **Issues**:
-  - Complex batch processing logic
-  - Error handling mixed with UI logic
-  - Song assignment logic embedded
-- **Recommendations**:
-  - Extract batch processing to custom hook
-  - Create error handling utilities
-  - Simplify component to focus on UI
+#### `src/app/front/components/admin/scheduling/AssignPanel.tsx`
+- **Lines**: 265
+- **Role**: Playlist and track picking for the selected day, via `use-playlists`
+  and `useDebounce`
+- **Issues**: The largest of the scheduling components; search state and
+  assignment concerns sit in the same component
 
-#### `src/app/front/components/admin/game/PlaylistBrowser.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 138
-- **Issues**:
-  - Multiple sub-components defined inline
-  - Complex playlist selection logic
-  - Side effects in useEffect could be simplified
-- **Recommendations**:
-  - Extract inline components to separate files
-  - Create custom hook for playlist management
-  - Simplify component structure
+#### `src/app/front/components/admin/scheduling/QueueRail.tsx`
+- **Lines**: 146
+- **Role**: The day rail — renders the month's queue days and handles selection
 
-#### `src/app/front/components/admin/game/SongBrowser.tsx` ⚠️ **NEEDS REFACTORING**
-- **Lines**: 131
-- **Issues**:
-  - Search logic mixed with UI
-  - Error state management could be simplified
-  - Loading states hardcoded
-- **Recommendations**:
-  - Extract search logic to custom hook
-  - Create reusable loading/error components
-  - Simplify state management
-
-#### **Other Admin Components** ✅ **MOSTLY GOOD**
-- `GameEditor.tsx`, `GameHeader.tsx`, `PlaylistSongsList.tsx` are reasonably sized and focused
+#### **Other Scheduling Components** ✅ **GOOD**
+- `TrackRow.tsx` (75), `StatusPill.tsx` (29) and the `day-model.ts` (77) helper
+  are small and single-purpose
 
 ### **Components - Archive**
 
@@ -299,14 +247,14 @@ This analysis examines the frontend codebase for code quality, maintainability, 
 ### **Components - UI**
 
 #### **UI Components** ✅ **GOOD**
-All UI components are well-structured, focused, and reusable:
-- `Button.tsx` (55 lines)
-- `Input.tsx` (30 lines) 
-- `LoadingSpinner.tsx` (28 lines)
-- `List.tsx` (53 lines)
-- `EmptyState.tsx` (27 lines)
+What remains is well-structured, focused, and in use:
 - `Tooltip.tsx` (28 lines)
 - `toast.tsx` and `toaster.tsx` (standard implementations)
+
+> `Button.tsx`, `Input.tsx`, `LoadingState.tsx`, `LoadingSpinner.tsx`,
+> `List.tsx`, `EmptyState.tsx` and `ErrorState.tsx` were deleted. The first
+> three were used only by the old `components/admin/game/` tree and died with
+> it; the rest already had no consumers at all.
 
 ### **Hooks**
 
@@ -386,7 +334,6 @@ All UI components are well-structured, focused, and reusable:
 1. **Extract shared logic** - Hit counting, progress calculations
 2. **Create API service layer** - Separate API calls from hooks
 3. **Standardize loading/error states** - Reusable components
-4. **Split AdminDashboard** - Better separation of concerns
 
 ### **Priority 3: Code Quality**
 

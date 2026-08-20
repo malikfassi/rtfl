@@ -1,5 +1,6 @@
 import type { Track } from "@spotify/web-api-ts-sdk";
 import type { GameWithSong, MaskedLyrics, Token } from "@/app/types";
+import { getTrackArtist, getTrackTitle } from "@/app/front/lib/helpers/spotify";
 import type { DayStatus } from "./StatusPill";
 
 /**
@@ -48,15 +49,16 @@ export function buildQueueDay(date: string, game: GameWithSong | null): QueueDay
     // found the track and no usable lyrics. That is a different problem from
     // an unfilled day, and the spec gives it its own pill.
     status: words > 0 ? "scheduled" : "needs lyrics",
-    title: track?.name ?? "Unknown title",
-    artist: track?.artists?.map(a => a.name).join(", ") ?? "Unknown artist",
+    // The helpers return '' rather than null, so fall back on falsiness.
+    title: getTrackTitle(track) || "Unknown title",
+    artist: getTrackArtist(track) || "Unknown artist",
     words,
   };
 }
 
 /** `Artist · 2019 · 3:48`, the metadata line the spec asks for on a result row. */
 export function formatTrackMeta(track: Track): string {
-  const artist = track.artists?.map(a => a.name).join(", ") ?? "";
+  const artist = getTrackArtist(track);
   const year = track.album?.release_date?.slice(0, 4);
   const duration = track.duration_ms ? formatDuration(track.duration_ms) : undefined;
   return [artist, year, duration].filter(Boolean).join(" · ");
