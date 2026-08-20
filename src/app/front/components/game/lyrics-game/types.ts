@@ -1,9 +1,8 @@
-import type { Guess, GameState } from '@/app/types';
+import type { GameState } from '@/app/types';
 
 export interface LyricsGameProps {
   gameState: GameState | null;
   onGuess: (word: string) => Promise<GameState | void>;
-  onShowFullLyrics: () => void;
   date: string;
   playerId?: string;
 }
@@ -12,59 +11,20 @@ export interface GuessInputProps {
   onGuessSubmit: (guess: string) => Promise<number>;
   pendingGuess: string | null;
   disabled: boolean;
+  placeholder?: string;
+  /** Mobile: show the result at the input's right edge instead of in a row below it. */
+  inlineFeedback?: boolean;
   onDuplicateGuess?: (guess: string) => void;
 }
 
-export interface WinPopupProps {
-  isOpen: boolean;
-  onClose: () => void;
-  gameStats: {
-    totalGuesses: number;
-    correctGuesses: number;
-    accuracy: number;
-    wordsFound: number;
-  };
-  onShare: () => void;
-  onShowFullLyrics: () => void;
-  showFullLyrics: boolean;
-}
-
-export interface GameTutorialProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onDontShowAgain: () => void;
-}
-
-export interface PathToVictoryProps {
-  lyricsProgress: {
-    found: number;
-    total: number;
-  };
-  titleProgress: {
-    found: number;
-    total: number;
-  };
-  artistProgress: {
-    found: number;
-    total: number;
-  };
-  totalWords: number;
-  foundWords: number;
-  isGameComplete: boolean;
-  guesses?: Guess[];
-  highlightedWord?: string | null;
-}
-
 export interface ShareButtonProps {
-  gameStats: {
-    totalGuesses: number;
-    correctGuesses: number;
-    accuracy: number;
-  };
-  songInfo: {
-    title?: string;
-    artist?: string;
-  };
+  wordsFound: number;
+  guessesUsed: number;
+  bestWordHits: number;
+  overallPercent: number;
+  segments: Array<{ id: string; word: string; hits: number }>;
+  total: number;
   date: string;
+  dayNumber: number;
   className?: string;
 }

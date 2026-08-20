@@ -1,205 +1,151 @@
 "use client";
 
 import { useState, FormEvent, useRef, useEffect } from 'react';
-import { AlertCircle } from 'lucide-react';
 import { cn } from '@/app/front/lib/utils';
 import type { GuessInputProps } from './types';
 
-export const GuessInput = ({ onGuessSubmit, pendingGuess, disabled, onDuplicateGuess }: GuessInputProps) => {
+type FeedbackResult =
+  | { kind: 'hit'; hits: number }
+  | { kind: 'duplicate' }
+  | { kind: 'miss' };
+
+export const GuessInput = ({ onGuessSubmit, pendingGuess, disabled, placeholder = 'Type your guess...', inlineFeedback = false, onDuplicateGuess }: GuessInputProps) => {
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [guessState, setGuessState] = useState<'initial' | 'duplicate' | 'success' | 'error'>('initial');
-  const [showBubble, setShowBubble] = useState(false);
-  const [bubbleText, setBubbleText] = useState('');
-  const [bubblePosition, setBubblePosition] = useState({ x: 0, y: 0 });
+  const [isFocused, setIsFocused] = useState(false);
+  const [result, setResult] = useState<FeedbackResult | null>(null);
+  const [resultId, setResultId] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  
-  // Focus input on mount and when disabled state changes
+  const lastSubmittedWordRef = useRef<string | null>(null);
+
+  const setLastResult = (r: FeedbackResult) => {
+    setResult(r);
+    setResultId(id => id + 1);
+  };
+
+  // Focus on mount, and again whenever the input transitions from disabled to enabled.
   useEffect(() => {
-    // Focus when component mounts (regardless of disabled state)
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []); // Empty dependency array - only run on mount
-  
-  // Focus when disabled state changes from true to false (game loads)
+    if (inputRef.current) inputRef.current.focus();
+  }, []);
   useEffect(() => {
-    if (!disabled && inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (!disabled && inputRef.current) inputRef.current.focus();
   }, [disabled]);
-  
+
+  const refocusAndSelect = () => {
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.select();
+      }
+    }, 100);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const guess = input.trim().toLowerCase();
-    
     if (!guess || isSubmitting) return;
-    
+
     setIsSubmitting(true);
-    setErrorMessage(null);
-    // Don't reset guessState here - keep the previous state until we know the result
-    
+
     try {
       const hits = await onGuessSubmit(guess);
       setInput(guess);
-      if (hits > 0) {
-        setGuessState('success');
-        setBubbleText(`+${hits}`);
-        setBubblePosition({ x: Math.random() * 100 + 25, y: -20 });
-        setShowBubble(true);
-        setTimeout(() => setShowBubble(false), 4000);
-      } else {
-        setGuessState('error');
-      }
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-          inputRef.current.select();
-        }
-      }, 100);
-    } catch (error: any) {
-      // Check if it's a duplicate guess error
-      if (error?.message?.includes('already submitted this word')) {
-        setErrorMessage('You already guessed that word!');
-        setGuessState('duplicate');
-        // Auto-click the existing guess if callback provided
-        if (onDuplicateGuess) {
-          onDuplicateGuess(guess);
-        }
-        // Keep the word in input but select it
+      lastSubmittedWordRef.current = guess;
+      setLastResult(hits > 0 ? { kind: 'hit', hits } : { kind: 'miss' });
+      refocusAndSelect();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes('already submitted this word')) {
+        setLastResult({ kind: 'duplicate' });
+        onDuplicateGuess?.(guess);
         setInput(guess);
-        setTimeout(() => {
-          if (inputRef.current) {
-            inputRef.current.focus();
-            inputRef.current.select();
-          }
-        }, 100);
-        // Clear error message after a delay but keep the color
-        setTimeout(() => {
-          setErrorMessage(null);
-        }, 3000);
+        refocusAndSelect();
       } else {
-        // Other errors - show generic message
-        setErrorMessage('Failed to submit guess. Please try again.');
-        setGuessState('error');
         console.error('Guess failed:', error);
-        // Keep the word in input but select it
-        setInput(guess);
-        setTimeout(() => {
-          if (inputRef.current) {
-            inputRef.current.focus();
-            inputRef.current.select();
-          }
-        }, 100);
-        // Clear error message after a delay but keep the color
-        setTimeout(() => {
-          setErrorMessage(null);
-        }, 3000);
       }
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  // Get the appropriate styling based on guess state. Built on the theme's
-  // card/accent tokens (not literal hex) so it adapts to dark mode instead
-  // of staying a bright light-mode-only box.
-  const getInputStyling = () => {
-    const baseClasses = "w-full px-4 py-3 border-0 rounded-xl bg-card text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all duration-200 text-base";
 
-    switch (guessState) {
-      case 'duplicate':
-        return cn(baseClasses, "ring-2 ring-accent-warning/40 focus:ring-accent-warning/60");
-      case 'success':
-        return cn(baseClasses, "ring-2 ring-accent-success/40 focus:ring-accent-success/60");
-      case 'error':
-        return cn(baseClasses, "ring-2 ring-accent-error/40 focus:ring-accent-error/60");
-      default:
-        return cn(baseClasses, "ring-1 ring-primary/20 focus:ring-primary/40");
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowUp' && lastSubmittedWordRef.current) {
+      e.preventDefault();
+      setInput(lastSubmittedWordRef.current);
     }
   };
-  
+
+  const resultColor = result?.kind === 'hit'
+    ? 'text-rtfl-hit'
+    : result?.kind === 'duplicate'
+      ? 'text-rtfl-duplicate'
+      : 'text-rtfl-ink-2';
+
+  const resultLabel = result?.kind === 'hit'
+    ? `+${result.hits}`
+    : result?.kind === 'duplicate'
+      ? 'already guessed'
+      : result?.kind === 'miss'
+        ? 'no match'
+        : null;
+
   return (
-    <form onSubmit={handleSubmit} className="relative">
-      <div className="input-container">
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your guess..."
-          aria-label="Type your guess"
-          data-testid="guess-input"
-          disabled={isSubmitting}
+    <div className="flex flex-col gap-2">
+      <form onSubmit={handleSubmit}>
+        <div
           className={cn(
-            getInputStyling(),
-            "shadow-sm",
-            pendingGuess && 'pending',
-            disabled && 'disabled',
-            input.trim() && 'has-content'
+            "flex items-center gap-[10px] bg-rtfl-bg border rounded-[10px] px-[14px] transition-colors duration-150",
+            isFocused ? "border-rtfl-accent-line" : "border-rtfl-line"
           )}
-        />
-        <div className="enter-hint">
-          <span className="key">↵</span>
-          <span className="text">Enter</span>
-        </div>
-      </div>
-      
-      {/* Bubble Animation */}
-      {showBubble && (
-        <div 
-          className="absolute z-10 pointer-events-none"
-          style={{
-            left: `${bubblePosition.x}px`,
-            top: `${bubblePosition.y}px`,
-            animation: 'bubbleFloat 4s ease-out forwards'
-          }}
         >
-          <div className="bg-accent-success text-white px-2 py-1 rounded-full text-sm font-bold shadow-lg">
-            {bubbleText}
-          </div>
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder={placeholder}
+            aria-label="Type your guess"
+            data-testid="guess-input"
+            disabled={disabled || isSubmitting}
+            className="flex-1 min-w-0 bg-transparent border-none outline-none font-mono text-[15px] max-sm:text-[16px] text-rtfl-ink py-[13px] max-sm:py-[14px] placeholder:text-rtfl-ink-3"
+          />
+          {inlineFeedback && result ? (
+            // Mobile has no room for a reserved row under the input, so the
+            // result sits at the field's right edge instead.
+            <span key={resultId} className={cn("text-[13px] font-medium whitespace-nowrap animate-rtfl-count", resultColor)}>
+              {resultLabel}
+            </span>
+          ) : (
+            <span
+              className="font-sans text-[10px] text-rtfl-ink-3 transition-opacity duration-150"
+              style={{ opacity: input.trim() ? 1 : 0 }}
+            >
+              enter ⏎
+            </span>
+          )}
         </div>
-      )}
-      
-      {pendingGuess && (
-        <div className="pending-feedback">
-          <div className="loading-dots">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          Checking &ldquo;{pendingGuess}&rdquo;...
-        </div>
-      )}
+      </form>
 
-      {errorMessage && (
-        <div className="error-feedback">
-          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-          {errorMessage}
-        </div>
-      )}
-
-      <style jsx>{`
-        @keyframes bubbleFloat {
-          0% {
-            opacity: 0;
-            transform: translateY(0) scale(0.8);
-          }
-          15% {
-            opacity: 1;
-            transform: translateY(-20px) scale(1.1);
-          }
-          85% {
-            opacity: 1;
-            transform: translateY(-40px) scale(1);
-          }
-          100% {
-            opacity: 0;
-            transform: translateY(-60px) scale(0.8);
-          }
-        }
-      `}</style>
-    </form>
+      <div className={cn("h-5 flex items-center gap-2", inlineFeedback && "hidden")}>
+        {result && (
+          <span key={resultId} className="contents">
+            <span className={cn("text-[13px] font-medium animate-rtfl-count", resultColor)}>
+              {resultLabel}
+            </span>
+            {result.kind === 'hit' && (
+              <span className="font-sans text-[11px] text-rtfl-ink-2 animate-rtfl-count">
+                {result.hits} word{result.hits === 1 ? '' : 's'} revealed
+              </span>
+            )}
+          </span>
+        )}
+        {pendingGuess && !result && (
+          <span className="font-sans text-[11px] text-rtfl-ink-3">checking &ldquo;{pendingGuess}&rdquo;…</span>
+        )}
+      </div>
+    </div>
   );
 };

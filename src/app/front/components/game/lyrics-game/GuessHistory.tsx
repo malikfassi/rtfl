@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/app/front/lib/utils";
 import { calculateGuessHits } from "@/app/front/lib/utils/hit-counting";
 import { getWordColorDeterministic } from "@/app/front/lib/utils/color-management";
+import type { Token } from "@/app/types";
 
 interface GuessHistoryProps {
   guesses: Array<{
@@ -12,22 +12,16 @@ interface GuessHistoryProps {
     word: string;
     valid: boolean;
   }>;
-  maskedLyrics?: string;
-  maskedTitle?: string;
-  maskedArtist?: string;
-  maskedTitleParts?: Array<{ value: string; isToGuess: boolean }>;
-  maskedArtistParts?: Array<{ value: string; isToGuess: boolean }>;
-  maskedLyricsParts?: Array<{ value: string; isToGuess: boolean }>;
+  maskedTitleParts?: Token[];
+  maskedArtistParts?: Token[];
+  maskedLyricsParts?: Token[];
   onWordHover: (word: string | null) => void;
   selectedGuess: { id: string; word: string } | null;
   onGuessSelect: (guess: { id: string; word: string } | null) => void;
 }
 
-const GuessHistoryComponent = ({ 
-  guesses, 
-  maskedLyrics,
-  maskedTitle,
-  maskedArtist,
+const GuessHistoryComponent = ({
+  guesses,
   maskedTitleParts,
   maskedArtistParts,
   maskedLyricsParts,
@@ -36,63 +30,60 @@ const GuessHistoryComponent = ({
   onGuessSelect
 }: GuessHistoryProps) => {
   const [hideZeroHits, setHideZeroHits] = useState(false);
-  
-  // Count hits for each guess using the utility
+
   const guessHits = calculateGuessHits({
     guesses,
-    maskedLyrics,
-    maskedTitle,
-    maskedArtist,
     maskedTitleParts,
     maskedArtistParts,
     maskedLyricsParts,
   });
 
-  // Filter and sort guesses
   const filteredGuesses = [...guessHits]
     .reverse()
     .filter(g => !hideZeroHits || g.hits >= 1);
 
   return (
-    <div data-testid="guess-history">
-      {filteredGuesses.length > 0 && (
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={() => setHideZeroHits(!hideZeroHits)}
-          className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-            "border transition-all duration-200",
-            hideZeroHits
-              ? "bg-primary/10 border-primary/30 text-primary-dark hover:bg-primary/15"
-              : "bg-transparent border-border text-primary-muted hover:border-primary/30 hover:text-primary-dark"
-          )}
-        >
-          {hideZeroHits ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-          {hideZeroHits ? "Show all guesses" : "Hide no-hit guesses"}
-        </button>
-      </div>
+    <div data-testid="guess-history" className="flex flex-col gap-3 min-h-0">
+      {guessHits.length > 0 && (
+        <div className="flex items-center justify-between">
+          <span className="font-sans text-[11px] tracking-[0.14em] uppercase text-rtfl-ink-2">
+            {guessHits.length} {guessHits.length === 1 ? 'guess' : 'guesses'}
+          </span>
+          <button
+            type="button"
+            onClick={() => setHideZeroHits(v => !v)}
+            className={cn(
+              "font-sans text-[11px] rounded-full px-[10px] py-1 border transition-colors duration-150",
+              hideZeroHits
+                ? "bg-rtfl-accent-bg border-rtfl-accent-line text-rtfl-accent-ink"
+                : "bg-transparent border-rtfl-line text-rtfl-ink-2"
+            )}
+          >
+            {hideZeroHits ? "showing hits" : "hide misses"}
+          </button>
+        </div>
       )}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-[6px] content-start overflow-y-auto max-h-[300px] pr-[2px]">
         {filteredGuesses.map((g) => {
-          const index = guesses.findIndex(guess => guess.id === g.id);
           const color = getWordColorDeterministic(g.word);
           const isSelected = g.id === selectedGuess?.id;
-          
+
           return (
-            <div
+            <button
               key={g.id}
-              className={cn(
-                "group inline-flex items-center gap-1 text-sm transition-all duration-200",
-                "px-2 py-1 rounded-md cursor-pointer",
-                g.valid 
-                  ? cn(
-                      "bg-primary-muted/5 hover:bg-primary-muted/10",
-                      isSelected && "bg-primary-muted/20",
-                      color.text
-                    )
-                  : "text-accent-error/50 line-through bg-accent-error/5"
-              )}
+              type="button"
+              className="inline-flex items-baseline gap-[5px] px-[9px] py-[4px] rounded-[7px] font-mono text-[12.5px] transition-[background,box-shadow] duration-150 cursor-pointer"
+              style={{
+                background: !g.valid
+                  ? 'rgba(255,255,255,.028)'
+                  : isSelected
+                    ? `${color}2e`
+                    : 'rgba(255,255,255,.045)',
+                color: g.valid ? color : '#7a818d',
+                textDecoration: g.valid ? 'none' : 'line-through',
+                boxShadow: g.valid && isSelected ? `inset 0 0 0 1px ${color}80` : 'none',
+              }}
               onClick={() => {
                 if (g.valid) {
                   onGuessSelect(isSelected ? null : { id: g.id, word: g.word });
@@ -100,29 +91,26 @@ const GuessHistoryComponent = ({
                 }
               }}
               onMouseEnter={() => {
-                if (!isSelected) {
-                  onWordHover(g.word);
-                }
+                if (g.valid && !selectedGuess) onWordHover(g.word);
               }}
               onMouseLeave={() => {
-                if (!isSelected) {
-                  onWordHover(null);
-                }
+                if (g.valid && !selectedGuess) onWordHover(null);
               }}
             >
-              <span className="font-medium">{g.word}</span>
-              {g.valid && (
-                <span className={cn(
-                  "text-xs opacity-70 group-hover:opacity-100 transition-opacity duration-200",
-                  color.text
-                )}>
-                  ×{g.hits}
-                </span>
+              <span>{g.word}</span>
+              {g.valid && g.hits > 0 && (
+                <span style={{ opacity: 0.72 }} className="text-[10.5px]">×{g.hits}</span>
               )}
-            </div>
+            </button>
           );
         })}
       </div>
+
+      {guessHits.length === 0 && (
+        <p className="font-sans text-[12px] leading-[1.6] text-rtfl-ink-3 m-0">
+          Your guesses collect here. Hover one to light up every place it appears.
+        </p>
+      )}
     </div>
   );
 };
