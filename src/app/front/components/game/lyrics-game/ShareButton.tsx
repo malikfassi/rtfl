@@ -1,236 +1,140 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { toPng } from 'html-to-image';
 import { cn } from '@/app/front/lib/utils';
+import { getWordColorDeterministic } from '@/app/front/lib/utils/color-management';
 import type { ShareButtonProps } from './types';
 
-export const ShareButton = ({ 
-  gameStats, 
-  songInfo, 
+export const ShareButton = ({
+  wordsFound,
+  guessesUsed,
+  bestWordHits,
+  overallPercent,
+  segments,
+  total,
   date,
-  className 
+  dayNumber,
+  className,
 }: ShareButtonProps) => {
-  const [isSharing, setIsSharing] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [customShareText, setCustomShareText] = useState('');
+  const [open, setOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  const generateShareText = () => {
-    const accuracy = gameStats.accuracy;
-    const totalGuesses = gameStats.totalGuesses;
-    const correctGuesses = gameStats.correctGuesses;
-    
-    // Create engaging callout based on performance
-    let callout = '';
-    if (accuracy >= 90) {
-      callout = `🏆 Just crushed today's lyrics game! Think you can beat my score?`;
-    } else if (accuracy >= 75) {
-      callout = `🎯 Had a great time with today's lyrics challenge! Want to try?`;
-    } else if (accuracy >= 50) {
-      callout = `🎵 Just played today's lyrics game! It's tougher than it looks!`;
-    } else {
-      callout = `🎵 Tried today's lyrics game! Could use some help from music lovers!`;
-    }
-    
-    let text = `${callout}\n\n`;
-    text += `📊 My stats: ${correctGuesses}/${totalGuesses} (${accuracy}% accuracy)\n`;
-    
-    if (songInfo.title && songInfo.artist) {
-      text += `🎤 Song: ${songInfo.title} by ${songInfo.artist}\n`;
-    } else {
-      text += `🎤 Still guessing the song...\n`;
-    }
-    
-    text += `\n🎮 Challenge yourself at: ${window.location.origin}`;
-    
-    return text;
-  };
+  // The win strip that renders this button carries `animate-rtfl-rise`. A
+  // transform animation - even one whose final value is `none` - makes its
+  // element the containing block for `position: fixed` descendants, which
+  // collapsed the overlay to the strip's own box. Portalling to <body>
+  // takes the overlay out of that subtree entirely.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  const getPerformanceEmoji = () => {
-    const accuracy = gameStats.accuracy;
-    if (accuracy >= 90) return '🏆';
-    if (accuracy >= 75) return '🎯';
-    if (accuracy >= 50) return '👍';
-    return '💪';
-  };
+  const remainder = Math.max(0, total - segments.reduce((sum, s) => sum + s.hits, 0));
+  const gameUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
-  const getPerformanceMessage = () => {
-    const accuracy = gameStats.accuracy;
-    if (accuracy >= 90) return 'Legendary! Challenge your friends to beat this!';
-    if (accuracy >= 75) return 'Great job! Share this fun challenge!';
-    if (accuracy >= 50) return 'Not bad! Invite friends to try!';
-    return 'Keep trying! Share with music lovers!';
-  };
-
-  const getSocialCTA = () => {
-    const accuracy = gameStats.accuracy;
-    if (accuracy >= 90) return '🏆 Challenge your friends to beat this score!';
-    if (accuracy >= 75) return '🎯 Invite friends to try this fun game!';
-    if (accuracy >= 50) return '🎵 Share this daily challenge!';
-    return '💪 Get your friends to help you improve!';
-  };
-
-  const handleShare = async () => {
-    setIsSharing(true);
-    
+  const handleDownload = async () => {
+    if (!cardRef.current) return;
+    setIsDownloading(true);
     try {
-      const shareText = customShareText || generateShareText();
-      
-      // Try native sharing first
-      if (navigator.share) {
-        await navigator.share({
-          title: `Lyrics Game ${date}`,
-          text: shareText,
-          url: window.location.origin
-        });
-      } else {
-        // Fallback to clipboard
-        await navigator.clipboard.writeText(shareText);
-        
-        // Show success message (you could add a toast here)
-        alert('Game results copied to clipboard!');
-      }
-    } catch (error) {
-      console.error('Failed to share:', error);
-      // Fallback to clipboard if sharing fails
-      try {
-        await navigator.clipboard.writeText(customShareText || generateShareText());
-        alert('Game results copied to clipboard!');
-      } catch (clipboardError) {
-        console.error('Failed to copy to clipboard:', clipboardError);
-        alert('Failed to share game results');
-      }
+      const dataUrl = await toPng(cardRef.current, { pixelRatio: 2 });
+      const link = document.createElement('a');
+      link.download = `rtfl-day-${dayNumber}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Failed to generate share image:', err);
     } finally {
-      setIsSharing(false);
-      setShowPopup(false);
+      setIsDownloading(false);
     }
   };
 
-  const handleTwitterShare = () => {
-    const text = customShareText || generateShareText();
-    const url = encodeURIComponent(window.location.origin);
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
-    window.open(twitterUrl, '_blank');
-    setShowPopup(false);
-  };
-
-  const handleFacebookShare = () => {
-    const url = encodeURIComponent(window.location.origin);
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-    window.open(facebookUrl, '_blank');
-    setShowPopup(false);
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(gameUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
   };
 
   return (
-    <div className={cn("space-y-3", className)}>
-      {/* Main Share Button - Flat design with just share icon */}
-      <div className="input-container">
-        <button
-          onClick={() => setShowPopup(true)}
-          disabled={isSharing}
-          className={cn(
-            "w-full px-4 py-3 border-0 rounded-xl bg-card text-foreground shadow-sm focus:outline-none focus:ring-2 ring-1 ring-primary/20 focus:ring-primary/40 transition-all duration-200 text-base font-medium flex items-center justify-center",
-            isSharing && "opacity-50 cursor-not-allowed",
-            "guess-field-share"
-          )}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-          </svg>
-        </button>
-      </div>
+    <div className={cn("flex flex-col gap-3", className)}>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-[9px] px-[18px] py-[11px] max-sm:w-full max-sm:justify-center rounded-[9px] border border-[#3a3160] bg-rtfl-accent-bg text-rtfl-accent-ink font-sans text-[13px] max-sm:text-[14px] hover:border-rtfl-accent-line transition-colors duration-150"
+      >
+        <span className="text-[12px]">◫</span>Share your grid
+      </button>
 
-      {/* Share Popup */}
-      {showPopup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background border border-border rounded-lg p-6 max-w-md w-full space-y-4 relative">
-            {/* X Button */}
-            <button
-              onClick={() => setShowPopup(false)}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+      {open && mounted && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto" onClick={() => setOpen(false)}>
+          <div className="flex flex-col gap-4 w-full max-w-[880px] my-auto" onClick={e => e.stopPropagation()}>
+            <div
+              ref={cardRef}
+              className="w-full aspect-video rounded-2xl border border-rtfl-line bg-rtfl-surface p-[44px_48px] max-sm:p-6 flex flex-col justify-between"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            {/* Share Text */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-center">Share Your Results</h3>
-              
-              {/* Text to be shared */}
-              <div className="bg-muted/50 rounded-lg p-4 border border-border">
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                  {customShareText || generateShareText()}
-                </div>
+              <div className="flex items-start justify-between gap-5">
+                <span className="font-mono font-bold text-[15px] tracking-[0.12em] text-rtfl-ink">READ THE ******* LYRICS</span>
+                <span className="font-sans text-[13px] text-rtfl-ink-2 whitespace-nowrap">day {dayNumber} · {date}</span>
               </div>
 
-              {/* Share Buttons */}
-              <div className="space-y-3">
-                <button
-                  onClick={handleShare}
-                  disabled={isSharing}
-                  className={cn(
-                    "w-full bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2",
-                    isSharing && "opacity-50 cursor-not-allowed"
-                  )}
-                >
-                  {isSharing ? (
-                    <>
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Sharing...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                      </svg>
-                      Share Results
-                    </>
-                  )}
-                </button>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleTwitterShare}
-                    className="flex-1 bg-[#1DA1F2] text-white hover:bg-[#1DA1F2]/90 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-                    </svg>
-                    Twitter
-                  </button>
-                  
-                  <button
-                    onClick={handleFacebookShare}
-                    className="flex-1 bg-[#4267B2] text-white hover:bg-[#4267B2]/90 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                    </svg>
-                    Facebook
-                  </button>
+              <div className="flex flex-col gap-4">
+                <span className="font-mono font-bold text-[54px] max-sm:text-[36px] leading-none tabular-nums text-rtfl-ink">
+                  {overallPercent}<span className="text-[30px] max-sm:text-[20px] text-rtfl-ink-2">%</span>
+                </span>
+                <div className="flex h-4 rounded-full overflow-hidden bg-rtfl-raised" style={{ gap: 2 }}>
+                  {segments.map(s => (
+                    <div key={s.id} style={{ flexGrow: s.hits, flexBasis: 0, background: getWordColorDeterministic(s.word) }} />
+                  ))}
+                  <div style={{ flexGrow: remainder, flexBasis: 0 }} />
                 </div>
+                <span className="font-sans text-[13px] text-rtfl-ink-2">every band is one guess — width is how much it revealed</span>
+              </div>
+
+              <div className="flex items-end justify-between gap-6 flex-wrap">
+                <div className="flex gap-10">
+                  <span className="flex flex-col gap-[5px]">
+                    <span className="font-mono font-bold text-[22px] tabular-nums text-rtfl-hit">{wordsFound}</span>
+                    <span className="font-sans text-[10px] uppercase tracking-[0.14em] text-rtfl-ink-2">found</span>
+                  </span>
+                  <span className="flex flex-col gap-[5px]">
+                    <span className="font-mono font-bold text-[22px] tabular-nums text-rtfl-ink">{guessesUsed}</span>
+                    <span className="font-sans text-[10px] uppercase tracking-[0.14em] text-rtfl-ink-2">guesses</span>
+                  </span>
+                  <span className="flex flex-col gap-[5px]">
+                    <span className="font-mono font-bold text-[22px] tabular-nums text-rtfl-ink">{bestWordHits}</span>
+                    <span className="font-sans text-[10px] uppercase tracking-[0.14em] text-rtfl-ink-2">best word</span>
+                  </span>
+                </div>
+                <span className="font-sans text-[13px] text-rtfl-ink-3">rtfl.game</span>
               </div>
             </div>
+
+            <div className="flex gap-[10px] flex-wrap">
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="px-[18px] py-[11px] rounded-[9px] border border-rtfl-accent-line bg-rtfl-accent-bg text-rtfl-accent-ink font-sans text-[13px] disabled:opacity-60"
+              >
+                {isDownloading ? 'Generating…' : 'Download PNG'}
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="px-[18px] py-[11px] rounded-[9px] border border-rtfl-line text-rtfl-ink-2 font-sans text-[13px] hover:text-rtfl-ink hover:border-[#3a4150]"
+              >
+                {copied ? 'Copied!' : 'Copy link'}
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-
-
-
-      {/* Quick Stats Display (outside popup) */}
-      <div className="bg-muted/50 rounded-lg p-3 text-center">
-        <div className="text-xs text-muted-foreground mb-1">Your Score</div>
-        <div className="font-mono text-lg font-bold text-foreground">
-          {gameStats.correctGuesses}/{gameStats.totalGuesses}
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {gameStats.accuracy}% accuracy
-        </div>
-      </div>
     </div>
   );
-}; 
+};
