@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { handleError } from '@/app/api/lib/utils/error-handler';
 import { createGameStateService } from '@/app/api/lib/services/game-state';
 import { validateSchema, schemas } from '@/app/api/lib/validation';
+import { requirePlayerId } from '@/app/api/lib/utils/request';
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
@@ -71,7 +72,7 @@ export const GET = async (request: NextRequest, context: { params: Promise<{ dat
         await prisma.$disconnect();
         return NextResponse.json({ error: "Failed to create or find rickroll game or song" }, { status: 500 });
       }
-      const userId = request.headers.get('x-user-id')!;
+      const userId = requirePlayerId(request);
       const gameStateService = createGameStateService(prisma);
       const result = await gameStateService.getGameState('2099-12-31', userId);
       if (!result) {
@@ -93,7 +94,7 @@ export const GET = async (request: NextRequest, context: { params: Promise<{ dat
       );
     }
     
-    const userId = request.headers.get('x-user-id')!;
+    const userId = requirePlayerId(request);
     const gameStateService = createGameStateService(prisma);
     const result = await gameStateService.getGameState(validatedDate, userId);
     

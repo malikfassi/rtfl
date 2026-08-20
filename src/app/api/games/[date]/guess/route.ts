@@ -3,6 +3,7 @@ import { handleError } from '@/app/api/lib/utils/error-handler';
 import { GuessService } from '@/app/api/lib/services/guess';
 import { GameStateService } from '@/app/api/lib/services/game-state';
 import { validateSchema, schemas } from '@/app/api/lib/validation';
+import { requirePlayerId } from '@/app/api/lib/utils/request';
 import { PrismaClient } from '@prisma/client';
 
 export async function POST(request: Request, { params }: { params: Promise<{ date: string }> }) {
@@ -17,7 +18,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ dat
       validatedDate = validateSchema(schemas.date, date);
     }
     
-    const userId = request.headers.get('x-user-id')!;
+    const userId = requirePlayerId(request);
     
     const body = await request.json();
     validateSchema(schemas.guessRequest, body);
