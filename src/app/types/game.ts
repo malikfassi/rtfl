@@ -44,6 +44,7 @@ export interface FrontendGameState {
   currentGame: GameState | null | undefined;
   isGameLoading: boolean;
   gameError: Error | null;
+  refetchGame: () => void;
   isGameComplete: boolean;
   lyricsProgressData: { found: number; total: number };
   titleProgressData: { found: number; total: number };
@@ -55,7 +56,6 @@ export interface FrontendGameState {
   maskedTitleParts: Token[] | undefined;
   maskedArtistParts: Token[] | undefined;
   maskedLyricsParts: Token[] | undefined;
-  guessSegments: Array<{ id: string; hits: number; colorIndex: number }>;
   shareText: string;
   gameUrl: string;
   handleGuess: (guess: string) => Promise<GameState>;

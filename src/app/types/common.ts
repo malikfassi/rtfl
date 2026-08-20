@@ -28,9 +28,4 @@ export interface WordState {
 export type ErrorResponse = { error: string };
 export type SuccessResponse<T> = T;
 
-// Common utility types
-export interface GuessSegment {
-  id: string;
-  hits: number;
-  colorIndex: number;
-} 
+ 

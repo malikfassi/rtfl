@@ -10,27 +10,8 @@ export function useGameLogic({
   const playerId = getOrCreatePlayerId();
 
   // Get game state - only enable the query if we have a valid player ID
-  const { data: currentGame, isLoading: isGameLoading, error: gameError } = useGameState(playerId, date, !!playerId);
+  const { data: currentGame, isLoading: isGameLoading, error: gameError, refetch: refetchGame } = useGameState(playerId, date, !!playerId);
   const guessMutation = useGuess(playerId, date);
-
-  // Calculate segments for each valid guess
-  const guessSegments = (currentGame?.guesses ?? [])
-    ?.filter((g: { valid: boolean }) => g.valid)
-    .map((g: { id: string; valid: boolean; word: string }, index: number) => {
-      const lyricsText = typeof currentGame?.masked?.lyrics === 'string' 
-        ? currentGame.masked.lyrics 
-        : '';
-      const words = Array.from(lyricsText.matchAll(/[a-zA-Z0-9]+/g), (m: RegExpMatchArray) => m[0]) as string[];
-      const hits = words.filter((word: string) => 
-        word.toLowerCase() === g.word.toLowerCase()
-      ).length;
-      return {
-        id: g.id,
-        hits,
-        colorIndex: index % 5 // Using 5 colors from the original component
-      };
-    })
-    .filter((segment: { hits: number }) => segment.hits > 0) || [];
 
   // Calculate found words
   const foundWords: string[] = Array.from(new Set(
@@ -93,6 +74,7 @@ export function useGameLogic({
     currentGame,
     isGameLoading,
     gameError,
+    refetchGame,
     isGameComplete,
     lyricsProgressData,
     titleProgressData,
@@ -104,7 +86,6 @@ export function useGameLogic({
     maskedTitleParts,
     maskedArtistParts,
     maskedLyricsParts,
-    guessSegments,
     shareText,
     gameUrl,
     handleGuess,

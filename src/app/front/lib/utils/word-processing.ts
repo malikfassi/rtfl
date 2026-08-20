@@ -1,5 +1,4 @@
 import type { Token } from '@/app/types';
-import { getWordColorDeterministic } from './color-management';
 
 // Re-export for backward compatibility
 export type { Token };
