@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { ScrambleTitle } from '../ScrambleTitle';
 import { YesterdayStats } from '../YesterdayStats';
@@ -10,24 +10,27 @@ import { getWordColorDeterministic } from '@/app/front/lib/utils/color-managemen
 import { calculateGameProgress } from '@/app/front/lib/utils/progress-calculations';
 import { getDayNumber, isValidDate } from '@/app/front/lib/utils/date-formatting';
 import { cn } from '@/app/front/lib/utils';
+import { useNextGameTimer } from '@/app/front/hooks/useNextGameTimer';
+import { useScrollFog } from '@/app/front/hooks/useScrollFog';
+import { useWordSelection } from '@/app/front/hooks/useWordSelection';
 import type { LyricsGameProps } from './types';
 
-type SelectedGuess = { id: string; word: string } | null;
-
 export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
-  const [selectedGuess, setSelectedGuess] = useState<SelectedGuess>(null);
-  const [highlightedWord, setHighlightedWord] = useState<string | null>(null);
-  const [scrollToWord, setScrollToWord] = useState<string | null>(null);
-  // Bumped alongside scrollToWord so selecting the same word twice still
-  // scrolls - the word alone is an unchanged dependency the second time.
-  const [scrollTick, setScrollTick] = useState(0);
+  const {
+    selectedGuess,
+    scrollToWord,
+    scrollTick,
+    activeWord,
+    hover: handleWordHover,
+    select: handleGuessSelect,
+    reveal: revealGuess,
+  } = useWordSelection();
+
   const [pendingGuess, setPendingGuess] = useState<string | null>(null);
   // Owned here rather than inside PathToVictory: that component unmounts
   // whenever a refetch briefly drops gameState, which would silently close
   // the panel the player just opened.
   const [victoryOpen, setVictoryOpen] = useState(false);
-  const [showTopFog, setShowTopFog] = useState(false);
-  const [showBottomFog, setShowBottomFog] = useState(false);
 
   // The desktop and mobile layouts are both mounted at all times (one is
   // hidden by a `lg:` class), so they need separate refs - sharing one meant
@@ -36,47 +39,7 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
   const desktopScrollRef = useRef<HTMLDivElement>(null);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const scrollContainer = desktopScrollRef.current;
-    if (!scrollContainer) return;
-
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
-      setShowTopFog(scrollTop > 0);
-      setShowBottomFog(scrollTop < scrollHeight - clientHeight - 1);
-    };
-
-    scrollContainer.addEventListener('scroll', handleScroll);
-    const mutationObserver = new MutationObserver(handleScroll);
-    mutationObserver.observe(scrollContainer, { childList: true, subtree: true, characterData: true });
-    handleScroll();
-
-    return () => {
-      scrollContainer.removeEventListener('scroll', handleScroll);
-      mutationObserver.disconnect();
-    };
-  }, []);
-
-  // Esc releases the locked highlight, from anywhere on the page.
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setSelectedGuess(null);
-        setHighlightedWord(null);
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, []);
-
-  const handleWordHover = (word: string | null) => setHighlightedWord(word);
-
-  const handleGuessSelect = (guess: SelectedGuess) => {
-    setSelectedGuess(guess);
-    setScrollToWord(guess?.word ?? null);
-    if (guess) setScrollTick(t => t + 1);
-    if (!guess) setHighlightedWord(null);
-  };
+  const { showTop: showTopFog, showBottom: showBottomFog } = useScrollFog(desktopScrollRef);
 
   // onGuess resolves with the freshly-fetched GameState from the mutation
   // response - using that directly (rather than the parent's gameState,
@@ -91,10 +54,7 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
         .filter(g => g.word.toLowerCase() === guess.toLowerCase() && g.valid)
         .pop();
       if (submittedGuess) {
-        setSelectedGuess({ id: submittedGuess.id, word: submittedGuess.word });
-        setScrollToWord(submittedGuess.word);
-        setScrollTick(t => t + 1);
-        setHighlightedWord(submittedGuess.word);
+        revealGuess({ id: submittedGuess.id, word: submittedGuess.word });
       }
 
       return countTotalHits({
@@ -112,36 +72,15 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
     if (!gameState) return;
     const existingGuess = gameState.guesses.find(g => g.word.toLowerCase() === guess.toLowerCase());
     if (existingGuess) {
-      setSelectedGuess({ id: existingGuess.id, word: existingGuess.word });
-      setScrollToWord(existingGuess.word);
-      setScrollTick(t => t + 1);
-      setHighlightedWord(existingGuess.word);
+      revealGuess({ id: existingGuess.id, word: existingGuess.word });
     }
   };
 
   const isLoading = !gameState;
   const revealed = !!gameState?.song; // gameState.song presence IS the win state
   const hasGuessed = (gameState?.guesses.length ?? 0) > 0;
-  const activeWord = selectedGuess?.word ?? highlightedWord;
   const dayNumber = getDayNumber(date);
-
-  const [nextGameTimer, setNextGameTimer] = useState('00:00:00');
-  useEffect(() => {
-    const updateTimer = () => {
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      const diff = tomorrow.getTime() - now.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      setNextGameTimer(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-    };
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const nextGameTimer = useNextGameTimer();
 
   const validGuesses = gameState?.guesses.filter(g => g.valid) ?? [];
   const foundWordsAll = Array.from(new Set(validGuesses.map(g => g.word.toLowerCase())));
