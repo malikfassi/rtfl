@@ -87,11 +87,13 @@ export function LyricsGameWrapper({ date }: LyricsGameWrapperProps) {
   }
 
   return (
-    <LyricsGame
-      gameState={currentGame ?? null}
-      onGuess={handleGuess}
-      date={date}
-      playerId={playerId}
-    />
+    <div className="h-screen overflow-hidden">
+      <LyricsGame
+        gameState={currentGame ?? null}
+        onGuess={handleGuess}
+        date={date}
+        playerId={playerId}
+      />
+    </div>
   );
 }

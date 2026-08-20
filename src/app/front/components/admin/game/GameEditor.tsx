@@ -201,7 +201,9 @@ export function GameEditor({
       )}
 
       {mode === 'preview' && (
-        <div className="relative">
+        // Explicit height: LyricsGame fills its container, and this preview
+        // is embedded rather than owning the viewport.
+        <div className="relative h-[720px]">
           <LyricsGame
             date={previewDate}
             gameState={previewGameState ?? null}
