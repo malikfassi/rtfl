@@ -1,5 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// The suite runs on PLAYWRIGHT_PORT, defaulting to 3000. Make it explicit when
+// another dev server already holds 3000: `reuseExistingServer` would otherwise
+// adopt that unrelated server and run global setup - a full database wipe and
+// reseed - straight through it.
+const port = process.env.PLAYWRIGHT_PORT || '3000';
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${port}`;
+
+// global-setup.ts reads PLAYWRIGHT_BASE_URL to decide where to seed. Pin it
+// here so the two halves can never disagree about which server they mean.
+process.env.PLAYWRIGHT_BASE_URL = baseURL;
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -9,7 +20,7 @@ export default defineConfig({
   reporter: 'html',
   globalSetup: './tests/global-setup.ts',
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
   },
   projects: [
@@ -20,7 +31,10 @@ export default defineConfig({
   ],
   webServer: {
     command: 'node scripts/start-test-server.cjs',
-    url: 'http://localhost:3000',
+    url: baseURL,
+    // next dev reads PORT; start-test-server.cjs loads .env.test with dotenv,
+    // which never overwrites an already-set variable, so this survives.
+    env: { ...(process.env as Record<string, string>), PORT: port },
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
     stdout: 'pipe',
