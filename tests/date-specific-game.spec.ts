@@ -30,8 +30,10 @@ test.describe('Date-Specific Game Pages', () => {
       await expect(page).toHaveURL(`/${YESTERDAY}`);
       await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
 
-      // Should show the date (ScrambleTitle renders the raw ISO date string)
-      await expect(page.locator('[data-testid="date-display"]')).toContainText(YESTERDAY);
+      // Should show the date. The header renders it as a permanent archive
+      // link, in a desktop and a mobile variant - `:visible` picks whichever
+      // one this viewport shows.
+      await expect(page.locator('[data-testid="date-display"]:visible')).toContainText(YESTERDAY);
 
       // testplayer01 has a recorded guess for this date - guess-history
       // renders at zero size when empty, so this only becomes visible once
@@ -74,10 +76,10 @@ test.describe('Date-Specific Game Pages', () => {
       // Should redirect to rickroll page
       await expect(page).toHaveURL('/rickroll');
 
-      // Should show rickroll content. There are two h1s on this page (the
-      // rickroll banner and the game's own scrambled title) - scope to the
-      // banner specifically.
-      await expect(page.getByRole('heading', { name: '🎵' })).toBeVisible();
+      // Should show rickroll content. The banner used to be a second h1
+      // competing with the game's own wordmark; the redesign demoted it to a
+      // plain span, so match it by text rather than by heading role.
+      await expect(page.getByText('🎵')).toBeVisible();
       await expect(page.getByText('Enjoy this special game!')).toBeVisible();
 
       // The rickroll page still renders a full LyricsGame below the banner
@@ -104,7 +106,7 @@ test.describe('Date-Specific Game Pages', () => {
       // Renders the rickroll fallback game in place (usePlayer's isValidDate check
       // falls back to fetching 'rickroll' data for malformed dates)
       await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
-      await expect(page.locator('[data-testid="masked-lyrics"]')).toBeVisible();
+      await expect(page.locator('[data-testid="masked-lyrics"]:visible')).toBeVisible();
     });
 
     test('should handle malformed date strings', async ({ page }) => {
@@ -136,7 +138,7 @@ test.describe('Date-Specific Game Pages', () => {
       // playerApi.getCurrentGame falls back to the rickroll game on a 404 from the real API.
       await expect(page).toHaveURL(`/${nonExistentDate}`);
       await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
-      await expect(page.locator('[data-testid="masked-lyrics"]')).toBeVisible();
+      await expect(page.locator('[data-testid="masked-lyrics"]:visible')).toBeVisible();
     });
   });
 
@@ -164,8 +166,10 @@ test.describe('Date-Specific Game Pages', () => {
       await page.waitForLoadState('networkidle');
       await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
 
-      // Make a guess - the form submits on Enter, there is no separate submit button
-      const inputField = page.locator('[data-testid="guess-input"]');
+      // Make a guess - the form submits on Enter, there is no separate submit
+      // button. `:visible` because the desktop rail and the mobile bottom bar
+      // are both mounted and each renders its own GuessInput.
+      const inputField = page.locator('[data-testid="guess-input"]:visible');
       await inputField.fill('testguess');
       await inputField.press('Enter');
       await page.waitForTimeout(1000);

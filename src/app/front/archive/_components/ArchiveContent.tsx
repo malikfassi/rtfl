@@ -74,21 +74,23 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
 
   return (
     <div className="h-screen overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex flex-col items-center max-sm:items-stretch">
-      <div className="w-full max-w-[1000px] border border-rtfl-line rounded-[14px] max-sm:rounded-none max-sm:border-none flex flex-col overflow-hidden m-6 max-sm:m-0 flex-1 min-h-0">
+      <div data-testid="archive-container" className="w-full max-w-[1000px] border border-rtfl-line rounded-[14px] max-sm:rounded-none max-sm:border-none flex flex-col overflow-hidden m-6 max-sm:m-0 flex-1 min-h-0">
         <div className="flex items-end justify-between gap-6 px-7 py-5 max-sm:flex-col max-sm:items-start max-sm:gap-3 max-sm:px-5 max-sm:py-[14px] border-b border-rtfl-line-soft bg-rtfl-surface flex-wrap">
           <div className="flex flex-col gap-2">
             <Link href="/" className="font-sans text-[12px] text-rtfl-ink-2 hover:text-rtfl-ink flex items-center gap-[6px]">
               <span className="text-rtfl-ink-3">◀</span>back to today
             </Link>
-            <div className="flex items-baseline gap-[14px]">
-              <Link href={buildArchiveRoute(prevMonth)} aria-label="Previous month" className="text-rtfl-ink-2 hover:text-rtfl-ink text-[13px]">◀</Link>
+            {/* The month line IS the archive's title - the redesign's header
+                has no separate page heading above it. */}
+            <div data-testid="archive-title" className="flex items-baseline gap-[14px]">
+              <Link href={buildArchiveRoute(prevMonth)} data-testid="prev-month" aria-label="Previous month" className="text-rtfl-ink-2 hover:text-rtfl-ink text-[13px]">◀</Link>
               <h2 data-testid="month-display" className="m-0 font-mono font-bold text-[22px] max-sm:text-[18px] tracking-[0.01em]">
                 {format(currentDate, "MMMM yyyy")}
               </h2>
               {canNavigateNext ? (
-                <Link href={buildArchiveRoute(nextMonth)} aria-label="Next month" className="text-rtfl-ink-2 hover:text-rtfl-ink text-[13px]">▶</Link>
+                <Link href={buildArchiveRoute(nextMonth)} data-testid="next-month" aria-label="Next month" className="text-rtfl-ink-2 hover:text-rtfl-ink text-[13px]">▶</Link>
               ) : (
-                <span aria-label="Next month" aria-disabled="true" className="text-rtfl-ink-ghost text-[13px] cursor-default">▶</span>
+                <span data-testid="next-month" aria-label="Next month" aria-disabled="true" className="text-rtfl-ink-ghost text-[13px] cursor-default">▶</span>
               )}
             </div>
           </div>

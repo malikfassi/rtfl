@@ -26,7 +26,7 @@ function dayProgress(game: GameState) {
     .filter(g => g.hits > 0);
   const total = lyricsTokens.filter(t => t.isToGuess).length;
   const solved = !!game.song;
-  return { segments, total, solved };
+  return { segments, total, solved, hasGuesses: validGuesses.length > 0 };
 }
 
 export function CalendarView({ month, games }: CalendarViewProps) {
@@ -58,9 +58,9 @@ export function CalendarView({ month, games }: CalendarViewProps) {
           const isClickable = isCurrentMonth && !isFuture && !!game;
           const today = isToday(day);
 
-          const { segments, total, solved } = game
+          const { segments, total, solved, hasGuesses } = game
             ? dayProgress(game)
-            : { segments: [], total: 0, solved: false };
+            : { segments: [], total: 0, solved: false, hasGuesses: false };
 
           const state = isFuture ? 'future' : today ? 'today' : game ? 'played' : 'not-played';
 
@@ -97,7 +97,14 @@ export function CalendarView({ month, games }: CalendarViewProps) {
           );
 
           return (
-            <div key={dateStr} data-testid={game ? "game-with-guesses" : "game-calendar-day"}>
+            // Three variants, not two: a day with no game at all, a day whose
+            // game this player has guessed on, and one they haven't. The
+            // cell renders the same either way - the split exists so the
+            // archive's state is addressable from the outside.
+            <div
+              key={dateStr}
+              data-testid={!game ? "game-calendar-day" : hasGuesses ? "game-with-guesses" : "game-without-guesses"}
+            >
               {isClickable ? (
                 <Link href={`/${dateStr}`} className="block">{cell}</Link>
               ) : cell}

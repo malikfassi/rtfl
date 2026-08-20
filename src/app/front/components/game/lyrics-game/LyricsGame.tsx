@@ -279,22 +279,25 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
     // h-full, not h-screen: the page owns the viewport lock, so a route can
     // put something (the rickroll banner) above the game without pushing it
     // off-screen.
-    <div className="h-full overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex flex-col items-center max-sm:items-stretch">
+    <div data-testid="game-container" className="h-full overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex flex-col items-center max-sm:items-stretch">
       <div className="w-full max-w-[1320px] border border-rtfl-line rounded-[14px] max-sm:rounded-none max-sm:border-none flex flex-col overflow-hidden m-6 max-sm:m-0 flex-1 min-h-0">
-        <header className="flex items-end justify-between gap-6 px-6 py-[18px] max-sm:px-5 max-sm:py-[12px] max-sm:pb-3 border-b border-rtfl-line-soft bg-rtfl-surface">
+        <header data-testid="game-header" className="flex items-end justify-between gap-6 px-6 py-[18px] max-sm:px-5 max-sm:py-[12px] max-sm:pb-3 border-b border-rtfl-line-soft bg-rtfl-surface">
           <div className="flex flex-col gap-[6px] max-sm:gap-[3px]">
             <ScrambleTitle />
             {isLoading ? (
               <span className="font-sans text-[12px] max-sm:text-[11px] text-rtfl-ink-2">loading today&apos;s song</span>
             ) : (
+              // Both variants carry date-display; exactly one of them is
+              // visible at a time, so a `:visible` selector picks the right
+              // one at any viewport.
               <>
-                <div className="flex items-center gap-[14px] max-sm:hidden">
+                <div data-testid="date-display" className="flex items-center gap-[14px] max-sm:hidden">
                   <Link href="/archive" className="font-sans text-[12px] text-rtfl-ink-2 hover:text-rtfl-ink flex items-center gap-[6px]">
                     <span className="text-rtfl-ink-3">◀</span>{date}
                   </Link>
                   <span className="font-sans text-[12px] text-rtfl-ink-3">day {dayNumber}</span>
                 </div>
-                <Link href="/archive" className="hidden max-sm:block font-sans text-[11px] text-rtfl-ink-3">
+                <Link href="/archive" data-testid="date-display" className="hidden max-sm:block font-sans text-[11px] text-rtfl-ink-3">
                   {date} · day {dayNumber}
                 </Link>
               </>
@@ -335,7 +338,10 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
                 />
               )}
             </div>
-            <div ref={desktopScrollRef} className="relative flex-1 overflow-y-auto px-[56px] pt-[34px] pb-[44px]">
+            {/* The desktop counterpart of the mobile MaskedLyricsDisplay
+                wrapper: this pane is the lyrics surface here, since the
+                title and artist live in their own block above it. */}
+            <div ref={desktopScrollRef} data-testid="masked-lyrics" className="relative flex-1 overflow-y-auto px-[56px] pt-[34px] pb-[44px]">
               <div className={cn("absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-rtfl-bg to-transparent pointer-events-none transition-opacity duration-300", showTopFog ? "opacity-100" : "opacity-0")} />
               <div className={cn("absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-rtfl-bg to-transparent pointer-events-none transition-opacity duration-300", showBottomFog ? "opacity-100" : "opacity-0")} />
               {isLoading ? (

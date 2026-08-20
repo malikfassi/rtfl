@@ -155,5 +155,5 @@ test('should gracefully fall back to the rickroll game for a date with no game',
   // No "not found" message exists - the app falls back to the rickroll game
   // in place, same as any other date it can't find a real game for.
   await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
-  await expect(page.locator('[data-testid="masked-lyrics"]')).toBeVisible();
+  await expect(page.locator('[data-testid="masked-lyrics"]:visible')).toBeVisible();
 });

@@ -50,18 +50,17 @@ test.describe('Archive Page', () => {
       await expect(page.locator('[data-testid="next-month"]')).toBeVisible();
     });
 
-    test('should show work in progress badge', async ({ page }) => {
+    // The "Work in progress" badge and the debug "User ID:" readout were both
+    // deleted by the 2026 redesign - the header now carries three player stats
+    // instead. Those two tests are replaced by one covering what is actually
+    // there.
+    test('should display the header stats', async ({ page }) => {
       await page.waitForLoadState('networkidle');
 
-      await expect(page.locator('[data-testid="wip-badge"]')).toBeVisible();
-      await expect(page.locator('[data-testid="wip-badge"]')).toContainText('Work in progress');
-    });
-
-    test('should display user ID for debugging', async ({ page }) => {
-      await page.waitForLoadState('networkidle');
-
-      await expect(page.locator('[data-testid="user-id-display"]')).toBeVisible();
-      await expect(page.locator('[data-testid="user-id-display"]')).toContainText('User ID:');
+      const header = page.locator('[data-testid="archive-container"]');
+      await expect(header).toContainText('played');
+      await expect(header).toContainText('solved');
+      await expect(header).toContainText('day streak');
     });
   });
 
@@ -153,8 +152,13 @@ test.describe('Archive Page', () => {
       await expect(page).toHaveURL(`/archive/${emptyMonth}`);
       await expect(page.locator('[data-testid="archive-container"]')).toBeVisible();
 
-      // Should show empty state
-      await expect(page.locator('[data-testid="empty-month"]')).toBeVisible();
+      // The redesign has no separate "empty month" state - a month with no
+      // games renders the same grid with every cell in its "not played"
+      // treatment. Assert that instead: the calendar is there and not one
+      // day carries a game.
+      await expect(page.locator('[data-testid="calendar-view"]')).toBeVisible();
+      await expect(page.locator('[data-testid="game-with-guesses"]')).toHaveCount(0);
+      await expect(page.locator('[data-testid="game-without-guesses"]')).toHaveCount(0);
     });
   });
 
@@ -166,10 +170,13 @@ test.describe('Archive Page', () => {
       // game-calendar-day marks days WITHOUT a game - days WITH a game use
       // game-with-guesses or game-without-guesses instead. Count those two
       // together to get the number of seeded games this month.
-      const gameDaysWithGuesses = page.locator('[data-testid="game-with-guesses"]');
-      const gameDaysWithoutGuesses = page.locator('[data-testid="game-without-guesses"]');
-      const total = await gameDaysWithGuesses.count() + await gameDaysWithoutGuesses.count();
-      expect(total).toBe(4); // Today, yesterday, 2 days ago, 3 days ago
+      //
+      // toHaveCount, not `await count()` compared by hand: count() takes a
+      // single snapshot with no auto-retry, so under parallel load it reads
+      // the grid before React Query has resolved the month and sees zero.
+      await expect(
+        page.locator('[data-testid="game-with-guesses"], [data-testid="game-without-guesses"]')
+      ).toHaveCount(4); // Today, yesterday, 2 days ago, 3 days ago
     });
 
     test('should show game status indicators', async ({ page }) => {
@@ -216,7 +223,9 @@ test.describe('Archive Page', () => {
       await page.goto('/archive');
 
       await expect(page.locator('[data-testid="loading-message"]')).toBeVisible();
-      await expect(page.locator('[data-testid="loading-message"]')).toContainText('Loading games...');
+      // A real ellipsis character, not three periods - the redesign sets its
+      // own typography here.
+      await expect(page.locator('[data-testid="loading-message"]')).toContainText('Loading games…');
 
       await page.waitForLoadState('networkidle');
 
