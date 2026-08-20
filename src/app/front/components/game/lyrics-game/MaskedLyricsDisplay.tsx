@@ -1,122 +1,194 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useMemo, useRef, useEffect } from "react";
 import { cn } from "@/app/front/lib/utils";
 import { getWordColorDeterministic } from "@/app/front/lib/utils/color-management";
-import { splitIntoTokens, isWord, isWhitespace } from "@/app/front/lib/utils/word-processing";
+import type { Token, Guess } from "@/app/types";
 
-interface MaskedLyricsDisplayProps {
-  title?: string;
-  artist?: string;
-  lyrics?: string;
-  maskedTitleParts?: Array<{ value: string; isToGuess: boolean }>;
-  maskedArtistParts?: Array<{ value: string; isToGuess: boolean }>;
-  maskedLyricsParts?: Array<{ value: string; isToGuess: boolean }>;
-  highlightedWord?: string | null;
-  scrollToWord?: string | null;
-  showFullLyrics?: boolean;
-  scrollContainerRef?: React.RefObject<HTMLDivElement>;
-  guesses: Array<{ word: string; valid: boolean }>;
-  clickedGuess?: { word: string } | null;
-}
+/** A single guessable token: underscores while masked, plain text once revealed. */
+const WordToken = React.forwardRef<HTMLSpanElement, {
+  token: Token;
+  isActive: boolean;
+  isGranted: boolean;
+  waveDelayMs: number | null;
+}>(({ token, isActive, isGranted, waveDelayMs }, ref) => {
+  const isMasked = /^_+$/.test(token.value);
 
-// WordRenderer component with improved pastel styling
-const WordRenderer = React.forwardRef<HTMLSpanElement, {
-  word: string;
-  isHighlighted: boolean;
-  color?: { bg: string; text: string };
-  isRevealed?: boolean;
-  isGuessed?: boolean;
-}>(({
-  word,
-  isHighlighted,
-  color,
-  isRevealed = false,
-  isGuessed = false
-}, ref) => {
-  // Check if this is an underscore word (masked word)
-  const isUnderscoreWord = /^_+$/.test(word);
-  
-  if (isUnderscoreWord) {
-    // Render each underscore as a separate span for perfect visual separation
+  if (isMasked) {
+    // One span per word, not per underscore character - the run of
+    // underscores is already the right width in a monospace face, and the
+    // padding stays constant across states so highlighting never reflows.
     return (
-      <span className="relative align-baseline font-sans" ref={ref}>
-        {word.split('').map((char, idx) => (
-          <span
-            key={idx}
-            className={cn(
-              "inline-block masked-lyric-word text-base text-muted-foreground/80",
-              isHighlighted && cn(
-                "transition-all duration-200",
-                color ? `${color.bg} ${color.text}` : "bg-primary-muted/20"
-              )
-            )}
-            style={{ 
-              fontWeight: 'inherit', 
-              fontSize: 'inherit', 
-              padding: 0,
-              fontFamily: 'inherit',
-              letterSpacing: 'inherit'
-            }}
-          >
-            _
-          </span>
-        ))}
+      <span
+        ref={ref}
+        className="inline-block align-baseline rounded-[4px] text-rtfl-ink-3"
+        style={{ padding: "1px 3px" }}
+      >
+        {token.value}
       </span>
     );
   }
+
+  const color = getWordColorDeterministic(token.value);
 
   return (
     <span
       ref={ref}
       className={cn(
-        "relative text-base align-baseline",
-        "inline-block transition-none tracking-wide font-sans",
-        // Different styling based on state
-        isRevealed && !isGuessed 
-          ? "text-muted-foreground/40" // Revealed but not guessed - dimmed
-          : isGuessed 
-            ? "text-foreground" // Guessed - normal color
-            : "text-muted-foreground/80", // Default masked state
-        isHighlighted && cn(
-          "transition-all duration-200 rounded-md px-2 py-1",
-          color ? `${color.bg} ${color.text}` : "bg-primary-muted/20"
-        )
+        "inline-block align-baseline rounded-[4px] transition-[background-color,color] duration-150",
+        isGranted ? "text-rtfl-ink-3" : "text-rtfl-ink",
+        waveDelayMs !== null && "animate-rtfl-wave"
       )}
-      style={{ 
-        fontWeight: 'inherit', 
-        fontSize: 'inherit', 
-        padding: 0,
-        fontFamily: 'inherit',
-        letterSpacing: 'inherit'
+      style={{
+        padding: "1px 3px",
+        background: isActive ? color : "transparent",
+        color: isActive ? "#0f1115" : undefined,
+        animationDelay: waveDelayMs !== null ? `${waveDelayMs}ms` : undefined,
       }}
     >
-      {word}
+      {token.value}
     </span>
   );
 });
+WordToken.displayName = "WordToken";
 
-WordRenderer.displayName = 'WordRenderer';
+function useIdentity(guesses: Guess[]) {
+  return useMemo(
+    () => new Set(guesses.filter(g => g.valid).map(g => g.word.toLowerCase())),
+    [guesses]
+  );
+}
 
-export function MaskedLyricsDisplay({
-  title,
-  artist,
-  lyrics,
-  maskedTitleParts,
-  maskedArtistParts,
-  maskedLyricsParts,
-  highlightedWord,
-  scrollToWord,
-  showFullLyrics = false,
-  scrollContainerRef,
-  guesses,
-  clickedGuess
-}: MaskedLyricsDisplayProps) {
-  // Ref for scrolling to first match of scrollToWord
+/** Splits a flat token stream into stanzas of lines, dropping newline tokens
+ * (they become structural gaps, not literal text) and keeping every other
+ * verbatim token — spaces, punctuation — as-is, since it carries the song's
+ * own spacing. Two or more newlines in one whitespace token start a new
+ * stanza; a single newline just starts a new line. */
+function groupIntoStanzas(tokens: Token[]): Token[][][] {
+  const stanzas: Token[][][] = [[[]]];
+  for (const token of tokens) {
+    if (!token.isToGuess && token.value.includes("\n")) {
+      const newlineCount = (token.value.match(/\n/g) || []).length;
+      const isStanzaBreak = newlineCount >= 2;
+      if (isStanzaBreak) {
+        stanzas.push([[]]);
+      } else {
+        stanzas[stanzas.length - 1].push([]);
+      }
+      continue;
+    }
+    const stanza = stanzas[stanzas.length - 1];
+    stanza[stanza.length - 1].push(token);
+  }
+  return stanzas;
+}
+
+interface TokenRunProps {
+  tokens: Token[];
+  guesses: Guess[];
+  activeWord: string | null;
+  revealed: boolean;
+  scrollToWord?: string | null;
+  scrollRef?: React.RefObject<HTMLSpanElement>;
+  waveIndexRef: { current: number };
+  keyPrefix: string;
+}
+
+function useTokenRenderer({ guesses, activeWord, revealed, scrollToWord, scrollRef, waveIndexRef }: Omit<TokenRunProps, 'tokens' | 'keyPrefix'>) {
+  const foundWords = useIdentity(guesses);
+  // Reset every render: only the first matching token of the *current* pass
+  // gets the scroll ref. Left latched, it would pin the ref to whichever
+  // word happened to match first and never move again.
+  const scrollClaimedRef = useRef(false);
+  scrollClaimedRef.current = false;
+
+  function renderToken(token: Token, key: React.Key) {
+    if (!token.isToGuess) {
+      return <React.Fragment key={key}>{token.value}</React.Fragment>;
+    }
+
+    const isMasked = /^_+$/.test(token.value);
+    const isActive = !isMasked && activeWord !== null && token.value.toLowerCase() === activeWord;
+    const isGranted = !isMasked && revealed && !foundWords.has(token.value.toLowerCase());
+
+    let ref: React.RefObject<HTMLSpanElement> | undefined;
+    if (!isMasked && !scrollClaimedRef.current && scrollRef && scrollToWord && token.value.toLowerCase() === scrollToWord.toLowerCase()) {
+      ref = scrollRef;
+      scrollClaimedRef.current = true;
+    }
+
+    const waveDelayMs = isGranted ? waveIndexRef.current * 14 : null;
+    if (isGranted) waveIndexRef.current += 1;
+
+    return (
+      <WordToken
+        key={key}
+        token={token}
+        isActive={isActive}
+        isGranted={isGranted}
+        waveDelayMs={waveDelayMs}
+        ref={ref}
+      />
+    );
+  }
+
+  return renderToken;
+}
+
+interface MaskedTitleArtistProps {
+  maskedTitleParts: Token[];
+  maskedArtistParts: Token[];
+  highlightedWord?: string | null;
+  guesses: Guess[];
+  revealed: boolean;
+}
+
+/** The non-scrolling title/artist header block (desktop's own region above the lyrics pane). */
+export function MaskedTitleArtist({ maskedTitleParts, maskedArtistParts, highlightedWord, guesses, revealed }: MaskedTitleArtistProps) {
+  const waveIndexRef = useRef(0);
+  waveIndexRef.current = 0;
+  const activeWord = highlightedWord?.toLowerCase() ?? null;
+  const renderToken = useTokenRenderer({ guesses, activeWord, revealed, waveIndexRef });
+
+  return (
+    <div className="flex flex-col gap-[10px]">
+      <div className="flex flex-wrap items-baseline gap-0 font-mono font-bold text-[30px] max-sm:text-[21px] leading-[1.5]">
+        {maskedTitleParts.map((t, i) => renderToken(t, `title-${i}`))}
+      </div>
+      <div className="flex flex-wrap items-baseline gap-0 text-[15px] max-sm:text-[13px] leading-[1.6]">
+        <span className="font-sans text-rtfl-ink-3 mr-[0.42em]">by</span>
+        {maskedArtistParts.map((t, i) => renderToken(t, `artist-${i}`))}
+      </div>
+    </div>
+  );
+}
+
+interface MaskedLyricsBodyProps {
+  maskedLyricsParts: Token[];
+  highlightedWord?: string | null;
+  scrollToWord?: string | null;
+  /** Bumped on every selection so re-selecting the same word scrolls again. */
+  scrollTick?: number;
+  scrollContainerRef?: React.RefObject<HTMLDivElement>;
+  guesses: Guess[];
+  revealed: boolean;
+}
+
+/** The scrolling lyrics pane. */
+export function MaskedLyricsBody({ maskedLyricsParts, highlightedWord, scrollToWord, scrollTick, scrollContainerRef, guesses, revealed }: MaskedLyricsBodyProps) {
   const firstScrollToWordRef = useRef<HTMLSpanElement | null>(null);
-  let foundFirstScrollToWord = false;
+  const waveIndexRef = useRef(0);
+  waveIndexRef.current = 0;
+  const activeWord = highlightedWord?.toLowerCase() ?? null;
+  const renderToken = useTokenRenderer({
+    guesses,
+    activeWord,
+    revealed,
+    scrollToWord,
+    scrollRef: firstScrollToWordRef,
+    waveIndexRef,
+  });
 
-  // Scroll when scrollToWord changes
   useEffect(() => {
     if (firstScrollToWordRef.current && scrollToWord && scrollContainerRef?.current) {
       const wordEl = firstScrollToWordRef.current;
@@ -124,164 +196,71 @@ export function MaskedLyricsDisplay({
       const wordRect = wordEl.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
       const offset = wordRect.top - containerRect.top - (containerRect.height / 2) + (wordRect.height / 2);
-      container.scrollBy({ top: offset, behavior: 'smooth' });
+      container.scrollBy({ top: offset, behavior: "smooth" });
     }
-  }, [scrollToWord, scrollContainerRef]);
+    // scrollTick changes on every selection, so re-picking the word that is
+    // already selected still scrolls back to it.
+  }, [scrollToWord, scrollTick, scrollContainerRef]);
 
-  // Determine what to display based on showFullLyrics
-  const displayTitle = showFullLyrics && title ? title : null;
-  const displayArtist = showFullLyrics && artist ? artist : null;
-  const displayLyrics = showFullLyrics && lyrics ? lyrics : null;
-
-  // Helper function to determine if a word is highlighted (clicked guess or hovered)
-  const isWordHighlighted = (word: string): boolean => {
-    return clickedGuess?.word.toLowerCase() === word.toLowerCase() || 
-           highlightedWord?.toLowerCase() === word.toLowerCase() || 
-           false;
-  };
-
-  const renderTitleAndArtist = () => {
-    // Use masked parts if available, otherwise fall back to display text
-    const titleParts = maskedTitleParts || (displayTitle ? displayTitle.split(' ').map(word => ({ value: word, isToGuess: true })) : []);
-    const artistParts = maskedArtistParts || (displayArtist ? displayArtist.split(' ').map(word => ({ value: word, isToGuess: true })) : []);
-    
-    // Filter out non-word tokens (spaces, punctuation) for title and artist
-    const filteredTitleParts = titleParts.filter(part => isWord(part.value));
-    const filteredArtistParts = artistParts.filter(part => isWord(part.value));
-    
-    foundFirstScrollToWord = false; // Reset for each render
-    
-    return (
-      <div className="text-xl sm:text-2xl font-bold tracking-wide mb-8">
-        <div className="mb-2">
-          <div>
-            {filteredTitleParts.map((part, i) => {
-              const isScrollToWord = scrollToWord && part.value.toLowerCase() === scrollToWord.toLowerCase();
-              const isGuessed = guesses.some(g => g.valid && g.word.toLowerCase() === part.value.toLowerCase());
-              const color = isGuessed ? getWordColorDeterministic(part.value) : undefined;
-              let ref = undefined;
-              if (isScrollToWord && !foundFirstScrollToWord) {
-                ref = firstScrollToWordRef;
-                foundFirstScrollToWord = true;
-              }
-              
-              // Determine what word to display based on isToGuess and showFullLyrics
-              const shouldShowWord = !part.isToGuess || showFullLyrics || color;
-              const wordToDisplay = shouldShowWord ? part.value : '_'.repeat(part.value.length);
-              const isRevealed = showFullLyrics && part.isToGuess;
-              
-              return (
-                <React.Fragment key={`title-${i}`}>
-                    <WordRenderer
-                      word={wordToDisplay}
-                      isHighlighted={isWordHighlighted(part.value)}
-                      color={color}
-                      isRevealed={isRevealed}
-                      isGuessed={isGuessed}
-                      ref={ref}
-                    />
-                  {i < filteredTitleParts.length - 1 ? ' ' : ''}
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 text-lg sm:text-xl">
-          <span className="text-primary-muted font-normal">by</span>
-          {filteredArtistParts.map((part, i) => {
-            const isScrollToWord = scrollToWord && part.value.toLowerCase() === scrollToWord.toLowerCase();
-            const isArtistGuessed = guesses.some(g => g.valid && g.word.toLowerCase() === part.value.toLowerCase());
-            const color = isArtistGuessed ? getWordColorDeterministic(part.value) : undefined;
-            let ref = undefined;
-            if (isScrollToWord && !foundFirstScrollToWord) {
-              ref = firstScrollToWordRef;
-              foundFirstScrollToWord = true;
-            }
-            
-            // Determine what word to display based on isToGuess and showFullLyrics
-            const shouldShowWord = !part.isToGuess || showFullLyrics || color;
-            const wordToDisplay = shouldShowWord ? part.value : '_'.repeat(part.value.length);
-            const isRevealed = showFullLyrics && part.isToGuess;
-            const isGuessed = !!color;
-            
-            return (
-              <React.Fragment key={`artist-${i}`}>
-                  <WordRenderer
-                    word={wordToDisplay}
-                    isHighlighted={isWordHighlighted(part.value)}
-                    color={color}
-                    isRevealed={isRevealed}
-                    isGuessed={isGuessed}
-                    ref={ref}
-                  />
-                {i < filteredArtistParts.length - 1 ? ' ' : ''}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  const renderLyrics = () => {
-    // Use masked parts if available, otherwise fall back to display text
-    const lyricsParts = maskedLyricsParts || (displayLyrics ? splitIntoTokens(displayLyrics) : []);
-    
-    return (
-      <div className="space-y-4">
-        {lyricsParts.map((token, index) => {
-          const tokenValue = typeof token === 'string' ? token : token.value;
-          const isToGuess = typeof token === 'string' ? true : token.isToGuess;
-          
-          if (isWhitespace(tokenValue)) {
-            // Preserve newlines by rendering them as line breaks
-            if (tokenValue.includes('\n')) {
-              return <br key={index} />;
-            }
-            // Render spaces as plain text without span wrapper
-            return <React.Fragment key={index}>{tokenValue}</React.Fragment>;
-          }
-          
-          if (isWord(tokenValue)) {
-            const isScrollToWord = scrollToWord && tokenValue.toLowerCase() === scrollToWord.toLowerCase();
-            const isLyricsGuessed = guesses.some(g => g.valid && g.word.toLowerCase() === tokenValue.toLowerCase());
-            const color = isLyricsGuessed ? getWordColorDeterministic(tokenValue) : undefined;
-            let ref = undefined;
-            if (isScrollToWord && !foundFirstScrollToWord) {
-              ref = firstScrollToWordRef;
-              foundFirstScrollToWord = true;
-            }
-            
-            // Determine what word to display based on isToGuess and showFullLyrics
-            const shouldShowWord = !isToGuess || showFullLyrics || color;
-            const wordToDisplay = shouldShowWord ? tokenValue : '_'.repeat(tokenValue.length);
-            const isRevealed = showFullLyrics && isToGuess;
-            
-            return (
-              <WordRenderer
-                key={index}
-                word={wordToDisplay}
-                isHighlighted={isWordHighlighted(tokenValue)}
-                color={color}
-                isRevealed={isRevealed}
-                isGuessed={isLyricsGuessed}
-                ref={ref}
-              />
-            );
-          }
-          
-          return <span key={index}>{tokenValue}</span>;
-        })}
-      </div>
-    );
-  };
+  const stanzas = groupIntoStanzas(maskedLyricsParts);
 
   return (
-    <div data-testid="masked-lyrics" className="space-y-6">
-      {renderTitleAndArtist()}
-      {renderLyrics()}
+    <div className="flex flex-col gap-[26px] max-sm:gap-[20px]">
+      {stanzas.map((lines, sIdx) => (
+        <div key={sIdx} className="flex flex-col gap-[7px]">
+          {lines.map((line, lIdx) => (
+            <div key={lIdx} className="flex flex-wrap items-baseline gap-0 font-mono text-[17px] max-sm:text-[15px] leading-[1.85]">
+              {line.map((t, i) => renderToken(t, `l-${sIdx}-${lIdx}-${i}`))}
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
 
+interface MaskedLyricsDisplayProps {
+  maskedTitleParts: Token[];
+  maskedArtistParts: Token[];
+  maskedLyricsParts: Token[];
+  highlightedWord?: string | null;
+  scrollToWord?: string | null;
+  scrollTick?: number;
+  scrollContainerRef?: React.RefObject<HTMLDivElement>;
+  guesses: Guess[];
+  revealed: boolean;
+}
 
+/** Title + artist + lyrics combined in one flow — mobile's single scrolling pane. */
+export function MaskedLyricsDisplay({
+  maskedTitleParts,
+  maskedArtistParts,
+  maskedLyricsParts,
+  highlightedWord,
+  scrollToWord,
+  scrollTick,
+  scrollContainerRef,
+  guesses,
+  revealed,
+}: MaskedLyricsDisplayProps) {
+  return (
+    <div data-testid="masked-lyrics" className="flex flex-col gap-8">
+      <MaskedTitleArtist
+        maskedTitleParts={maskedTitleParts}
+        maskedArtistParts={maskedArtistParts}
+        highlightedWord={highlightedWord}
+        guesses={guesses}
+        revealed={revealed}
+      />
+      <MaskedLyricsBody
+        maskedLyricsParts={maskedLyricsParts}
+        highlightedWord={highlightedWord}
+        scrollToWord={scrollToWord}
+        scrollTick={scrollTick}
+        scrollContainerRef={scrollContainerRef}
+        guesses={guesses}
+        revealed={revealed}
+      />
+    </div>
+  );
+}
