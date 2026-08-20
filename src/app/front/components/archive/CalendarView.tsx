@@ -12,9 +12,22 @@ import {
   startOfWeek,
   endOfWeek
 } from "date-fns";
+import { cn } from "@/app/front/lib/utils";
 import { parseMonthString } from "@/app/front/lib/utils/date-formatting";
-import type { Token, Guess } from "@/app/types";
+import { calculateGuessHits } from "@/app/front/lib/utils/hit-counting";
+import { getWordColorDeterministic } from "@/app/front/lib/utils/color-management";
+import type { Token, Guess, GameState } from "@/app/types";
 import type { CalendarViewProps } from "@/app/types";
+
+function dayProgress(game: GameState) {
+  const lyricsTokens: Token[] = Array.isArray(game.masked.lyrics) ? game.masked.lyrics : [];
+  const validGuesses = game.guesses.filter((g: Guess) => g.valid);
+  const segments = calculateGuessHits({ guesses: validGuesses, maskedLyricsParts: lyricsTokens })
+    .filter(g => g.hits > 0);
+  const total = lyricsTokens.filter(t => t.isToGuess).length;
+  const solved = !!game.song;
+  return { segments, total, solved };
+}
 
 export function CalendarView({ month, games }: CalendarViewProps) {
   const currentDate = parseMonthString(month);
@@ -27,132 +40,83 @@ export function CalendarView({ month, games }: CalendarViewProps) {
   const gamesMap = new Map(games.map(game => [game.date, game]));
 
   return (
-    <div data-testid="calendar-view" className="rounded-lg bg-white/5 p-4">
-      <div className="grid grid-cols-7 gap-px">
-        {/* Week day headers */}
+    <div data-testid="calendar-view" className="flex flex-col gap-2">
+      <div className="grid grid-cols-7 gap-[6px] mb-1">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-          <div key={day} className="p-2 text-center text-sm text-primary-muted font-medium">
+          <span key={day} className="font-sans text-[10px] uppercase tracking-[0.14em] text-rtfl-ink-3 pl-[2px]">
             {day}
-          </div>
+          </span>
         ))}
+      </div>
 
-        {/* Calendar days */}
+      <div className="grid grid-cols-7 gap-[6px]">
         {days.map(day => {
           const dateStr = format(day, "yyyy-MM-dd");
           const game = gamesMap.get(dateStr);
           const isCurrentMonth = isSameMonth(day, currentDate);
-          const isGameDay = Boolean(game);
           const isFuture = day > new Date();
-          // Progress variables for compact display
-          let progressPercent = 0;
-          let isComplete = false;
-          let lyricsComplete = false;
-          let titleComplete = false;
-          let artistComplete = false;
-          let foundTitle = 0;
-          let foundArtist = 0;
-          let titleHidden: string[] = [];
-          let artistHidden: string[] = [];
-          let titleArtistPct = 0;
-          let hasProgress = false;
-          if (game) {
-            // Calculate lyrics progress using masked parts
-            const lyricsTokens = Array.isArray(game.masked.lyrics) 
-              ? game.masked.lyrics 
-              : [];
-            const hiddenWords = lyricsTokens
-              .filter((token: Token) => token.isToGuess)
-              .map((token: Token) => token.value.toLowerCase());
-            const totalLyrics = hiddenWords.length;
-            const foundWords = Array.from(new Set(
-              game.guesses
-                .filter((g: Guess) => g.valid)
-                .map((g: Guess) => g.word.toLowerCase())
-            ));
-            const foundHiddenWords = hiddenWords.filter((word: string) => foundWords.includes(word));
-            const foundLyrics = foundHiddenWords.length;
-            progressPercent = totalLyrics > 0 ? Math.round((foundLyrics / totalLyrics) * 100) : 0;
-            lyricsComplete = progressPercent >= 80;
-            // Check title/artist completion
-            const titleTokens = Array.isArray(game.masked.title) ? game.masked.title : [];
-            const artistTokens = Array.isArray(game.masked.artist) ? game.masked.artist : [];
-            titleHidden = titleTokens.filter((t: Token) => t.isToGuess).map((t: Token) => t.value.toLowerCase());
-            artistHidden = artistTokens.filter((t: Token) => t.isToGuess).map((t: Token) => t.value.toLowerCase());
-            foundTitle = titleHidden.filter((word: string) => foundWords.includes(word)).length;
-            foundArtist = artistHidden.filter((word: string) => foundWords.includes(word)).length;
-            titleComplete = titleHidden.length > 0 && foundTitle === titleHidden.length;
-            artistComplete = artistHidden.length > 0 && foundArtist === artistHidden.length;
-            isComplete = lyricsComplete || (titleComplete && artistComplete);
-            // For compact display
-            const titleArtistTotal = titleHidden.length + artistHidden.length;
-            const titleArtistFound = foundTitle + foundArtist;
-            titleArtistPct = titleArtistTotal > 0 ? Math.round((titleArtistFound / titleArtistTotal) * 100) : 0;
-            // Only show progress if there is at least 1 guess or progress
-            hasProgress = game.guesses.filter((g: Guess) => g.valid).length > 0 || progressPercent > 0 || titleArtistPct > 0;
-          }
+          const isClickable = isCurrentMonth && !isFuture && !!game;
+          const today = isToday(day);
 
-          // Always clickable if in current month and not in the future
-          const isClickable = isCurrentMonth && !isFuture;
-          // Gold border for victory
-          const dayBorder = isComplete ? 'border-2 border-accent-warning/60 bg-accent-warning/10' : 'border border-primary-muted/20';
+          const { segments, total, solved } = game
+            ? dayProgress(game)
+            : { segments: [], total: 0, solved: false };
+
+          const state = isFuture ? 'future' : today ? 'today' : game ? 'played' : 'not-played';
+
+          const cellClasses = cn(
+            "relative flex flex-col justify-between h-[74px] max-sm:h-[52px] rounded-[9px] p-[9px_10px] max-sm:p-[7px_6px] border transition-colors duration-150",
+            state === 'today' && "bg-rtfl-accent-bg border-rtfl-accent-line",
+            state === 'played' && "border-rtfl-line bg-white/[0.022] hover:bg-white/[0.045]",
+            state === 'not-played' && "border-rtfl-line bg-transparent",
+            state === 'future' && "border-rtfl-line bg-transparent",
+          );
+
+          const numberColor = state === 'future' ? 'text-rtfl-ink-ghost' : state === 'not-played' ? 'text-rtfl-ink-2' : 'text-rtfl-ink';
+
+          const cell = (
+            <div className={cellClasses}>
+              <span className="flex items-center justify-between">
+                <span className={cn("font-mono text-[12.5px] max-sm:text-[11px] tabular-nums", numberColor)}>
+                  {format(day, "d")}
+                </span>
+                {solved && <span className="text-[8px] max-sm:text-[7px] text-rtfl-hit">●</span>}
+              </span>
+              {state !== 'future' && (
+                <span className="flex h-[3px] rounded-full overflow-hidden bg-rtfl-raised" style={{ gap: 1 }}>
+                  {segments.map(s => (
+                    <span
+                      key={s.id}
+                      style={{ flexGrow: s.hits, flexBasis: 0, background: getWordColorDeterministic(s.word) }}
+                    />
+                  ))}
+                  <span style={{ flexGrow: Math.max(0, total - segments.reduce((sum, s) => sum + s.hits, 0)), flexBasis: 0 }} />
+                </span>
+              )}
+            </div>
+          );
 
           return (
-            <div
-              key={dateStr}
-              data-testid={isGameDay ? (hasProgress ? "game-with-guesses" : "game-without-guesses") : "game-calendar-day"}
-              className={`
-                min-h-[80px] sm:min-h-[100px] p-2 sm:p-4 pt-7 relative flex flex-col items-center justify-center rounded-lg transition-all
-                ${isCurrentMonth ? "text-primary" : "text-primary-muted/40"}
-                ${isToday(day) ? "bg-white/5" : ""}
-                ${isGameDay ? "hover:bg-white/5" : ""}
-                ${isFuture ? "opacity-40 pointer-events-none" : ""}
-                ${dayBorder}
-              `}
-            >
-              {/* Day number top left, inside padding */}
-              <div className="absolute top-2 left-2 text-xs font-mono text-primary-muted/70 select-none pointer-events-none">
-                {format(day, "d")}
-              </div>
-              {/* Trophy top right, inside padding */}
-              {isComplete && (
-                <div className="absolute top-2 right-2 text-base sm:text-lg select-none pointer-events-none">
-                  🏆
-                </div>
-              )}
-              {isClickable && (
-                <Link href={`/${dateStr}`} className="absolute inset-0 flex flex-col items-center justify-center">
-                  {game && hasProgress ? (
-                    <div className="flex flex-col items-center justify-center gap-0.5 w-full max-w-full flex-wrap">
-                      <span className={
-                        `inline-flex items-center px-0.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold border whitespace-nowrap ` +
-                        (lyricsComplete ? "bg-indigo-100 text-indigo-700 border-indigo-300" : progressPercent > 0 ? "bg-indigo-50 text-indigo-500 border-indigo-200" : "bg-primary-muted/10 text-primary-muted border-primary-muted/20")
-                      } style={{minWidth: 0, maxWidth: '100%'}}>
-                        <span className="mr-0.5">🎤</span>{progressPercent}%
-                      </span>
-                      <span className={
-                        `inline-flex items-center px-0.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold border whitespace-nowrap ` +
-                        (titleComplete && artistComplete ? "bg-emerald-100 text-emerald-700 border-emerald-300" : titleArtistPct > 0 ? "bg-emerald-50 text-emerald-500 border-emerald-200" : "bg-primary-muted/10 text-primary-muted border-primary-muted/20")
-                      } style={{minWidth: 0, maxWidth: '100%'}}>
-                        <span className="mr-0.5">🎶</span>{titleArtistPct}%
-                      </span>
-                      <span className={
-                        `inline-flex items-center px-0.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-semibold border whitespace-nowrap ` +
-                        (isComplete ? "bg-yellow-100 text-yellow-700 border-yellow-300" : "bg-yellow-50 text-yellow-600 border-yellow-200")
-                      } style={{minWidth: 0, maxWidth: '100%'}}>
-                        <span className="mr-0.5">💬</span>{game.guesses.filter((g: Guess) => g.valid).length}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-full w-full">
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full border border-primary-muted/30 text-primary-muted/40 text-base font-bold bg-white/10 transition hover:bg-primary-muted/10 mx-auto">+</span>
-                    </div>
-                  )}
-                </Link>
-              )}
+            <div key={dateStr} data-testid={game ? "game-with-guesses" : "game-calendar-day"}>
+              {isClickable ? (
+                <Link href={`/${dateStr}`} className="block">{cell}</Link>
+              ) : cell}
             </div>
           );
         })}
       </div>
+
+      <div className="flex items-center gap-5 max-sm:flex-col max-sm:items-start max-sm:gap-2 mt-4 pt-4 border-t border-rtfl-line-soft font-sans text-[11px] text-rtfl-ink-2">
+        <span className="flex items-center gap-[7px]">
+          <span className="w-4 h-[3px] rounded-full bg-rtfl-hit" />solved
+        </span>
+        <span className="flex items-center gap-[7px]">
+          <span className="w-4 h-[3px] rounded-full bg-rtfl-accent" />in progress
+        </span>
+        <span className="flex items-center gap-[7px]">
+          <span className="w-4 h-[3px] rounded-full bg-rtfl-raised" />not played
+        </span>
+      </div>
     </div>
   );
-} 
+}
