@@ -4,6 +4,7 @@ import { createGameStateService } from '@/app/api/lib/services/game-state';
 import { validateSchema, schemas } from '@/app/api/lib/validation';
 import { requirePlayerId } from '@/app/api/lib/utils/request';
 import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/app/api/lib/db';
 import fs from 'fs';
 import path from 'path';
 import { createMaskedLyricsService } from '@/app/api/lib/services/masked-lyrics';
@@ -60,7 +61,6 @@ const createRickrollGame = async (prisma: PrismaClient) => {
 };
 
 export const GET = async (request: NextRequest, context: { params: Promise<{ date: string }> }) => {
-  const prisma = new PrismaClient();
   try {
     const { params } = context;
     const { date } = await params;
@@ -69,17 +69,14 @@ export const GET = async (request: NextRequest, context: { params: Promise<{ dat
     if (date === 'rickroll') {
       const game = await createRickrollGame(prisma);
       if (!game || !game.song) {
-        await prisma.$disconnect();
         return NextResponse.json({ error: "Failed to create or find rickroll game or song" }, { status: 500 });
       }
       const userId = requirePlayerId(request);
       const gameStateService = createGameStateService(prisma);
       const result = await gameStateService.getGameState('2099-12-31', userId);
       if (!result) {
-        await prisma.$disconnect();
         return NextResponse.json({ error: "Failed to generate game state for rickroll" }, { status: 500 });
       }
-      await prisma.$disconnect();
       return NextResponse.json(result);
     }
 
@@ -173,7 +170,5 @@ export const GET = async (request: NextRequest, context: { params: Promise<{ dat
     return NextResponse.json(result);
   } catch (error) {
     return handleError(error);
-  } finally {
-    await prisma.$disconnect();
   }
 }; 

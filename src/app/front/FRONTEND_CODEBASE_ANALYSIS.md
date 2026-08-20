@@ -12,23 +12,7 @@ this as a fresh survey rather than an edit of the old one.
 - 513 lines, and it has *grown* since the last survey (484). The redesign moved
   the win state and the share card into it rather than out.
 
-### 2. **Dead code in `lib/`**
-Four modules under `src/app/front/lib/` have no importers anywhere in the repo
-(~313 lines):
-
-| File | Lines | Note |
-|---|---|---|
-| `lib/services/admin-service.ts` | 107 | Duplicates the inline `adminApi` in `hooks/useAdmin.ts` |
-| `lib/services/game-service.ts` | 91 | Distinct from the validators' own `game-service.ts` under `api/lib/test/` |
-| `lib/services/player-service.ts` | 87 | Overlaps `hooks/usePlayer.ts` |
-| `lib/game-server.ts` | 28 | Single `getCurrentGame` export |
-
-This is the residue of a half-finished "extract an API service layer" effort:
-the service files were written, but the hooks kept their own inline `fetch`
-calls and nothing was ever switched over. Either adopt them or delete them —
-right now they are a second, silently stale copy of the data layer.
-
-### 3. **Large rendering components**
+### 2. **Large rendering components**
 - `MaskedLyricsDisplay.tsx` (266) — the renamed successor to the old
   `MaskedLyrics.tsx`; still the heaviest rendering path
 - `AssignPanel.tsx` (265) — search state and assignment concerns in one place
@@ -50,6 +34,8 @@ Recorded so nobody re-opens them:
 - **The old admin tree** — `components/admin/game/` (7 components, 1321 lines)
   was deleted once `AdminScheduler` replaced it, along with seven now-unused
   `components/ui/` primitives.
+- **The abandoned service layer** — `lib/services/*` and `lib/game-server.ts`
+  are gone; see the note under Utils & Lib.
 
 ## 📁 Current Structure
 
@@ -129,17 +115,18 @@ Live: `lib/utils/{date-formatting,hit-counting,progress-calculations,color-manag
 
 `lib/helpers/spotify.ts` is small but load-bearing again — `day-model.ts` uses
 `getTrackTitle`/`getTrackArtist` to read `Song.spotifyData`, which arrives as
-untyped JSON. `getTrackId` is currently unused.
+untyped JSON.
 
-For the dead modules under `lib/`, see Critical #2.
+> `lib/services/{admin,game,player}-service.ts` and `lib/game-server.ts` were
+> deleted: ~313 lines with no importers, left over from an "extract an API
+> service layer" effort that was written but never adopted. The hooks kept
+> their own inline `fetch` calls throughout, so these were a second, silently
+> stale copy of the data layer.
 
 ## 🎯 Recommendations by Priority
 
 ### **Priority 1**
-1. **Resolve the `lib/` service layer** — adopt the four orphaned modules or
-   delete them. Leaving a stale second copy of the data layer is the highest
-   risk item here.
-2. **Split `LyricsGame.tsx`** — 513 lines and growing.
+1. **Split `LyricsGame.tsx`** — 513 lines and growing.
 
 ### **Priority 2**
 1. **Refactor `MaskedLyricsDisplay.tsx`** — split rendering from word processing.

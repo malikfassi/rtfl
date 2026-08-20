@@ -4,7 +4,7 @@ import { GuessService } from '@/app/api/lib/services/guess';
 import { GameStateService } from '@/app/api/lib/services/game-state';
 import { validateSchema, schemas } from '@/app/api/lib/validation';
 import { requirePlayerId } from '@/app/api/lib/utils/request';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/app/api/lib/db';
 
 export async function POST(request: Request, { params }: { params: Promise<{ date: string }> }) {
   try {
@@ -23,8 +23,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ dat
     const body = await request.json();
     validateSchema(schemas.guessRequest, body);
 
-    // Create Prisma client inside the handler to use the correct DATABASE_URL
-    const prisma = new PrismaClient();
     const guessService = new GuessService(prisma);
     const gameStateService = new GameStateService(prisma);
 
@@ -33,7 +31,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ dat
 
     // For rickroll, we don't need to fetch updated game state since guesses aren't stored
     if (date === 'rickroll') {
-      await prisma.$disconnect();
       return NextResponse.json({
         ...await gameStateService.getGameState(validatedDate, userId),
         guesses: [guessResponse] // Include the temporary guess in the response
@@ -42,7 +39,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ dat
 
     // For regular games, fetch and return the updated game state
     const updatedGameState = await gameStateService.getGameState(validatedDate, userId);
-    await prisma.$disconnect();
     return NextResponse.json(updatedGameState);
   } catch (error) {
     return handleError(error);

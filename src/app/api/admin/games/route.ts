@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/app/api/lib/db';
 
 import { ValidationError } from '@/app/api/lib/errors/base';
 import { handleError } from '@/app/api/lib/utils/error-handler';
@@ -16,7 +16,6 @@ type PostResponse = SuccessResponse<GameWithSong> | ErrorResponse;
 type DeleteResponse = SuccessResponse<{ success: boolean }> | ErrorResponse;
 
 export async function GET(request: Request): Promise<NextResponse<GetResponse>> {
-  const prisma = new PrismaClient();
   try {
     const songService = createSongService(prisma);
     const gameService = createGameService(songService, prisma);
@@ -40,13 +39,10 @@ export async function GET(request: Request): Promise<NextResponse<GetResponse>> 
     }
   } catch (error) {
     return handleError(error);
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
 export async function POST(request: Request): Promise<NextResponse<PostResponse>> {
-  const prisma = new PrismaClient();
   try {
     const songService = createSongService(prisma);
     const gameService = createGameService(songService, prisma);
@@ -69,13 +65,10 @@ export async function POST(request: Request): Promise<NextResponse<PostResponse>
     return NextResponse.json(result);
   } catch (error) {
     return handleError(error);
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
 export async function DELETE(request: Request): Promise<NextResponse<DeleteResponse>> {
-  const prisma = new PrismaClient();
   try {
     const songService = createSongService(prisma);
     const gameService = createGameService(songService, prisma);
@@ -92,7 +85,5 @@ export async function DELETE(request: Request): Promise<NextResponse<DeleteRespo
     return NextResponse.json({ success: true });
   } catch (error) {
     return handleError(error);
-  } finally {
-    await prisma.$disconnect();
   }
 }

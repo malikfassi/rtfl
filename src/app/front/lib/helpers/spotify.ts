@@ -10,6 +10,3 @@ export function getTrackArtist(track: Track | null | undefined): string {
   return track?.artists?.map(artist => artist.name).join(', ') || '';
 }
 
-export function getTrackId(track: Track | null | undefined): string {
-  return track?.id || '';
-} 
