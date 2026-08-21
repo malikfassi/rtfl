@@ -1,41 +1,4 @@
 /**
- * Format a date string (YYYY-MM-DD) into a human-readable format
- * @param dateStr - Date string in YYYY-MM-DD format
- * @returns Formatted date string (e.g. "January 1, 2024")
- */
-export function formatGameDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-}
-
-/**
- * Format a date string (YYYY-MM-DD) into a short format
- * @param dateStr - Date string in YYYY-MM-DD format
- * @returns Short formatted date string (e.g. "Jan 1")
- */
-export function formatShortDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric'
-  });
-}
-
-/**
- * Get yesterday's date in YYYY-MM-DD format
- * @returns Yesterday's date string
- */
-export function getYesterdayDate(): string {
-  const date = new Date();
-  date.setDate(date.getDate() - 1);
-  return date.toISOString().split('T')[0];
-}
-
-/**
  * Get today's date in YYYY-MM-DD format
  * @returns Today's date string
  */
@@ -71,7 +34,7 @@ export function isValidDate(dateStr: string): boolean {
  * @param date2 - Second date string in YYYY-MM-DD format
  * @returns Number of days between the dates
  */
-export function getDaysBetween(date1: string, date2: string): number {
+function getDaysBetween(date1: string, date2: string): number {
   const d1 = new Date(date1);
   const d2 = new Date(date2);
   const diffTime = Math.abs(d2.getTime() - d1.getTime());

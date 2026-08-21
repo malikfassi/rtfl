@@ -14,7 +14,7 @@ interface SectionProgress {
 /**
  * Calculates progress for a single section (lyrics, title, or artist)
  */
-export function calculateSectionProgress(
+function calculateSectionProgress(
   foundWords: string[],
   maskedParts?: Token[]
 ): SectionProgress {

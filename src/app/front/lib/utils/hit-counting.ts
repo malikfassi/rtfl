@@ -10,7 +10,7 @@ interface HitCountingOptions {
  * Counts the number of hits for a word in a masked text or parts array
  * Uses token-based counting when available (more accurate), falls back to regex
  */
-export function countHits({ word, maskedText, maskedParts }: HitCountingOptions): number {
+function countHits({ word, maskedText, maskedParts }: HitCountingOptions): number {
   let hits = 0;
   
   // Use token-based counting when available (more accurate)

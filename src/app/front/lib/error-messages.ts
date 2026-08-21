@@ -25,8 +25,4 @@ export const ERROR_MESSAGES = {
   ARCHIVE_INVALID_MONTH: 'This is not a valid archive month.',
 } as const;
 
-export type ErrorMessageKey = keyof typeof ERROR_MESSAGES;
-
-export function getErrorMessage(key: ErrorMessageKey): string {
-  return ERROR_MESSAGES[key];
-} 
+ 

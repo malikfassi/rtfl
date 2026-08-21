@@ -123,7 +123,18 @@ The admin screen is `components/admin/scheduling/`:
 
 Live: `lib/utils/{date-formatting,hit-counting,progress-calculations,color-management}.ts`,
 `lib/routes.ts`, `lib/query-client.ts`, `lib/error-messages.ts`,
-`lib/helpers/{index,date,player,spotify}.ts`.
+`lib/helpers/{index,player,spotify}.ts`.
+
+> An unused-export sweep trimmed these in place: `routes.ts` went from 11
+> exports to 3 (96 lines to 20), `color-management.ts` lost its whole
+> `@deprecated` bg/text-class chain, `date-formatting.ts` lost three
+> formatters, and `helpers/date.ts` was deleted outright. Symbols still used
+> inside their own file were un-exported rather than removed.
+>
+> Verify by resolved imports, not by name. Several of these looked used
+> because a live symbol of the same name exists in another module —
+> `isValidDate` is defined in both `routes.ts` and `date-formatting.ts`, and
+> only the second is imported anywhere.
 
 `lib/helpers/spotify.ts` is small but load-bearing again — `day-model.ts` uses
 `getTrackTitle`/`getTrackArtist` to read `Song.spotifyData`, which arrives as
