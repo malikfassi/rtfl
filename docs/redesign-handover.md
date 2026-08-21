@@ -176,6 +176,19 @@ wrong.
 > destroyed local data during the session. Also: `prisma/test-dbs/` grows
 > unboundedly — 1.1 GB / 7375 files observed; `npm run clean:db` clears it but
 > is wired to no test script.
+>
+> **To run it safely**, pass an absolute `DATABASE_URL` pointing somewhere
+> disposable. `env.ts` calls `dotenv.config()` without `override`, so a variable
+> already in the environment wins over `.env`:
+>
+> ```
+> DATABASE_URL="file:/tmp/jest-scratch.db" npx prisma migrate deploy
+> DATABASE_URL="file:/tmp/jest-scratch.db" npx jest --runInBand
+> ```
+>
+> Verified 2026-08-20: full suite green, `prisma/dev.db` byte-identical before
+> and after. Worth a probe first — a bare `new PrismaClient()` under that
+> variable should fail with "table main.Game does not exist", not report rows.
 
 ### Playwright — the actual frontend suite
 
