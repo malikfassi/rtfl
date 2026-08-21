@@ -1,6 +1,5 @@
 import './globals.css';
 
-import { Toaster } from "@/app/front/components/ui/toaster";
 import { TooltipProvider } from "@/app/front/components/ui/Tooltip";
 import { Providers } from './providers';
 
@@ -18,7 +17,6 @@ export default function FrontLayout({
     <Providers>
       <TooltipProvider>
         {children}
-        <Toaster />
       </TooltipProvider>
     </Providers>
   );

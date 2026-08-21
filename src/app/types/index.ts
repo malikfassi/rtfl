@@ -19,7 +19,5 @@ export type {
   GameShareProps,
   GameShareState,
   UseWordHighlightingProps,
-  ToasterToast,
-  State,
   RickrollGame
 } from './hooks'; 

@@ -104,14 +104,20 @@ The admin screen is `components/admin/scheduling/`:
 - `archive/_components/ArchiveContent.tsx` (128) — note the path; it moved out
   of `components/archive/`
 - `components/archive/CalendarView.tsx` (129)
-- `components/ui/` is down to `toast.tsx` (128), `toaster.tsx` (34) and
-  `Tooltip.tsx` (28) — all three reachable from `layout.tsx`
+- `components/ui/` is down to `Tooltip.tsx` (28), reached from `layout.tsx`
+
+> The toast subsystem — `toast.tsx`, `toaster.tsx`, `hooks/use-toast.ts`, the
+> `<Toaster />` in the layout and the `@radix-ui/react-toast` dependency — was
+> removed (~354 lines). It was admin-only: the sole callers were the old
+> `GameEditor` and `BatchGameEditor`, confirming game create/delete. The
+> redesign replaced that with `AdminScheduler`'s inline banner, and nothing on
+> the player side ever raised a toast. Note the banner reports failures only;
+> success is now conveyed by the day flipping to "scheduled" in the rail.
 
 ### **Hooks**
 
 | File | Lines | Notes |
 |---|---|---|
-| `use-toast.ts` | 192 | Standard shadcn implementation |
 | `usePlayer.ts` | 110 | ⚠️ Player API + game state + month games in one file |
 | `useGameLogic.ts` | 93 | |
 | `useAdmin.ts` | 67 | Inline `adminApi`; see Critical #2 |

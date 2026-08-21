@@ -37,19 +37,6 @@ export interface UseWordHighlightingProps {
   selectedWord: string | null;
 }
 
-// Toast hook types
-export interface ToasterToast {
-  id: string;
-  title?: string;
-  description?: string;
-  action?: React.ReactNode;
-  variant?: 'default' | 'destructive';
-}
-
-export interface State {
-  toasts: ToasterToast[];
-}
-
 // Rickroll game types
 export interface RickrollGame {
   isActive: boolean;

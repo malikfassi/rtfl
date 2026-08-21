@@ -32,7 +32,8 @@ export function useGameShare({
       await navigator.clipboard.writeText(fullText);
     } catch (err) {
       console.error('Failed to copy to clipboard:', err);
-      // You might want to show a toast notification here
+      // Silent for now - the app has no notification surface, and the admin
+      // screen's inline banner is the pattern to follow if this needs one.
     }
   }, [shareText, gameUrl]);
 
