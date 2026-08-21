@@ -4,9 +4,10 @@ import { GuessService } from '@/app/api/lib/services/guess';
 import { GameStateService } from '@/app/api/lib/services/game-state';
 import { validateSchema, schemas } from '@/app/api/lib/validation';
 import { requirePlayerId } from '@/app/api/lib/utils/request';
-import { prisma } from '@/app/api/lib/db';
+import { PrismaClient } from '@prisma/client';
 
 export async function POST(request: Request, { params }: { params: Promise<{ date: string }> }) {
+  const prisma = new PrismaClient();
   try {
     const { date } = await params;
     let validatedDate: string;
@@ -42,5 +43,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ dat
     return NextResponse.json(updatedGameState);
   } catch (error) {
     return handleError(error);
+  } finally {
+    // Previously this disconnected mid-handler on the rickroll branch, and not
+    // at all when submitGuess threw - so a failed guess leaked a connection.
+    await prisma.$disconnect();
   }
 } 

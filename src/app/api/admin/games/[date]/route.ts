@@ -3,13 +3,14 @@ import { handleError } from '@/app/api/lib/utils/error-handler';
 import { createGameService } from '@/app/api/lib/services/game';
 import { createSongService } from '@/app/api/lib/services/song';
 import { schemas, validateSchema, validateJsonBody } from '@/app/api/lib/validation';
-import { prisma } from '@/app/api/lib/db';
+import { PrismaClient } from '@prisma/client';
 import type { NextRequest } from 'next/server';
 
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ date: string }> }
 ) {
+  const prisma = new PrismaClient();
   try {
     const { params } = context;
     const { date } = await params;
@@ -22,6 +23,8 @@ export async function GET(
     return NextResponse.json(game);
   } catch (error) {
     return handleError(error);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
@@ -29,6 +32,7 @@ export async function POST(
   request: NextRequest,
   context: { params: Promise<{ date: string }> }
 ) {
+  const prisma = new PrismaClient();
   try {
     const { params } = context;
     const { date } = await params;
@@ -43,6 +47,8 @@ export async function POST(
     return NextResponse.json(game);
   } catch (error) {
     return handleError(error);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
@@ -50,6 +56,7 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ date: string }> }
 ) {
+  const prisma = new PrismaClient();
   try {
     const { params } = context;
     const { date } = await params;
@@ -62,6 +69,8 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     return handleError(error);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 

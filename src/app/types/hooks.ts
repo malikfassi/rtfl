@@ -1,5 +1,3 @@
-import type { SpotifyTrack } from './spotify';
-
 // Game progress hook types
 export interface GameProgressState {
   lyricsProgressData: { found: number; total: number };

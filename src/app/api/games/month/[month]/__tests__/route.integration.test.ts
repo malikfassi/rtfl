@@ -132,6 +132,6 @@ describe('GET /api/games/month/[month]', () => {
     expect(response.status).toBe(400);
     const error = await response.json();
     expect(error.error).toBe('VALIDATION_ERROR');
-    expect(error.message).toBe('Validation error');
+    expect(error.message).toBe('x-user-id header is required');
   });
 }); 
