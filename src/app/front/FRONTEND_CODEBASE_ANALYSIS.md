@@ -28,8 +28,11 @@ Recorded so nobody re-opens them:
 
 - **Duplicate `cn()`** — gone. `lib/utils.ts` is now a two-line re-export of
   `lib/helpers`, which holds the single definition.
-- **Shared logic extraction** — hit counting, progress and word processing now
-  live in `lib/utils/{hit-counting,progress-calculations,word-processing}.ts`.
+- **Shared logic extraction** — hit counting and progress now live in
+  `lib/utils/{hit-counting,progress-calculations}.ts`. The `word-processing.ts`
+  that sat beside them was deleted: every function in it was unreachable, and
+  two of its exports (`getWordColor`, `WordState`) were same-named duplicates of
+  the live ones in `color-management.ts` and `types/common.ts`.
 - **Custom hooks** — `useGameLogic`, `useGameProgress` and `useGameShare` were
   split out of `LyricsGame` as recommended, and `useNextGameTimer`,
   `useScrollFog` and `useWordSelection` followed.
@@ -118,7 +121,7 @@ The admin screen is `components/admin/scheduling/`:
 
 ### **Utils & Lib**
 
-Live: `lib/utils/{date-formatting,hit-counting,progress-calculations,color-management,word-processing}.ts`,
+Live: `lib/utils/{date-formatting,hit-counting,progress-calculations,color-management}.ts`,
 `lib/routes.ts`, `lib/query-client.ts`, `lib/error-messages.ts`,
 `lib/helpers/{index,date,player,spotify}.ts`.
 

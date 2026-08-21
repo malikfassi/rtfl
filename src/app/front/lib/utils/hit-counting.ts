@@ -1,4 +1,4 @@
-import { Token } from './word-processing';
+import type { Token } from '@/app/types';
 
 interface HitCountingOptions {
   word: string;
