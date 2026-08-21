@@ -8,9 +8,14 @@ this as a fresh survey rather than an edit of the old one.
 
 ## 🔴 Critical Issues
 
-### 1. **`LyricsGame.tsx` is still the problem child**
-- 513 lines, and it has *grown* since the last survey (484). The redesign moved
-  the win state and the share card into it rather than out.
+### 1. **`LyricsGame.tsx` is the largest component**
+- 452 lines, down from 513 after the timer, scroll-fog and word-selection state
+  moved into hooks. What is left is mostly JSX.
+- **The remaining size is accepted, not outstanding.** Roughly 300 of those
+  lines are the desktop and mobile layouts, both mounted in the same `return`.
+  Splitting them into separate components was considered and **deliberately
+  rejected** — keeping the two arrangements side by side in one file is worth
+  more than the line count. Do not re-propose it.
 
 ### 2. **Large rendering components**
 - `MaskedLyricsDisplay.tsx` (266) — the renamed successor to the old
@@ -26,7 +31,11 @@ Recorded so nobody re-opens them:
 - **Shared logic extraction** — hit counting, progress and word processing now
   live in `lib/utils/{hit-counting,progress-calculations,word-processing}.ts`.
 - **Custom hooks** — `useGameLogic`, `useGameProgress` and `useGameShare` were
-  split out of `LyricsGame` as recommended.
+  split out of `LyricsGame` as recommended, and `useNextGameTimer`,
+  `useScrollFog` and `useWordSelection` followed.
+  - `useNextGameTimer` seeds its state with a constant on purpose: computing
+    the clock in the initialiser also runs on the server, and the mismatch
+    fails hydration, which costs the page its event handlers. Leave it alone.
 - **The broken `useGameMonth` reference** — the hook is real now
   (`hooks/usePlayer.ts:103`) and `ArchiveContent` uses it. The `front/page.tsx`
   that misused it no longer exists.
@@ -59,7 +68,7 @@ optional-catch-all.
 
 | File | Lines | Status |
 |---|---|---|
-| `lyrics-game/LyricsGame.tsx` | 513 | 🔴 See Critical #1 |
+| `lyrics-game/LyricsGame.tsx` | 452 | Mostly JSX; see Critical #1 |
 | `lyrics-game/MaskedLyricsDisplay.tsx` | 266 | 🔴 Heavy rendering |
 | `ScrambleTitle.tsx` | 188 | ⚠️ Animation logic worth extracting |
 | `lyrics-game/PathToVictory.tsx` | 159 | |
@@ -126,7 +135,9 @@ untyped JSON.
 ## 🎯 Recommendations by Priority
 
 ### **Priority 1**
-1. **Split `LyricsGame.tsx`** — 513 lines and growing.
+
+Nothing outstanding. `LyricsGame.tsx` was the last item here; its extractable
+state is now in hooks and the rest is a layout that stays as it is (Critical #1).
 
 ### **Priority 2**
 1. **Refactor `MaskedLyricsDisplay.tsx`** — split rendering from word processing.
