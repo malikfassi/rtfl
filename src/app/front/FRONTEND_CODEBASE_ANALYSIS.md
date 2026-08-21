@@ -104,7 +104,14 @@ The admin screen is `components/admin/scheduling/`:
 - `archive/_components/ArchiveContent.tsx` (128) — note the path; it moved out
   of `components/archive/`
 - `components/archive/CalendarView.tsx` (129)
-- `components/ui/` is down to `Tooltip.tsx` (28), reached from `layout.tsx`
+- `components/ui/` no longer exists, and neither does `contexts/`
+
+> Three provider-shaped subsystems were mounted in the tree with nothing using
+> them, and all three are gone: the toaster, `TooltipProvider` (no `Tooltip`
+> was rendered anywhere in the app) and `ErrorProvider` (`useError` had no
+> consumer). Both radix dependencies went with them. The pattern is worth
+> recognising — a provider in the layout proves only that infrastructure
+> exists, not that anything uses it.
 
 > The toast subsystem — `toast.tsx`, `toaster.tsx`, `hooks/use-toast.ts`, the
 > `<Toaster />` in the layout and the `@radix-ui/react-toast` dependency — was

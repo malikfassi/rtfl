@@ -44,15 +44,4 @@ export interface RickrollGame {
   duration: number;
 }
 
-// Playlist hook types
-export interface PlaylistsResponse {
-  playlists: Array<{
-    id: string;
-    name: string;
-    tracks: SpotifyTrack[];
-  }>;
-}
-
-export interface TracksResponse {
-  tracks: SpotifyTrack[];
-} 
+ 

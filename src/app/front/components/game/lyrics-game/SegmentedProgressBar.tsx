@@ -10,7 +10,7 @@ export interface Segment {
   hits: number;
 }
 
-export interface SegmentedProgressBarProps {
+interface SegmentedProgressBarProps {
   segments: Segment[];
   total: number;
   activeWord?: string | null;

@@ -28,7 +28,7 @@ function asMaskedLyrics(maskedLyrics: unknown): MaskedLyrics | null {
   return maskedLyrics as MaskedLyrics;
 }
 
-export function countGuessableWords(game: GameWithSong): number {
+function countGuessableWords(game: GameWithSong): number {
   const masked = asMaskedLyrics(game.song?.maskedLyrics);
   const lyrics: Token[] = Array.isArray(masked?.lyrics) ? masked.lyrics : [];
   return lyrics.filter(token => token.isToGuess).length;
@@ -64,7 +64,7 @@ export function formatTrackMeta(track: Track): string {
   return [artist, year, duration].filter(Boolean).join(" · ");
 }
 
-export function formatDuration(ms: number): string {
+function formatDuration(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;

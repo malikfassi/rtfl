@@ -5,7 +5,7 @@ import { fixtures } from '../test/fixtures';
 /**
  * Constructs a search query for Spotify
  */
-export function constructSpotifySearchQuery(title: string, artist?: string): string {
+function constructSpotifySearchQuery(title: string, artist?: string): string {
   const cleanText = (text: string) => text.toLowerCase().trim();
   const cleanTitle = cleanText(title);
   return artist ? `${cleanTitle} ${cleanText(artist)}` : cleanTitle;

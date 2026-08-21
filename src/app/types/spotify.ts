@@ -25,15 +25,6 @@ export interface SpotifyClient {
   searchPlaylists(query: string): Promise<SpotifyPlaylist[]>;
 }
 
-// API response types
-export interface PlaylistsResponse {
-  playlists: CustomPlaylist[];
-}
-
-export interface TracksResponse {
-  tracks: Track[];
-}
-
 // Custom data types for internal use
 export interface SpotifyData {
   name: string;

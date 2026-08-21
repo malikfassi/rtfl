@@ -1,6 +1,5 @@
 import './globals.css';
 
-import { TooltipProvider } from "@/app/front/components/ui/Tooltip";
 import { Providers } from './providers';
 
 export const metadata = {
@@ -13,11 +12,5 @@ export default function FrontLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <Providers>
-      <TooltipProvider>
-        {children}
-      </TooltipProvider>
-    </Providers>
-  );
+  return <Providers>{children}</Providers>;
 } 

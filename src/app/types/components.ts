@@ -10,17 +10,6 @@ export interface CalendarViewProps {
   games: GameState[];
 }
 
-export interface ErrorContextType {
-  showError: (message: string) => void;
-  hideError: () => void;
-  errorMessage: string | null;
-  isVisible: boolean;
-}
-
-export interface ErrorProviderProps {
-  children: React.ReactNode;
-}
-
 export interface MonthArchivePageProps {
   params: Promise<{ month: string }>;
 }

@@ -1,13 +1,8 @@
 import { AppError } from '../base';
 
-export class LyricsExtractionError extends AppError {
-  static readonly code = 'LYRICS_EXTRACTION_ERROR';
-
-  constructor(error: Error) {
-    super(LyricsExtractionError.code, `Failed to extract lyrics: ${error.message}`, 500);
-  }
-}
-
+// LyricsExtractionError lives in ./lyrics - this file used to carry a second
+// copy under the same name but with a hardcoded code, so which one you
+// imported changed the code the API emitted.
 export class NoMatchingLyricsError extends AppError {
   static readonly code = 'NO_MATCHING_LYRICS';
   static readonly message = 'No matching lyrics found';
