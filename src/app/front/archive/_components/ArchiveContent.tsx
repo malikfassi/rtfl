@@ -53,7 +53,7 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
   } catch (error) {
     console.error('Invalid month format:', currentMonth, error);
     return (
-      <div className="h-screen overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex items-center justify-center">
+      <div className="h-dvh overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex items-center justify-center">
         <div className="text-center py-12">
           <div data-testid="invalid-month" className="text-rtfl-ink-2 text-lg mb-2">Invalid month format</div>
           <div className="text-rtfl-ink-3 text-sm">Please use the YYYY-MM format, e.g. {getCurrentMonth()}</div>
@@ -73,7 +73,7 @@ export function ArchiveContent({ month }: ArchiveContentProps) {
   const streak = computeStreak(gamesList, getTodayDate());
 
   return (
-    <div className="h-screen overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex flex-col items-center max-sm:items-stretch">
+    <div className="h-dvh overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex flex-col items-center max-sm:items-stretch">
       <div data-testid="archive-container" className="w-full max-w-[1000px] border border-rtfl-line rounded-[14px] max-sm:rounded-none max-sm:border-none flex flex-col overflow-hidden m-6 max-sm:m-0 flex-1 min-h-0">
         <div className="flex items-end justify-between gap-6 px-7 py-5 max-sm:flex-col max-sm:items-start max-sm:gap-3 max-sm:px-5 max-sm:py-[14px] border-b border-rtfl-line-soft bg-rtfl-surface flex-wrap">
           <div className="flex flex-col gap-2">

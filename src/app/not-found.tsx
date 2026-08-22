@@ -6,7 +6,7 @@ const MASKED_WORDS = [4, 6, 3].map(len => '_'.repeat(len));
 
 export default function NotFound() {
   return (
-    <div className="h-screen overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex items-center justify-center px-10">
+    <div className="h-dvh overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex items-center justify-center px-10">
       <div className="border border-rtfl-line rounded-[14px] max-w-[1000px] min-h-[560px] w-full flex flex-col items-center justify-center gap-[22px] px-10 py-[60px]">
         <div aria-hidden="true" className="flex flex-wrap gap-[0.42em] justify-center font-mono font-bold text-[28px] text-rtfl-ink-3">
           {MASKED_WORDS.map((word, i) => (

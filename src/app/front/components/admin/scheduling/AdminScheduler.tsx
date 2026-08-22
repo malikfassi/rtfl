@@ -132,7 +132,7 @@ export function AdminScheduler() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-rtfl-bg font-mono text-rtfl-ink">
+    <div className="flex h-dvh flex-col overflow-hidden bg-rtfl-bg font-mono text-rtfl-ink">
       <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col overflow-hidden p-6 max-sm:p-0">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[14px] border border-rtfl-line max-sm:rounded-none max-sm:border-none">
           <header className="flex flex-wrap items-end justify-between gap-4 border-b border-rtfl-line-soft bg-rtfl-surface p-[18px_24px]">
