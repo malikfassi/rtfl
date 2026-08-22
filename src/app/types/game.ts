@@ -35,8 +35,15 @@ export interface GameState {
     title?: string;
     artist?: string;
     lyrics?: string;
+    spotifyId?: string;
+    geniusData?: { url?: string };
   };
   stats?: GameStats;
+  /**
+   * Set only when this is the stand-in song rather than the game that was
+   * asked for, and says why. Client-side: the API never sends it.
+   */
+  fallbackReason?: string;
 }
 
 // Frontend game state (extends API GameState)
@@ -45,21 +52,7 @@ export interface FrontendGameState {
   isGameLoading: boolean;
   gameError: Error | null;
   refetchGame: () => void;
-  isGameComplete: boolean;
-  lyricsProgressData: { found: number; total: number };
-  titleProgressData: { found: number; total: number };
-  artistProgressData: { found: number; total: number };
-  foundWords: string[];
-  maskedTitle: string;
-  maskedArtist: string;
-  maskedLyrics: string;
-  maskedTitleParts: Token[] | undefined;
-  maskedArtistParts: Token[] | undefined;
-  maskedLyricsParts: Token[] | undefined;
-  shareText: string;
-  gameUrl: string;
   handleGuess: (guess: string) => Promise<GameState>;
-  handleShare: () => void;
 }
 
 // Game input/output types

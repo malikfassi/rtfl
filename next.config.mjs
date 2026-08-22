@@ -29,7 +29,7 @@ const nextConfig = {
           destination: '/front/game/'
         },
         {
-          source: '/:slug((?!_next|api|archive|admin|rickroll|front).*)*',
+          source: '/:slug((?!_next|api|archive|admin|front).*)*',
           destination: '/front/game/:slug*'
         },
         {
@@ -43,10 +43,6 @@ const nextConfig = {
         {
           source: '/admin',
           destination: '/front/admin'
-        },
-        {
-          source: '/rickroll',
-          destination: '/front/rickroll'
         }
       ]
     }

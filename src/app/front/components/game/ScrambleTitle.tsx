@@ -28,7 +28,7 @@ function getRandomColor() {
 }
 // Helper to get a random wobble transform
 function getRandomWobble() {
-  return `translate(${Math.random() * WOBBLE_X_RANGE - WOBBLE_X_RANGE / 2}px, ${Math.random() * WOBBLE_Y_RANGE}px) rotate(${Math.random() * WOBBLE_ROTATE_RANGE - WOBBLE_ROTATE_RANGE / 2}deg)`;
+  return `translate(${Math.random() * WOBBLE_X_RANGE - WOBBLE_X_RANGE / 2}px, ${Math.random() * WOBBLE_Y_RANGE - WOBBLE_Y_RANGE / 2}px) rotate(${Math.random() * WOBBLE_ROTATE_RANGE - WOBBLE_ROTATE_RANGE / 2}deg)`;
 }
 
 // Helper to get a random char
@@ -155,10 +155,17 @@ export function ScrambleTitle() {
   }
 
   return (
-    <h1 className="m-0 font-mono font-bold uppercase tracking-[0.1em] text-[19px] max-sm:text-[13px] text-rtfl-ink flex items-baseline gap-[0.5ch]">
-      <span>READ THE</span>
+    <h1
+      className="m-0 font-mono font-bold uppercase tracking-[0.1em] text-[26px] max-sm:text-[17px] text-white flex items-center leading-none gap-[0.5ch]"
+      style={{ textShadow: '0 0 18px rgba(255,255,255,0.35)' }}
+    >
+      {/* Separate words rather than one "READ THE" string: a literal space
+          carries the 0.1em tracking on top of a full monospace cell, which
+          made that one gap read wider than the flex gap between the rest. */}
+      <span>READ</span>
+      <span>THE</span>
       <span
-        className="inline-flex overflow-hidden cursor-default"
+        className="inline-flex overflow-hidden cursor-default leading-none"
         style={{ width: '7ch' }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -166,7 +173,7 @@ export function ScrambleTitle() {
         {displayLetters.map((letter, index) => (
           <span
             key={index}
-            className="inline-block relative text-center"
+            className="inline-block relative text-center leading-none"
             style={{
               transform: letter.transform,
               width: '1ch',

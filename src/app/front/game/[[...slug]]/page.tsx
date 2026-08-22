@@ -1,7 +1,5 @@
 import { LyricsGameWrapper } from "@/app/front/components/game/lyrics-game/LyricsGameWrapper";
-import { redirect } from "next/navigation";
 import { getCurrentDate } from "@/app/front/lib/routes";
-import { isFutureDate } from "@/app/front/lib/utils/date-formatting";
 
 export default async function GameCatchAllPage({
   params,
@@ -19,13 +17,8 @@ export default async function GameCatchAllPage({
   const today = getCurrentDate();
   const date = isRootPath ? today : slug.join('-');
 
-  // For invalid dates, let the API handle the error instead of redirecting
-  // The API will return a proper 400 error that the frontend can handle
-
-  // Check if date is in the future and redirect to rickroll
-  if (isFutureDate(date)) {
-    redirect('/rickroll');
-  }
-
+  // Every unplayable date - malformed, future, or simply unscheduled - is left
+  // to the API, which answers with a status the client turns into the stand-in
+  // song plus the reason. One path, rather than a redirect for one case only.
   return <LyricsGameWrapper date={date} />;
 } 

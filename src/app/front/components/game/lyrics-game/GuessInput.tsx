@@ -131,15 +131,8 @@ export const GuessInput = ({ onGuessSubmit, pendingGuess, disabled, placeholder 
 
       <div className={cn("h-5 flex items-center gap-2", inlineFeedback && "hidden")}>
         {result && (
-          <span key={resultId} className="contents">
-            <span className={cn("text-[13px] font-medium animate-rtfl-count", resultColor)}>
-              {resultLabel}
-            </span>
-            {result.kind === 'hit' && (
-              <span className="font-sans text-[11px] text-rtfl-ink-2 animate-rtfl-count">
-                {result.hits} word{result.hits === 1 ? '' : 's'} revealed
-              </span>
-            )}
+          <span key={resultId} className={cn("text-[13px] font-medium animate-rtfl-count", resultColor)}>
+            {resultLabel}
           </span>
         )}
         {pendingGuess && !result && (

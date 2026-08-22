@@ -86,7 +86,7 @@ const GuessHistoryComponent = ({
               }}
               onClick={() => {
                 if (g.valid) {
-                  onGuessSelect(isSelected ? null : { id: g.id, word: g.word });
+                  onGuessSelect({ id: g.id, word: g.word });
                   onWordHover(null);
                 }
               }}

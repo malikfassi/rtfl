@@ -14,7 +14,11 @@ export interface WordSelection {
   /** The locked selection if there is one, otherwise whatever is hovered. */
   activeWord: string | null;
   hover: (word: string | null) => void;
-  /** Lock onto a guess (or clear with null) and scroll its first hit into view. */
+  /**
+   * Lock onto a guess (or clear with null) and scroll its first hit into view.
+   * Selecting the guess that is already locked releases it, so every surface
+   * that selects - the bars and the guess chips alike - toggles.
+   */
   select: (guess: SelectedGuess) => void;
   /** Lock onto a guess without clearing the hover - used after a submission. */
   reveal: (guess: { id: string; word: string }) => void;
@@ -45,10 +49,11 @@ export function useWordSelection(): WordSelection {
   }, []);
 
   const select = (guess: SelectedGuess) => {
-    setSelectedGuess(guess);
-    setScrollToWord(guess?.word ?? null);
-    if (guess) setScrollTick(t => t + 1);
-    if (!guess) setHighlightedWord(null);
+    const next = guess && guess.id === selectedGuess?.id ? null : guess;
+    setSelectedGuess(next);
+    setScrollToWord(next?.word ?? null);
+    if (next) setScrollTick(t => t + 1);
+    if (!next) setHighlightedWord(null);
   };
 
   const reveal = (guess: { id: string; word: string }) => {

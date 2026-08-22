@@ -7,18 +7,6 @@ export function getTodayDate(): string {
 }
 
 /**
- * Check if a date string is in the future
- * @param dateStr - Date string in YYYY-MM-DD format
- * @returns True if the date is in the future
- */
-export function isFutureDate(dateStr: string): boolean {
-  const date = new Date(dateStr);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date > today;
-}
-
-/**
  * Check if a date string is valid
  * @param dateStr - Date string in YYYY-MM-DD format
  * @returns True if the date string is valid

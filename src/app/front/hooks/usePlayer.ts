@@ -4,6 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { GameState } from '@/app/types';
 import { queryKeys } from '@/app/front/lib/query-client';
 
+/** Why the easter-egg song is standing in for the game that was asked for. */
+export const FALLBACK_REASONS: Record<number, string> = {
+  400: "that date isn't a real one",
+  403: "that game hasn't happened yet",
+  404: 'no song was scheduled that day',
+};
+
 const playerApi = {
   getCurrentGame: async (userId: string, date: string): Promise<GameState | null> => {
     // Primary request for the requested date
@@ -18,22 +25,21 @@ const playerApi = {
       return await r.json();
     }
 
-    // Graceful fallback – known "no-game" statuses
-    if ([400, 403, 404].includes(r.status)) {
+    // Known "no-game" statuses fall back to the easter egg, which is tagged
+    // with the reason so the player is told what happened rather than being
+    // handed another day's song as though it were the one they asked for.
+    const reason = FALLBACK_REASONS[r.status];
+    if (reason) {
       const rr = await fetch('/api/games/rickroll', {
         headers: {
           'x-user-id': userId,
         },
       });
 
-      if (rr.ok) {
-        // If it was a 403 (future date), throw an error to preserve the error state
-        if (r.status === 403) {
-          throw new Error('403');
-        }
-        return await rr.json(); // Rickroll available ✅
-      }
-      return null; // Rickroll also failed – show "No game"
+      if (!rr.ok) return null;
+
+      const fallback: GameState = await rr.json();
+      return { ...fallback, fallbackReason: reason };
     }
 
     // Unexpected error – bubble up to React-Query error state
@@ -69,23 +75,13 @@ const playerApi = {
   }
 };
 
-function isValidDate(date: string) {
-  const regex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!regex.test(date)) return false;
-  const d = new Date(date);
-  return d instanceof Date && !isNaN(d.getTime());
-}
-
 export function useGameState(userId: string, date: string, enabled = true) {
   return useQuery({
     queryKey: [...queryKeys.games.byDate(date), userId],
-    queryFn: () => {
-      if (!isValidDate(date)) {
-        return playerApi.getCurrentGame(userId, 'rickroll');
-      }
-      return playerApi.getCurrentGame(userId, date);
-    },
-    enabled: enabled || !isValidDate(date),
+    // A malformed date isn't short-circuited here any more: letting it reach
+    // the API earns a 400, which is what carries the reason back to the player.
+    queryFn: () => playerApi.getCurrentGame(userId, date),
+    enabled,
   });
 }
 

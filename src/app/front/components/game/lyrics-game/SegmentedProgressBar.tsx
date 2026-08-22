@@ -8,6 +8,8 @@ export interface Segment {
   id: string;
   word: string;
   hits: number;
+  /** True when this word is (also) part of the title or artist name. */
+  isCredit?: boolean;
 }
 
 interface SegmentedProgressBarProps {
@@ -15,11 +17,10 @@ interface SegmentedProgressBarProps {
   total: number;
   activeWord?: string | null;
   heightPx?: number;
-  targetPercent?: number;
   ariaLabel?: string;
   onHoverWord?: (word: string | null) => void;
   onSelectWord?: (segment: { id: string; word: string }) => void;
-  /** True once this path's win condition is met - runs the one-shot sweep. */
+  /** True once the bar is full - runs the one-shot sweep. */
   complete?: boolean;
   className?: string;
 }
@@ -29,7 +30,6 @@ export const SegmentedProgressBar: React.FC<SegmentedProgressBarProps> = ({
   total,
   activeWord,
   heightPx = 8,
-  targetPercent,
   ariaLabel = '',
   onHoverWord,
   onSelectWord,
@@ -90,7 +90,7 @@ export const SegmentedProgressBar: React.FC<SegmentedProgressBarProps> = ({
             <div
               key={segment.id}
               className={cn(
-                'h-full cursor-pointer transition-[opacity,flex-grow] duration-[420ms] ease-rtfl',
+                'h-full cursor-pointer transition-[opacity,flex-grow] duration-[420ms] ease-rtfl hover:brightness-125',
                 newIds.has(segment.id) && 'animate-rtfl-pop-in'
               )}
               style={{
@@ -99,9 +99,9 @@ export const SegmentedProgressBar: React.FC<SegmentedProgressBarProps> = ({
                 minWidth: total > 0 ? undefined : 0,
                 background: color,
                 opacity: isDimmed ? 0.35 : 1,
-                transformOrigin: 'left',
+                boxShadow: segment.isCredit ? 'inset 0 0 0 1.5px rgba(255,255,255,0.65)' : 'none',
               }}
-              title={`${segment.word} (${segment.hits})`}
+              title={`${segment.word} (${segment.hits})${segment.isCredit ? ' · title/artist' : ''}`}
               onMouseEnter={() => onHoverWord?.(segment.word)}
               onMouseLeave={() => onHoverWord?.(null)}
               onClick={() => onSelectWord?.({ id: segment.id, word: segment.word })}
@@ -110,13 +110,6 @@ export const SegmentedProgressBar: React.FC<SegmentedProgressBarProps> = ({
         })}
         <div className="h-full bg-transparent" style={{ flexGrow: remainder, flexBasis: 0 }} />
       </div>
-      {typeof targetPercent === 'number' && (
-        <span
-          aria-hidden="true"
-          className="absolute top-0 bg-rtfl-ink-ghost"
-          style={{ left: `${targetPercent}%`, width: 2, height: '100%' }}
-        />
-      )}
       {complete && (
         <span aria-hidden="true" className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
           <span

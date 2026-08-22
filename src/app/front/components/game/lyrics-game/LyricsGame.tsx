@@ -4,18 +4,17 @@ import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { ScrambleTitle } from '../ScrambleTitle';
 import { YesterdayStats } from '../YesterdayStats';
-import { GuessHistory, GuessInput, MaskedLyricsDisplay, MaskedTitleArtist, MaskedLyricsBody, PathToVictory, ShareButton, LyricsLoadingComponent } from './index';
+import { GuessHistory, GuessInput, MaskedTitleArtist, MaskedLyricsBody, PathToVictory, WinSummary, LyricsLoadingComponent, PlayerIdBadge } from './index';
 import { calculateGuessHits, countTotalHits } from '@/app/front/lib/utils/hit-counting';
 import { getWordColorDeterministic } from '@/app/front/lib/utils/color-management';
 import { calculateGameProgress } from '@/app/front/lib/utils/progress-calculations';
 import { getDayNumber, isValidDate } from '@/app/front/lib/utils/date-formatting';
 import { cn } from '@/app/front/lib/utils';
-import { useNextGameTimer } from '@/app/front/hooks/useNextGameTimer';
 import { useScrollFog } from '@/app/front/hooks/useScrollFog';
 import { useWordSelection } from '@/app/front/hooks/useWordSelection';
 import type { LyricsGameProps } from './types';
 
-export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
+export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGameProps) {
   const {
     selectedGuess,
     scrollToWord,
@@ -27,10 +26,6 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
   } = useWordSelection();
 
   const [pendingGuess, setPendingGuess] = useState<string | null>(null);
-  // Owned here rather than inside PathToVictory: that component unmounts
-  // whenever a refetch briefly drops gameState, which would silently close
-  // the panel the player just opened.
-  const [victoryOpen, setVictoryOpen] = useState(false);
 
   // The desktop and mobile layouts are both mounted at all times (one is
   // hidden by a `lg:` class), so they need separate refs - sharing one meant
@@ -80,7 +75,9 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
   const revealed = !!gameState?.song; // gameState.song presence IS the win state
   const hasGuessed = (gameState?.guesses.length ?? 0) > 0;
   const dayNumber = getDayNumber(date);
-  const nextGameTimer = useNextGameTimer();
+  // The stand-in song isn't the day that was asked for, so the day counter and
+  // yesterday's stats would both be talking about a game that doesn't exist.
+  const isFallback = !!gameState?.fallbackReason;
 
   const validGuesses = gameState?.guesses.filter(g => g.valid) ?? [];
   const foundWordsAll = Array.from(new Set(validGuesses.map(g => g.word.toLowerCase())));
@@ -92,16 +89,28 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
     maskedArtistParts: gameState.masked.artist,
   }) : null;
 
-  const lyricsSegments = gameState ? calculateGuessHits({
+  const lyricsHits = gameState ? calculateGuessHits({
     guesses: validGuesses,
     maskedLyricsParts: gameState.masked.lyrics,
-  }).filter(g => g.hits > 0).map(g => ({ id: g.id, word: g.word, hits: g.hits })) : [];
+  }) : [];
 
-  const creditsSegments = gameState ? calculateGuessHits({
+  const creditsHits = gameState ? calculateGuessHits({
     guesses: validGuesses,
     maskedTitleParts: gameState.masked.title,
     maskedArtistParts: gameState.masked.artist,
-  }).filter(g => g.hits > 0).map(g => ({ id: g.id, word: g.word, hits: g.hits })) : [];
+  }) : [];
+
+  const lyricsSegments = lyricsHits.filter(g => g.hits > 0).map(g => ({ id: g.id, word: g.word, hits: g.hits }));
+
+  // The rail's single progress bar folds title/artist words into the same
+  // pool as the lyrics - a word that also names the song or artist keeps
+  // its normal color but gets an outline, so it reads as both at a glance.
+  const combinedSegments = lyricsHits
+    .map((g, i) => {
+      const creditHits = creditsHits[i]?.hits ?? 0;
+      return { id: g.id, word: g.word, hits: g.hits + creditHits, isCredit: creditHits > 0 };
+    })
+    .filter(s => s.hits > 0);
 
   // Every guess with its hit count, misses included - the mobile chip row
   // needs the zero-hit ones too, so this can't be filtered like the bars.
@@ -112,20 +121,33 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
     maskedArtistParts: gameState.masked.artist,
   }) : [];
 
+  // `valid` is decided by hasWord(), which tests the same predicate as the hit
+  // counter - so a valid guess always has at least one hit, and the two can
+  // never disagree. Filtering on both would just say the same thing twice.
   const overallSegments = allGuessHits
-    .filter(g => g.valid && g.hits > 0)
+    .filter(g => g.valid)
     .map(g => ({ id: g.id, word: g.word, hits: g.hits }));
 
-  const lyricsPct = progress?.lyrics.percent ?? 0;
-  const lyricsWin = !!progress && progress.lyrics.progress.total > 0 && progress.lyrics.progress.found / progress.lyrics.progress.total >= 0.8;
   const titleWin = !!progress && progress.title.progress.total > 0 && progress.title.progress.found === progress.title.progress.total;
   const artistWin = !!progress && progress.artist.progress.total > 0 && progress.artist.progress.found === progress.artist.progress.total;
-  const creditsWin = titleWin && artistWin;
-  const winStamp = revealed ? (lyricsWin && creditsWin ? 'won on both' : lyricsWin ? 'won on the lyrics' : 'won on the credits') : null;
+  const isGameWon = titleWin && artistWin;
+  const lyricsPct = progress?.lyrics.percent ?? 0;
+  const combinedProgress = progress ? {
+    found: progress.lyrics.progress.found + progress.title.progress.found + progress.artist.progress.found,
+    total: progress.lyrics.progress.total + progress.title.progress.total + progress.artist.progress.total,
+  } : { found: 0, total: 0 };
 
-  const wordsFound = overallSegments.length;
-  const guessesUsed = validGuesses.length;
-  const bestWordHits = overallSegments.reduce((max, s) => Math.max(max, s.hits), 0);
+  // `attempts` counts every guess, misses included - it used to count only the
+  // valid ones, which quietly hid every wrong answer from the final tally.
+  const attempts = gameState?.guesses.length ?? 0;
+  const hits = overallSegments.length;
+
+  const winSong = gameState?.song && {
+    title: gameState.song.title,
+    artist: gameState.song.artist,
+    spotifyId: gameState.song.spotifyId,
+    geniusUrl: gameState.song.geniusData?.url,
+  };
 
   const rail = (
     <>
@@ -137,16 +159,12 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
           </div>
         ) : (
           <PathToVictory
-            lyricsProgress={progress!.lyrics.progress}
-            titleProgress={progress!.title.progress}
-            artistProgress={progress!.artist.progress}
-            lyricsSegments={lyricsSegments}
-            creditsSegments={creditsSegments}
+            progress={combinedProgress}
+            segments={combinedSegments}
+            isGameWon={isGameWon}
             highlightedWord={activeWord}
             onHoverWord={handleWordHover}
             onSelectWord={handleGuessSelect}
-            victoryOpen={victoryOpen}
-            onToggleVictory={() => setVictoryOpen(v => !v)}
           />
         )}
       </div>
@@ -203,12 +221,17 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
         </div>
       )}
 
-      {/* Guarded on a real date: the rickroll route passes the literal
-          "rickroll", which would derive a NaN "yesterday" and fire a doomed
-          stats request. */}
-      {revealed && isValidDate(date) && (
+      {/* Guarded on a real, actually-played date: otherwise "yesterday" is
+          derived from a day that has no game, firing a doomed stats request. */}
+      {revealed && !isFallback && isValidDate(date) && (
         <div className="px-5 pb-[18px] animate-rtfl-rise">
           <YesterdayStats currentDate={date} />
+        </div>
+      )}
+
+      {playerId && (
+        <div className="px-5 py-[10px] border-t border-rtfl-line-soft mt-auto">
+          <PlayerIdBadge playerId={playerId} className="text-[10px]" />
         </div>
       )}
     </>
@@ -216,35 +239,26 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
 
   return (
     // h-full, not h-screen: the page owns the viewport lock, so a route can
-    // put something (the rickroll banner) above the game without pushing it
+    // put something (the fallback banner) above the game without pushing it
     // off-screen.
     <div data-testid="game-container" className="h-full overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex flex-col items-center max-sm:items-stretch">
       <div className="w-full max-w-[1320px] border border-rtfl-line rounded-[14px] max-sm:rounded-none max-sm:border-none flex flex-col overflow-hidden m-6 max-sm:m-0 flex-1 min-h-0">
-        <header data-testid="game-header" className="flex items-end justify-between gap-6 px-6 py-[18px] max-sm:px-5 max-sm:py-[12px] max-sm:pb-3 border-b border-rtfl-line-soft bg-rtfl-surface">
+        <header data-testid="game-header" className="flex items-end gap-6 px-6 py-[18px] max-sm:px-5 max-sm:py-[12px] max-sm:pb-3 border-b border-rtfl-line-soft bg-rtfl-surface">
           <div className="flex flex-col gap-[6px] max-sm:gap-[3px]">
             <ScrambleTitle />
             {isLoading ? (
               <span className="font-sans text-[12px] max-sm:text-[11px] text-rtfl-ink-2">loading today&apos;s song</span>
             ) : (
-              // Both variants carry date-display; exactly one of them is
-              // visible at a time, so a `:visible` selector picks the right
-              // one at any viewport.
-              <>
-                <div data-testid="date-display" className="flex items-center gap-[14px] max-sm:hidden">
-                  <Link href="/archive" className="font-sans text-[12px] text-rtfl-ink-2 hover:text-rtfl-ink flex items-center gap-[6px]">
-                    <span className="text-rtfl-ink-3">◀</span>{date}
-                  </Link>
-                  <span className="font-sans text-[12px] text-rtfl-ink-3">day {dayNumber}</span>
-                </div>
-                <Link href="/archive" data-testid="date-display" className="hidden max-sm:block font-sans text-[11px] text-rtfl-ink-3">
-                  {date} · day {dayNumber}
-                </Link>
-              </>
+              <Link
+                href="/archive"
+                data-testid="date-display"
+                title={isFallback ? 'back to the archive' : date}
+                className="font-sans text-[12px] max-sm:text-[11px] text-rtfl-ink-2 hover:text-rtfl-ink flex items-center leading-none gap-[6px] w-fit"
+              >
+                <span className="text-rtfl-ink-3 relative top-[-1px]">◀</span>
+                <span>{isFallback ? 'archive' : `day ${dayNumber}`}</span>
+              </Link>
             )}
-          </div>
-          <div className="flex flex-col items-end gap-1 max-sm:flex-row max-sm:items-baseline max-sm:gap-2">
-            <span className="max-sm:hidden font-sans text-[10px] tracking-[0.16em] uppercase text-rtfl-ink-3">next song</span>
-            <span className="font-mono text-[17px] max-sm:text-[12px] font-medium text-rtfl-accent tabular-nums">{nextGameTimer}</span>
           </div>
         </header>
 
@@ -277,54 +291,43 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
                 />
               )}
             </div>
-            {/* The desktop counterpart of the mobile MaskedLyricsDisplay
-                wrapper: this pane is the lyrics surface here, since the
-                title and artist live in their own block above it. */}
-            <div ref={desktopScrollRef} data-testid="masked-lyrics" className="relative flex-1 overflow-y-auto px-[56px] pt-[34px] pb-[44px]">
+            {/* This pane is the lyrics surface: the title and artist live in
+                their own non-scrolling block above it. */}
+            {/* The fog sits on this wrapper, not inside the scroller: an
+                absolute child of a scrolling box anchors to the content, so
+                `bottom-0` rode away with the lyrics instead of staying at the
+                edge of the visible pane. */}
+            <div className="relative flex-1 min-h-0">
+              <div ref={desktopScrollRef} data-testid="masked-lyrics" className="h-full overflow-y-auto px-[56px] pt-[34px] pb-[44px]">
+                {isLoading ? (
+                  <LyricsLoadingComponent />
+                ) : (
+                  <MaskedLyricsBody
+                    maskedLyricsParts={gameState.masked.lyrics}
+                    highlightedWord={activeWord}
+                    scrollToWord={scrollToWord}
+                    scrollTick={scrollTick}
+                    scrollContainerRef={desktopScrollRef}
+                    guesses={gameState.guesses}
+                    revealed={revealed}
+                  />
+                )}
+              </div>
               <div className={cn("absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-rtfl-bg to-transparent pointer-events-none transition-opacity duration-300", showTopFog ? "opacity-100" : "opacity-0")} />
               <div className={cn("absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-rtfl-bg to-transparent pointer-events-none transition-opacity duration-300", showBottomFog ? "opacity-100" : "opacity-0")} />
-              {isLoading ? (
-                <LyricsLoadingComponent />
-              ) : (
-                <MaskedLyricsBody
-                  maskedLyricsParts={gameState.masked.lyrics}
-                  highlightedWord={activeWord}
-                  scrollToWord={scrollToWord}
-                  scrollTick={scrollTick}
-                  scrollContainerRef={desktopScrollRef}
-                  guesses={gameState.guesses}
-                  revealed={revealed}
-                />
-              )}
             </div>
 
-            {revealed && winStamp && (
-              <div className="border-t border-rtfl-line-soft bg-rtfl-surface px-[56px] py-[22px] flex items-end justify-between gap-8 flex-wrap animate-rtfl-rise">
-                <div className="flex flex-col gap-2">
-                  <span className="font-sans text-[12px] text-rtfl-hit">✓ {winStamp}</span>
-                  <div className="flex gap-10">
-                    <span className="flex flex-col gap-[5px]">
-                      <span className="font-mono font-bold text-[26px] tabular-nums text-rtfl-hit">{wordsFound}</span>
-                      <span className="font-sans text-[11px] uppercase tracking-[0.12em] text-rtfl-ink-2">you found</span>
-                    </span>
-                    <span className="flex flex-col gap-[5px]">
-                      <span className="font-mono font-bold text-[26px] tabular-nums">{guessesUsed}</span>
-                      <span className="font-sans text-[11px] uppercase tracking-[0.12em] text-rtfl-ink-2">guesses used</span>
-                    </span>
-                  </div>
-                  <span className="font-sans text-[11px] text-rtfl-ink-3">dimmed words came with the win</span>
-                </div>
-                <ShareButton
-                  wordsFound={wordsFound}
-                  guessesUsed={guessesUsed}
-                  bestWordHits={bestWordHits}
-                  overallPercent={lyricsPct}
-                  segments={lyricsSegments}
-                  total={progress?.lyrics.progress.total ?? 0}
-                  date={date}
-                  dayNumber={dayNumber}
-                />
-              </div>
+            {isGameWon && (
+              <WinSummary
+                lyricsPercent={lyricsPct}
+                attempts={attempts}
+                hits={hits}
+                segments={lyricsSegments}
+                total={progress?.lyrics.progress.total ?? 0}
+                date={date}
+                dayNumber={dayNumber}
+                song={winSong}
+              />
             )}
           </div>
         </div>
@@ -334,27 +337,35 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
           <div className="px-5 py-3 border-b border-rtfl-line-soft flex flex-col gap-2">
             {!isLoading && (
               <PathToVictory
-                lyricsProgress={progress!.lyrics.progress}
-                titleProgress={progress!.title.progress}
-                artistProgress={progress!.artist.progress}
-                lyricsSegments={lyricsSegments}
-                creditsSegments={creditsSegments}
+                progress={combinedProgress}
+                segments={combinedSegments}
+                isGameWon={isGameWon}
                 highlightedWord={activeWord}
                 onHoverWord={handleWordHover}
                 onSelectWord={handleGuessSelect}
-                victoryOpen={victoryOpen}
-                onToggleVictory={() => setVictoryOpen(v => !v)}
               />
             )}
           </div>
 
-          <div ref={mobileScrollRef} className="relative flex-1 overflow-y-auto px-5 pt-[22px] pb-[26px] flex flex-col gap-5">
+          {/* Title and artist sit outside the scrolling pane, as they do on
+              desktop, so they stay on screen while the lyrics scroll. */}
+          {!isLoading && (
+            <div className="px-5 pt-[14px] pb-3 border-b border-rtfl-line-soft bg-rtfl-bg">
+              <MaskedTitleArtist
+                maskedTitleParts={gameState.masked.title}
+                maskedArtistParts={gameState.masked.artist}
+                highlightedWord={activeWord}
+                guesses={gameState.guesses}
+                revealed={revealed}
+              />
+            </div>
+          )}
+
+          <div ref={mobileScrollRef} data-testid="masked-lyrics" className="relative flex-1 overflow-y-auto px-5 pt-[22px] pb-[26px] flex flex-col gap-5">
             {isLoading ? (
               <LyricsLoadingComponent />
             ) : (
-              <MaskedLyricsDisplay
-                maskedTitleParts={gameState.masked.title}
-                maskedArtistParts={gameState.masked.artist}
+              <MaskedLyricsBody
                 maskedLyricsParts={gameState.masked.lyrics}
                 highlightedWord={activeWord}
                 scrollToWord={scrollToWord}
@@ -366,39 +377,18 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
             )}
           </div>
 
-          {revealed && winStamp && (
-            <div className="border-t border-rtfl-line-soft bg-rtfl-surface px-5 py-4 flex flex-col gap-[14px] animate-rtfl-rise">
-              <span className="font-sans text-[12px] text-rtfl-hit">✓ {winStamp}</span>
-              <div className="flex justify-between gap-3">
-                <span className="flex flex-col gap-1">
-                  <span className="font-mono font-bold text-[20px] tabular-nums text-rtfl-hit">{wordsFound}</span>
-                  <span className="font-sans text-[9.5px] uppercase tracking-[0.12em] text-rtfl-ink-2">found</span>
-                </span>
-                <span className="flex flex-col gap-1">
-                  <span className="font-mono font-bold text-[20px] tabular-nums">{guessesUsed}</span>
-                  <span className="font-sans text-[9.5px] uppercase tracking-[0.12em] text-rtfl-ink-2">guesses</span>
-                </span>
-              </div>
-              {gameState?.song && (
-                <div className="flex items-center gap-[11px] p-3 border border-rtfl-line rounded-[10px] bg-rtfl-bg">
-                  <span className="w-[38px] h-[38px] rounded-[6px] bg-rtfl-raised flex items-center justify-center text-rtfl-ink-2 text-[14px] shrink-0">▶</span>
-                  <span className="flex flex-col gap-[3px] min-w-0 flex-1">
-                    <span className="font-sans text-[13px] text-rtfl-ink truncate">{gameState.song.title}</span>
-                    <span className="font-sans text-[11px] text-rtfl-ink-2 truncate">{gameState.song.artist}</span>
-                  </span>
-                </div>
-              )}
-              <ShareButton
-                wordsFound={wordsFound}
-                guessesUsed={guessesUsed}
-                bestWordHits={bestWordHits}
-                overallPercent={lyricsPct}
-                segments={lyricsSegments}
-                total={progress?.lyrics.progress.total ?? 0}
-                date={date}
-                dayNumber={dayNumber}
-              />
-            </div>
+          {isGameWon && (
+            <WinSummary
+              compact
+              lyricsPercent={lyricsPct}
+              attempts={attempts}
+              hits={hits}
+              segments={lyricsSegments}
+              total={progress?.lyrics.progress.total ?? 0}
+              date={date}
+              dayNumber={dayNumber}
+              song={winSong}
+            />
           )}
 
           <div className="border-t border-rtfl-line-soft bg-rtfl-surface px-4 pt-3 pb-[22px] flex flex-col gap-[10px]">
@@ -415,7 +405,7 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
                   <button
                     key={g.id}
                     type="button"
-                    onClick={() => g.valid && handleGuessSelect(isSelected ? null : { id: g.id, word: g.word })}
+                    onClick={() => g.valid && handleGuessSelect({ id: g.id, word: g.word })}
                     className="inline-flex items-baseline gap-[5px] px-[10px] py-[5px] rounded-[7px] font-mono text-[12.5px] whitespace-nowrap"
                     style={{
                       background: !g.valid
@@ -444,6 +434,7 @@ export function LyricsGame({ gameState, onGuess, date }: LyricsGameProps) {
               inlineFeedback
               onDuplicateGuess={handleDuplicateGuess}
             />
+            {playerId && <PlayerIdBadge playerId={playerId} className="text-[9.5px]" />}
           </div>
         </div>
       </div>

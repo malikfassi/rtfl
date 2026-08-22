@@ -18,10 +18,9 @@ export interface GuessInputProps {
 }
 
 export interface ShareButtonProps {
-  wordsFound: number;
-  guessesUsed: number;
-  bestWordHits: number;
-  overallPercent: number;
+  lyricsPercent: number;
+  attempts: number;
+  hits: number;
   segments: Array<{ id: string; word: string; hits: number }>;
   total: number;
   date: string;

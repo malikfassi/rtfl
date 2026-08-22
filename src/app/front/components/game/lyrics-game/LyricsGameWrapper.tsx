@@ -32,7 +32,7 @@ function FailedToLoad({ onRetry }: { onRetry: () => void }) {
   }, []);
 
   return (
-    <div className="h-screen overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex items-center justify-center px-10">
+    <div className="h-dvh overflow-hidden bg-rtfl-bg text-rtfl-ink font-mono flex items-center justify-center px-10">
       <div className="border border-rtfl-line rounded-[14px] max-w-[1000px] min-h-[560px] w-full flex flex-col items-center justify-center gap-[22px] px-10 py-[60px]">
         <span
           className="w-[46px] h-[46px] rounded-[12px] border flex items-center justify-center text-[19px]"
@@ -86,14 +86,25 @@ export function LyricsGameWrapper({ date }: LyricsGameWrapperProps) {
     return <FailedToLoad onRetry={() => refetchGame()} />;
   }
 
+  const fallbackReason = currentGame?.fallbackReason;
+
   return (
-    <div className="h-screen overflow-hidden">
-      <LyricsGame
-        gameState={currentGame ?? null}
-        onGuess={handleGuess}
-        date={date}
-        playerId={playerId}
-      />
+    <div className="h-dvh overflow-hidden flex flex-col">
+      {fallbackReason && (
+        <div className="shrink-0 flex items-center justify-center gap-2 px-5 py-[7px] bg-rtfl-accent-bg border-b border-rtfl-accent-line text-center">
+          <span className="font-sans text-[12px] text-rtfl-accent-ink">
+            {fallbackReason} — here&apos;s one you already know instead
+          </span>
+        </div>
+      )}
+      <div className="flex-1 min-h-0">
+        <LyricsGame
+          gameState={currentGame ?? null}
+          onGuess={handleGuess}
+          date={date}
+          playerId={playerId}
+        />
+      </div>
     </div>
   );
 }
