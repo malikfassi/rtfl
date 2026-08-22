@@ -26,26 +26,17 @@ export class GameStateService {
       return false;
     }
     
-    // Count guessed tokens for each part (only counting isToGuess tokens)
+    // Count guessed tokens for title and artist (only counting isToGuess tokens)
     const titleAndArtistGuessed = [...maskedLyrics.title, ...maskedLyrics.artist]
-      .filter(token => token.isToGuess && validGuessedWords.has(token.value.toLowerCase()))
-      .length;
-    
-    const lyricsGuessed = maskedLyrics.lyrics
       .filter(token => token.isToGuess && validGuessedWords.has(token.value.toLowerCase()))
       .length;
 
     const totalTitleAndArtist = [...maskedLyrics.title, ...maskedLyrics.artist]
       .filter(token => token.isToGuess)
       .length;
-    const totalLyrics = maskedLyrics.lyrics
-      .filter(token => token.isToGuess)
-      .length;
 
-    // Game is won if:
-    // - 80% or more of lyrics tokens are guessed OR
-    // - All title and artist tokens are guessed
-    return (lyricsGuessed >= totalLyrics * 0.8) || (titleAndArtistGuessed >= totalTitleAndArtist);
+    // Game is won once title and artist are fully guessed.
+    return titleAndArtistGuessed >= totalTitleAndArtist;
   }
 
   private mapGameToGameState(game: GameWithSongAndGuesses): GameState {
@@ -79,14 +70,18 @@ export class GameStateService {
       });
     }
 
-    let songWithTitleArtist: typeof game.song & { title?: string; artist?: string; lyrics?: string } | undefined = undefined;
+    // Named fields rather than a spread of the row: that was also shipping
+    // maskedLyrics, the whole spotifyData blob and the timestamps to the
+    // client, none of which it reads.
+    let revealedSong: GameState['song'] = undefined;
     if (isWon) {
-      const geniusData = game.song.geniusData as { title?: string; artist?: string } | undefined;
-      songWithTitleArtist = {
-        ...game.song,
+      const geniusData = game.song.geniusData as { title?: string; artist?: string; url?: string } | undefined;
+      revealedSong = {
         title: geniusData?.title ?? '',
         artist: geniusData?.artist ?? '',
         lyrics: game.song.lyrics,
+        spotifyId: game.song.spotifyId,
+        geniusData: { url: geniusData?.url },
       };
     }
 
@@ -99,7 +94,7 @@ export class GameStateService {
         lyrics: maskTokens(masked.lyrics)
       },
       guesses: game.guesses,
-      song: songWithTitleArtist
+      song: revealedSong
     };
   }
 

@@ -99,7 +99,8 @@ describe('GameStateService Integration - Realistic Scenario', () => {
     expect(state1.song).toBeDefined();
     integration_validator.game_state_service.getGameState(state1);
 
-    // Step 7: Player 2 wins by guessing 80% of lyrics words
+    // Step 7: Player 2 guesses 80% of the lyrics words - this no longer
+    // wins the game, since only naming the full title and artist does.
     const backendMaskedLyrics = maskedLyricsService.create(
       fixtures.genius.search[key].response.hits[0].result.title,
       fixtures.genius.search[key].response.hits[0].result.primary_artist?.name || '',
@@ -119,7 +120,7 @@ describe('GameStateService Integration - Realistic Scenario', () => {
     const newLyricsGuesses = uniqueLyricsWords.slice(0, wordsNeeded).filter(word => !alreadyGuessed2.includes(word));
     await submitGuesses(guessService, testDate, player2, newLyricsGuesses);
     state2 = await service.getGameState(testDate, player2);
-    expect(state2.song).toBeDefined();
+    expect(state2.song).toBeUndefined();
     integration_validator.game_state_service.getGameState(state2);
 
     // After getting state2, print a compact log of guesses
