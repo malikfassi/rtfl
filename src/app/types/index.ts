@@ -15,9 +15,6 @@ export * from './components';
 
 // Hook types - exclude duplicates
 export type {
-  GameProgressState,
-  GameShareProps,
-  GameShareState,
   UseWordHighlightingProps,
   RickrollGame
-} from './hooks'; 
+} from './hooks';

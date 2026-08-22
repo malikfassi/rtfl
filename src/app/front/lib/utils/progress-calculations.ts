@@ -8,7 +8,6 @@ interface ProgressData {
 interface SectionProgress {
   progress: ProgressData;
   percent: number;
-  isComplete: boolean;
 }
 
 /**
@@ -22,31 +21,31 @@ function calculateSectionProgress(
     return {
       progress: { found: 0, total: 0 },
       percent: 0,
-      isComplete: false
     };
   }
 
   const hiddenWords = maskedParts
     .filter(token => token.isToGuess)
     .map(token => token.value.toLowerCase());
-  
+
   const total = hiddenWords.length;
   const found = hiddenWords.filter(word => foundWords.includes(word)).length;
-  
+
   const percent = total > 0 ? Math.round((found / total) * 100) : 0;
-  
-  // Lyrics are complete at 80%, title and artist at 100%
-  const isComplete = total > 0 && (
-    maskedParts === maskedParts ? // If this is lyrics
-      found / total >= 0.8 :
-      found === total
-  );
 
   return {
     progress: { found, total },
     percent,
-    isComplete
   };
+}
+
+/**
+ * Share of guesses that landed. Shown as a percentage rather than "5/8"
+ * wherever the guess count is already on screen, so the denominator isn't
+ * repeated.
+ */
+export function precisionPercent(hits: number, attempts: number): number {
+  return attempts > 0 ? Math.round((hits / attempts) * 100) : 0;
 }
 
 /**
@@ -66,21 +65,10 @@ export function calculateGameProgress({
   lyrics: SectionProgress;
   title: SectionProgress;
   artist: SectionProgress;
-  isGameComplete: boolean;
 } {
-  const lyrics = calculateSectionProgress(foundWords, maskedLyricsParts);
-  const title = calculateSectionProgress(foundWords, maskedTitleParts);
-  const artist = calculateSectionProgress(foundWords, maskedArtistParts);
-
-  // Game is complete if either:
-  // 1. Lyrics are 80% complete, or
-  // 2. Both title and artist are 100% complete
-  const isGameComplete = lyrics.isComplete || (title.isComplete && artist.isComplete);
-
   return {
-    lyrics,
-    title,
-    artist,
-    isGameComplete
+    lyrics: calculateSectionProgress(foundWords, maskedLyricsParts),
+    title: calculateSectionProgress(foundWords, maskedTitleParts),
+    artist: calculateSectionProgress(foundWords, maskedArtistParts),
   };
-} 
+}
