@@ -6,9 +6,9 @@ export function getOrCreatePlayerId(): string {
   
   let playerId: string = localStorage.getItem(PLAYER_ID_KEY) || '';
   if (!playerId) {
-    // Use require to avoid import issues
-    const cuid = require('cuid');
-    playerId = cuid();
+    // This id doubles as a bearer credential for the player's progress, so it
+    // needs to be unguessable, not just unique - crypto.randomUUID() over cuid().
+    playerId = crypto.randomUUID().replace(/-/g, '');
     localStorage.setItem(PLAYER_ID_KEY, playerId);
   }
   return playerId;
