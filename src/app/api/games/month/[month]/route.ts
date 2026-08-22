@@ -19,7 +19,11 @@ export const GET = async (request: NextRequest, context: { params: Promise<{ mon
     const userId = requirePlayerId(request);
     const gameStateService = createGameStateService(prisma);
     const result = await gameStateService.getGameStatesByMonth(validatedMonth, userId);
-    return NextResponse.json(result);
+
+    // Same rule as /api/games/[date]: don't leak masked structure of games that
+    // haven't happened yet (word lengths/punctuation would spoil upcoming puzzles).
+    const today = new Date().toISOString().split('T')[0];
+    return NextResponse.json(result.filter(game => game.date <= today));
   } catch (error) {
     return handleError(error);
   } finally {
