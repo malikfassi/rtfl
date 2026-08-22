@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.history
+coverage
+playwright-report
+test-results
+tests
+*.db
+*.db-journal
+prisma/test-dbs
+.env
+.env.test
+.vscode
+docs
+*.tsbuildinfo
