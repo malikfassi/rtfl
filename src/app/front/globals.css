@@ -43,19 +43,8 @@
     outline: none;
   }
 
-  @keyframes rtflWave    { from { opacity: 0; transform: translateY(5px);  } to { opacity: 1; transform: none; } }
-  @keyframes rtflRise    { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  @keyframes rtflCount   { from { opacity: 0; transform: translateY(3px);  } to { opacity: 1; transform: none; } }
-  @keyframes rtflBreathe { 0%, 100% { opacity: .34; } 50% { opacity: .85; } }
-  @keyframes rtflPopIn   { 0% { transform: scaleX(0.02); } 60% { transform: scaleX(1.02); } 100% { transform: scaleX(1); } }
-  /* Soft outline pulse across a whole progress row when a guess scores. */
-  @keyframes rtflBarFlash {
-    0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-    35%  { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-  }
-  /* One-shot light sweep across a bar that has just been completed. */
-  @keyframes rtflSweep { from { transform: translateX(-100%); } to { transform: translateX(220%); } }
+  /* The rtfl* keyframes live in tailwind.config.ts, which is their single
+     source of truth - a second copy here silently shadowed it. */
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -162,6 +151,19 @@
     text-rendering: optimizeLegibility;
     font-feature-settings: "rlig" 1, "calt" 1;
     @apply bg-background text-foreground;
+  }
+
+  /* Scrolling stays, the chrome goes: every pane here has its own visual
+     affordance (the fog gradients, the pinned bars) and the native bars only
+     added noise on top of them. */
+  * {
+    scrollbar-width: none;          /* Firefox */
+    -ms-overflow-style: none;       /* legacy Edge */
+  }
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
   }
 }
 

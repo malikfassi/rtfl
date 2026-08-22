@@ -126,10 +126,12 @@ export default {
           '0%, 100%': { opacity: '.34' },
           '50%': { opacity: '.85' },
         },
+        // Fade only: the segment's width is already animated by the
+        // flex-grow transition, and scaling it at the same time made the two
+        // fight over the same pixels.
         rtflPopIn: {
-          '0%': { transform: 'scaleX(0.02)' },
-          '60%': { transform: 'scaleX(1.02)' },
-          '100%': { transform: 'scaleX(1)' },
+          from: { opacity: '0' },
+          to: { opacity: '1' },
         },
         rtflBarFlash: {
           '0%': { boxShadow: '0 0 0 0 rgba(255,255,255,0)' },
@@ -137,8 +139,10 @@ export default {
           '100%': { boxShadow: '0 0 0 0 rgba(255,255,255,0)' },
         },
         rtflSweep: {
-          from: { transform: 'translateX(-100%)' },
-          to: { transform: 'translateX(220%)' },
+          from: { transform: 'translateX(-100%)', opacity: '0' },
+          '15%': { opacity: '1' },
+          '85%': { opacity: '1' },
+          to: { transform: 'translateX(300%)', opacity: '0' },
         },
       },
       animation: {
@@ -148,9 +152,9 @@ export default {
         'rtfl-rise': 'rtflRise 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both',
         'rtfl-count': 'rtflCount 180ms ease-out both',
         'rtfl-breathe': 'rtflBreathe 1.5s ease-in-out infinite',
-        'rtfl-pop-in': 'rtflPopIn 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'rtfl-pop-in': 'rtflPopIn 260ms ease-out both',
         'rtfl-bar-flash': 'rtflBarFlash 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both',
-        'rtfl-sweep': 'rtflSweep 1100ms 120ms cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'rtfl-sweep': 'rtflSweep 900ms 100ms ease-in-out both',
       },
       transitionTimingFunction: {
         rtfl: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
