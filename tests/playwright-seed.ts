@@ -79,10 +79,14 @@ function getValidWordsForTrack(key: TrackKey, count: number = 5): string[] {
 async function createGame(date: string, key: TrackKey) {
   const spotifyId = TRACK_URIS[TRACK_KEYS[key]];
   if (!spotifyId) throw new Error(`No spotifyId for key: ${key}`);
-  // The admin API will create the song if it doesn't exist, using the spotifyId
+  // The admin API will create the song if it doesn't exist, using the spotifyId.
+  // src/middleware.ts challenges every /api/admin/* request with Basic auth or
+  // the rtfl_admin cookie; the seed is not a browser, so it presents the
+  // password directly from the test environment.
+  const auth = 'Basic ' + Buffer.from(`admin:${process.env.ADMIN_PASSWORD}`).toString('base64');
   const res = await fetch(`${BASE_URL}/api/admin/games`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: auth },
     body: JSON.stringify({ date, spotifyId }),
   });
   if (!res.ok) {
