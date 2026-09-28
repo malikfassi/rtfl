@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { ScrambleTitle } from '../ScrambleTitle';
 import { YesterdayStats } from '../YesterdayStats';
-import { GuessHistory, GuessInput, MaskedTitleArtist, MaskedLyricsBody, PathToVictory, WinSummary, LyricsLoadingComponent, PlayerIdBadge } from './index';
+import { GuessHistory, GuessInput, MaskedTitleArtist, MaskedLyricsBody, PathToVictory, WinSummary, ShareButton, LyricsLoadingComponent, PlayerIdBadge } from './index';
 import { calculateGuessHits, countTotalHits } from '@/app/front/lib/utils/hit-counting';
 import { getWordColorDeterministic } from '@/app/front/lib/utils/color-management';
 import { calculateGameProgress } from '@/app/front/lib/utils/progress-calculations';
@@ -26,6 +26,8 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
   } = useWordSelection();
 
   const [pendingGuess, setPendingGuess] = useState<string | null>(null);
+  /** True for a beat after the guess that won, to sweep in the granted words. */
+  const [justWon, setJustWon] = useState(false);
 
   // The desktop and mobile layouts are both mounted at all times (one is
   // hidden by a `lg:` class), so they need separate refs - sharing one meant
@@ -50,6 +52,16 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
         .pop();
       if (submittedGuess) {
         revealGuess({ id: submittedGuess.id, word: submittedGuess.word });
+      }
+
+      // Recognised here rather than by watching `revealed` flip, because the
+      // refetch that follows a guess briefly drops gameState and remounts the
+      // lyrics - a component that is rebuilt cannot see its own transition.
+      // Tying it to the guess also means a solved page loaded fresh, where no
+      // guess was made, stays still.
+      if (freshState.song && !gameState?.song) {
+        setJustWon(true);
+        window.setTimeout(() => setJustWon(false), 2000);
       }
 
       return countTotalHits({
@@ -100,8 +112,6 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
     maskedArtistParts: gameState.masked.artist,
   }) : [];
 
-  const lyricsSegments = lyricsHits.filter(g => g.hits > 0).map(g => ({ id: g.id, word: g.word, hits: g.hits }));
-
   // The rail's single progress bar folds title/artist words into the same
   // pool as the lyrics - a word that also names the song or artist keeps
   // its normal color but gets an outline, so it reads as both at a glance.
@@ -131,11 +141,16 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
   const titleWin = !!progress && progress.title.progress.total > 0 && progress.title.progress.found === progress.title.progress.total;
   const artistWin = !!progress && progress.artist.progress.total > 0 && progress.artist.progress.found === progress.artist.progress.total;
   const isGameWon = titleWin && artistWin;
-  const lyricsPct = progress?.lyrics.percent ?? 0;
+  // One percentage for the whole screen. The rail's bar folds the title and
+  // artist in with the lyrics, so a summary quoting the lyrics alone put two
+  // different numbers under the same words a few centimetres apart.
   const combinedProgress = progress ? {
     found: progress.lyrics.progress.found + progress.title.progress.found + progress.artist.progress.found,
     total: progress.lyrics.progress.total + progress.title.progress.total + progress.artist.progress.total,
   } : { found: 0, total: 0 };
+  const revealedPct = combinedProgress.total > 0
+    ? Math.round((combinedProgress.found / combinedProgress.total) * 100)
+    : 0;
 
   // `attempts` counts every guess, misses included - it used to count only the
   // valid ones, which quietly hid every wrong answer from the final tally.
@@ -151,7 +166,7 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
 
   const rail = (
     <>
-      <div className="px-5 py-[18px] border-b border-rtfl-line-soft">
+      <div className="px-5 py-[18px]">
         {isLoading ? (
           <div className="flex flex-col gap-3">
             <span className="block w-24 h-[22px] rounded-[5px] bg-rtfl-raised animate-rtfl-breathe" />
@@ -169,7 +184,11 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
         )}
       </div>
 
-      <div className="px-5 py-[18px] border-b border-rtfl-line-soft flex flex-col gap-2">
+      {/* No rules above or below: the input is the one thing on this rail that
+          is always in use, and boxing it in made it read as a separate panel.
+          The feedback row GuessInput reserves is what made the padding look
+          lopsided, so the bottom padding is trimmed by its height. */}
+      <div className="px-5 pt-[18px] pb-1 flex flex-col gap-2">
         {!hasGuessed && (
           <p className="m-0 font-sans text-[12px] leading-[1.5] text-rtfl-ink-2">
             Guess any word. Every match reveals it everywhere in the song.
@@ -179,7 +198,7 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
           onGuessSubmit={handleGuessSubmit}
           pendingGuess={pendingGuess}
           disabled={revealed || isLoading}
-          placeholder={revealed ? 'solved for today' : 'Type your guess...'}
+          placeholder={revealed ? 'come back tomorrow' : 'Type your guess...'}
           onDuplicateGuess={handleDuplicateGuess}
         />
       </div>
@@ -207,6 +226,23 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
           />
         )}
       </div>
+
+      {/* Sharing isn't only for the end: a stuck player asking for help is the
+          other half of it, and the card reframes itself for that. Once won,
+          the summary carries its own button and this one would be a second. */}
+      {!isLoading && !isGameWon && hasGuessed && (
+        <div className="px-5 pb-[18px]">
+          <ShareButton
+            lyricsPercent={revealedPct}
+            attempts={attempts}
+            hits={hits}
+            segments={combinedSegments}
+            total={combinedProgress.total}
+            date={date}
+            dayNumber={dayNumber}
+          />
+        </div>
+      )}
 
       {revealed && gameState?.song && (
         <div className="px-5 py-[18px] border-t border-rtfl-line-soft flex flex-col gap-3 animate-rtfl-rise">
@@ -253,10 +289,13 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
                 href="/archive"
                 data-testid="date-display"
                 title={isFallback ? 'back to the archive' : date}
-                className="font-sans text-[12px] max-sm:text-[11px] text-rtfl-ink-2 hover:text-rtfl-ink flex items-center leading-none gap-[6px] w-fit"
+                className="font-sans text-[12px] max-sm:text-[11px] text-rtfl-ink-2 hover:text-rtfl-ink inline-flex items-center gap-[6px] w-fit leading-none"
               >
-                <span className="text-rtfl-ink-3 relative top-[-1px]">◀</span>
-                <span>{isFallback ? 'archive' : `day ${dayNumber}`}</span>
+                {/* The triangle is drawn small and high inside its own em box,
+                    so matching font sizes still leaves it riding above the
+                    text. Shrinking it lets items-center do the rest. */}
+                <span className="text-rtfl-ink-3 text-[8px] leading-none">◀</span>
+                <span className="leading-none">{isFallback ? 'archive' : `day ${dayNumber}`}</span>
               </Link>
             )}
           </div>
@@ -288,6 +327,7 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
                   highlightedWord={activeWord}
                   guesses={gameState.guesses}
                   revealed={revealed}
+                  justWon={justWon}
                 />
               )}
             </div>
@@ -310,6 +350,7 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
                     scrollContainerRef={desktopScrollRef}
                     guesses={gameState.guesses}
                     revealed={revealed}
+                    justWon={justWon}
                   />
                 )}
               </div>
@@ -319,11 +360,11 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
 
             {isGameWon && (
               <WinSummary
-                lyricsPercent={lyricsPct}
+                lyricsPercent={revealedPct}
                 attempts={attempts}
                 hits={hits}
-                segments={lyricsSegments}
-                total={progress?.lyrics.progress.total ?? 0}
+                segments={combinedSegments}
+                total={combinedProgress.total}
                 date={date}
                 dayNumber={dayNumber}
                 song={winSong}
@@ -357,6 +398,7 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
                 highlightedWord={activeWord}
                 guesses={gameState.guesses}
                 revealed={revealed}
+                justWon={justWon}
               />
             </div>
           )}
@@ -373,6 +415,7 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
                 scrollContainerRef={mobileScrollRef}
                 guesses={gameState.guesses}
                 revealed={revealed}
+                justWon={justWon}
               />
             )}
           </div>
@@ -380,18 +423,22 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
           {isGameWon && (
             <WinSummary
               compact
-              lyricsPercent={lyricsPct}
+              lyricsPercent={revealedPct}
               attempts={attempts}
               hits={hits}
-              segments={lyricsSegments}
-              total={progress?.lyrics.progress.total ?? 0}
+              segments={combinedSegments}
+              total={combinedProgress.total}
               date={date}
               dayNumber={dayNumber}
               song={winSong}
             />
           )}
 
-          <div className="border-t border-rtfl-line-soft bg-rtfl-surface px-4 pt-3 pb-[22px] flex flex-col gap-[10px]">
+          {/* No rule on top: the surface colour already separates this bar
+              from the lyrics. The extra bottom padding was a fixed guess at
+              the home indicator; env() asks the device, so the bar is evenly
+              padded on the ones that do not have one. */}
+          <div className="bg-rtfl-surface px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex flex-col gap-[10px]">
             <div className="flex gap-[6px] overflow-x-auto min-h-[28px] items-center">
               {!hasGuessed && (
                 <span className="font-sans text-[11.5px] text-rtfl-ink-3 whitespace-nowrap">
@@ -430,7 +477,7 @@ export function LyricsGame({ gameState, onGuess, date, playerId }: LyricsGamePro
               onGuessSubmit={handleGuessSubmit}
               pendingGuess={pendingGuess}
               disabled={revealed || isLoading}
-              placeholder={revealed ? 'solved for today' : 'Type your guess...'}
+              placeholder={revealed ? 'come back tomorrow' : 'Type your guess...'}
               inlineFeedback
               onDuplicateGuess={handleDuplicateGuess}
             />

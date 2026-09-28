@@ -88,13 +88,20 @@ interface TokenRunProps {
   guesses: Guess[];
   activeWord: string | null;
   revealed: boolean;
+  /**
+   * True for a beat after the guess that won, and only then. It is decided by
+   * the caller because this component is torn down and rebuilt across the win
+   * - the refetch briefly drops gameState - so it cannot watch `revealed` flip
+   * itself, and on a solved page loaded fresh nothing should animate at all.
+   */
+  justWon?: boolean;
   scrollToWord?: string | null;
   scrollRef?: React.RefObject<HTMLSpanElement>;
   waveIndexRef: { current: number };
   keyPrefix: string;
 }
 
-function useTokenRenderer({ guesses, activeWord, revealed, scrollToWord, scrollRef, waveIndexRef }: Omit<TokenRunProps, 'tokens' | 'keyPrefix'>) {
+function useTokenRenderer({ guesses, activeWord, revealed, justWon, scrollToWord, scrollRef, waveIndexRef }: Omit<TokenRunProps, 'tokens' | 'keyPrefix'>) {
   const foundWords = useIdentity(guesses);
   // Reset every render: only the first matching token of the *current* pass
   // gets the scroll ref. Left latched, it would pin the ref to whichever
@@ -117,7 +124,7 @@ function useTokenRenderer({ guesses, activeWord, revealed, scrollToWord, scrollR
       scrollClaimedRef.current = true;
     }
 
-    const waveDelayMs = isGranted ? waveIndexRef.current * 14 : null;
+    const waveDelayMs = isGranted && justWon ? waveIndexRef.current * 14 : null;
     if (isGranted) waveIndexRef.current += 1;
 
     return (
@@ -141,14 +148,15 @@ interface MaskedTitleArtistProps {
   highlightedWord?: string | null;
   guesses: Guess[];
   revealed: boolean;
+  justWon?: boolean;
 }
 
 /** The non-scrolling title/artist header block (desktop's own region above the lyrics pane). */
-export function MaskedTitleArtist({ maskedTitleParts, maskedArtistParts, highlightedWord, guesses, revealed }: MaskedTitleArtistProps) {
+export function MaskedTitleArtist({ maskedTitleParts, maskedArtistParts, highlightedWord, guesses, revealed, justWon }: MaskedTitleArtistProps) {
   const waveIndexRef = useRef(0);
   waveIndexRef.current = 0;
   const activeWord = highlightedWord?.toLowerCase() ?? null;
-  const renderToken = useTokenRenderer({ guesses, activeWord, revealed, waveIndexRef });
+  const renderToken = useTokenRenderer({ guesses, activeWord, revealed, justWon, waveIndexRef });
 
   return (
     <div className="flex flex-col gap-[10px]">
@@ -172,10 +180,11 @@ interface MaskedLyricsBodyProps {
   scrollContainerRef?: React.RefObject<HTMLDivElement>;
   guesses: Guess[];
   revealed: boolean;
+  justWon?: boolean;
 }
 
 /** The scrolling lyrics pane. */
-export function MaskedLyricsBody({ maskedLyricsParts, highlightedWord, scrollToWord, scrollTick, scrollContainerRef, guesses, revealed }: MaskedLyricsBodyProps) {
+export function MaskedLyricsBody({ maskedLyricsParts, highlightedWord, scrollToWord, scrollTick, scrollContainerRef, guesses, revealed, justWon }: MaskedLyricsBodyProps) {
   const firstScrollToWordRef = useRef<HTMLSpanElement | null>(null);
   const waveIndexRef = useRef(0);
   waveIndexRef.current = 0;
@@ -184,6 +193,7 @@ export function MaskedLyricsBody({ maskedLyricsParts, highlightedWord, scrollToW
     guesses,
     activeWord,
     revealed,
+    justWon,
     scrollToWord,
     scrollRef: firstScrollToWordRef,
     waveIndexRef,

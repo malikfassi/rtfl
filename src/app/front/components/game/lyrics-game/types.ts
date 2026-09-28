@@ -25,5 +25,7 @@ export interface ShareButtonProps {
   total: number;
   date: string;
   dayNumber: number;
+  /** Drives the framing: a result to beat, or a puzzle to get help with. */
+  won?: boolean;
   className?: string;
 }

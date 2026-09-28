@@ -50,8 +50,7 @@ export const WinSummary = ({
   return (
     <div
       className={cn(
-        'border-t border-rtfl-line-soft bg-rtfl-surface animate-rtfl-rise flex flex-col',
-        expanded ? 'gap-4' : 'gap-0',
+        'border-t border-rtfl-line-soft bg-rtfl-surface animate-rtfl-rise flex flex-col gap-4',
         compact ? 'px-5 py-3' : 'px-[56px] py-[18px]',
       )}
     >
@@ -62,7 +61,7 @@ export const WinSummary = ({
         className="flex items-center justify-between gap-3 text-left"
       >
         <span className="flex items-baseline gap-3 min-w-0">
-          <span className="font-sans text-[13px] text-rtfl-hit shrink-0">✓ solved</span>
+          <span className="font-sans font-medium text-[14px] text-rtfl-hit shrink-0">You won!</span>
           {!expanded && (
             // Both figures are percentages, so each keeps its noun here -
             // "10% · 63%" on its own says nothing about which is which.
@@ -81,53 +80,55 @@ export const WinSummary = ({
         </span>
       </button>
 
-      {expanded && (
-        <>
-          <div className={cn('flex gap-10', compact && 'justify-between gap-3')}>
-            <Stat value={`${lyricsPercent}%`} label="of the lyrics" accent />
-            <Stat value={attempts} label={attempts === 1 ? 'guess' : 'guesses'} />
-            <Stat value={`${precision}%`} label="precision" />
-          </div>
+      {/* Hidden rather than unmounted: collapsing used to tear the Spotify
+          iframe out of the tree, so every reopen paid for a fresh embed load
+          and threw away whatever was playing. */}
+      <div className={cn('flex-col gap-4', expanded ? 'flex' : 'hidden')}>
+        <div className={cn('flex gap-10', compact && 'justify-between gap-3')}>
+          <Stat value={`${lyricsPercent}%`} label="of the lyrics" accent />
+          <Stat value={attempts} label={attempts === 1 ? 'guess' : 'guesses'} />
+          <Stat value={`${precision}%`} label="precision" />
+        </div>
 
-          {song?.spotifyId && (
-            <iframe
-              title={`${song.title ?? 'Track'} on Spotify`}
-              src={`https://open.spotify.com/embed/track/${song.spotifyId}`}
-              width="100%"
-              height="80"
-              frameBorder="0"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              loading="lazy"
-              className="rounded-[10px] block"
-            />
+        {song?.spotifyId && (
+          <iframe
+            title={`${song.title ?? 'Track'} on Spotify`}
+            src={`https://open.spotify.com/embed/track/${song.spotifyId}`}
+            width="100%"
+            height="80"
+            frameBorder="0"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            className="rounded-[10px] block"
+          />
+        )}
+
+        <div className={cn('flex items-center gap-3 flex-wrap', compact && 'flex-col items-stretch')}>
+          <ShareButton
+            lyricsPercent={lyricsPercent}
+            attempts={attempts}
+            hits={hits}
+            segments={segments}
+            total={total}
+            date={date}
+            dayNumber={dayNumber}
+            won
+          />
+          {song?.geniusUrl && (
+            <a
+              href={song.geniusUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                'font-sans text-[13px] text-rtfl-ink-2 hover:text-rtfl-ink underline underline-offset-4 decoration-rtfl-line',
+                compact && 'text-center',
+              )}
+            >
+              full lyrics on Genius
+            </a>
           )}
-
-          <div className={cn('flex items-center gap-3 flex-wrap', compact && 'flex-col items-stretch')}>
-            <ShareButton
-              lyricsPercent={lyricsPercent}
-              attempts={attempts}
-              hits={hits}
-              segments={segments}
-              total={total}
-              date={date}
-              dayNumber={dayNumber}
-            />
-            {song?.geniusUrl && (
-              <a
-                href={song.geniusUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  'font-sans text-[13px] text-rtfl-ink-2 hover:text-rtfl-ink underline underline-offset-4 decoration-rtfl-line',
-                  compact && 'text-center',
-                )}
-              >
-                full lyrics on Genius
-              </a>
-            )}
-          </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 };

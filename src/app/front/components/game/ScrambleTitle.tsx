@@ -155,10 +155,7 @@ export function ScrambleTitle() {
   }
 
   return (
-    <h1
-      className="m-0 font-mono font-bold uppercase tracking-[0.1em] text-[26px] max-sm:text-[17px] text-white flex items-center leading-none gap-[0.5ch]"
-      style={{ textShadow: '0 0 18px rgba(255,255,255,0.35)' }}
-    >
+    <h1 className="m-0 font-mono font-bold uppercase tracking-[0.1em] text-[26px] max-sm:text-[17px] text-white flex items-center leading-none gap-[0.5ch]">
       {/* Separate words rather than one "READ THE" string: a literal space
           carries the 0.1em tracking on top of a full monospace cell, which
           made that one gap read wider than the flex gap between the rest. */}
@@ -166,7 +163,10 @@ export function ScrambleTitle() {
       <span>THE</span>
       <span
         className="inline-flex overflow-hidden cursor-default leading-none"
-        style={{ width: '7ch' }}
+        // 7ch holds the letters but not the 0.1em of tracking the last one
+        // carries, so the word's ink sat hard against the right edge and the
+        // gap after it measured ~4px against ~8px before it.
+        style={{ width: 'calc(7ch + 0.1em)' }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
