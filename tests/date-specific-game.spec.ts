@@ -32,8 +32,9 @@ test.describe('Date-Specific Game Pages', () => {
 
       // Should show the date. The header renders it as a permanent archive
       // link, in a desktop and a mobile variant - `:visible` picks whichever
-      // one this viewport shows.
-      await expect(page.locator('[data-testid="date-display"]:visible')).toContainText(YESTERDAY);
+      // one this viewport shows. The link text is the day number; the ISO date
+      // is in `title`, dashes and all.
+      await expect(page.locator('[data-testid="date-display"]:visible')).toHaveAttribute('title', YESTERDAY);
 
       // testplayer01 has a recorded guess for this date - guess-history
       // renders at zero size when empty, so this only becomes visible once
@@ -70,28 +71,34 @@ test.describe('Date-Specific Game Pages', () => {
   });
 
   test.describe('Future Dates', () => {
-    test('should redirect future dates to rickroll page', async ({ page }) => {
+    // The redesign dropped the /rickroll redirect. An unplayable date - malformed,
+    // future, or unscheduled - is left to the API, whose 400/403/404 the client
+    // turns into the easter-egg song rendered in place, under a banner naming the
+    // reason. The URL stays on the date that was asked for.
+    test('should fall back to the rickroll game for future dates', async ({ page }) => {
       await page.goto(`/${FUTURE_DATE}`);
 
-      // Should redirect to rickroll page
-      await expect(page).toHaveURL('/rickroll');
+      await expect(page).toHaveURL(`/${FUTURE_DATE}`);
 
-      // Should show rickroll content. The banner used to be a second h1
-      // competing with the game's own wordmark; the redesign demoted it to a
-      // plain span, so match it by text rather than by heading role.
-      await expect(page.getByText('🎵')).toBeVisible();
-      await expect(page.getByText('Enjoy this special game!')).toBeVisible();
+      // The 403 reason line, then the game itself. The old banner's "🎵" and
+      // "Enjoy this special game!" copy is gone with the redesign: the reason
+      // line above the game is what tells the player which song this is.
+      await expect(page.getByText("that game hasn't happened yet")).toBeVisible();
 
       // The rickroll page still renders a full LyricsGame below the banner
       await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
     });
 
     test('should handle future date with different format', async ({ page }) => {
-      const futureDate = '2026-09-01';
-      await page.goto(`/${futureDate}`);
+      // Computed rather than hardcoded: a fixed date string stops being in the
+      // future as soon as it passes, and this test then asserts nothing.
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 1);
+      const tomorrow = futureDate.toISOString().split('T')[0];
+      await page.goto(`/${tomorrow}`);
 
-      // Should redirect to rickroll page
-      await expect(page).toHaveURL('/rickroll');
+      await expect(page).toHaveURL(`/${tomorrow}`);
+      await expect(page.getByText("that game hasn't happened yet")).toBeVisible();
     });
   });
 

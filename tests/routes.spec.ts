@@ -122,15 +122,19 @@ test('should show an inline message for an invalid archive month', async ({ page
   await expect(page.locator('[data-testid="invalid-month"]')).toBeVisible();
 });
 
-// Future date tests - should redirect to rickroll page
-test('should redirect future dates to rickroll page', async ({ page }) => {
+// Future date tests - the redesign dropped the /rickroll redirect: the API
+// answers 403 for a date that has not happened yet and the client renders the
+// easter-egg song in place, under a banner naming the reason. The URL therefore
+// stays on the requested date.
+test('should fall back to the rickroll game for future dates', async ({ page }) => {
   await page.goto(getTomorrowDatePath());
   await waitForPlayerId(page);
-  // Wait for redirect to complete
-  await page.waitForURL('/rickroll');
-  // Should show rickroll content
-  await expect(page.getByText('🎵')).toBeVisible();
-  await expect(page.getByText('Enjoy this special game!')).toBeVisible();
+  await expect(page).toHaveURL(getTomorrowDatePath());
+  // The banner explains why another song is standing in. The old banner's
+  // "🎵" and "Enjoy this special game!" copy is gone with the redesign, so the
+  // reason line is the thing to assert.
+  await expect(page.getByText("that game hasn't happened yet")).toBeVisible();
+  await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
 });
 
 // Future archive date tests - should show normal archive behavior

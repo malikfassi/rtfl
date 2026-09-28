@@ -36,10 +36,11 @@ test.describe('Root Page (Today\'s Game)', () => {
   test('should show correct date information', async ({ page }) => {
     await page.waitForLoadState('networkidle');
 
-    // ScrambleTitle renders the raw ISO date (yyyy-MM-dd, local time, same as
-    // getCurrentDate() in lib/routes.ts), not a long weekday-format string.
+    // The header's date-display is an archive link that labels the game by its
+    // day number ("day 1002"); the raw ISO date it links from lives in `title`
+    // (yyyy-MM-dd, local time, same as getCurrentDate() in lib/routes.ts).
     const todayFormatted = format(new Date(), 'yyyy-MM-dd');
-    await expect(page.locator('[data-testid="date-display"]:visible')).toContainText(todayFormatted);
+    await expect(page.locator('[data-testid="date-display"]:visible')).toHaveAttribute('title', todayFormatted);
   });
 
   test('should allow user interaction with game controls', async ({ page }) => {
