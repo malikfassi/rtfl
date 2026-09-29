@@ -91,7 +91,20 @@ export const playerIdSchema = z.string().trim()
 
 export const wordSchema = z.string().trim()
   .min(1, 'Word is required')
-  .regex(/^[a-zA-ZÀ-ÿ]+$/, 'Word must contain only letters');
+  // Lettres, chiffres, et l'apostrophe qui relie deux lettres à l'intérieur d'un mot.
+  //
+  // L'apostrophe est nécessaire parce que le masquage découpe les paroles sur les
+  // lettres : `l’amour` devient deux tokens masqués, et le joueur qui voit `l____`
+  // doit pouvoir envoyer `l’amour` plutôt que `amour` seul.
+  //
+  // Le trait d'union n'est pas ici, et c'est cohérent : le découpage le traite
+  // comme un séparateur, donc `rock-n-roll` s'affiche en deux mots que le joueur
+  // devine séparément. L'accepter dans un essai serait accepter quelque chose que
+  // `hasWord` ne reconnaîtrait jamais.
+  //
+  // Une apostrophe en début ou en fin reste refusée : `.`, `(` et `,` ne sont pas
+  // des mots, et une saisie sans contenu doit rester une erreur.
+  .regex(/^[\p{L}\p{N}]+(?:['\u2019][\p{L}\p{N}]+)*$/u, 'Word must contain only letters');
 
 // Song schemas
 export const songTitleSchema = z.string().trim()

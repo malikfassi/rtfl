@@ -1,6 +1,7 @@
 import { Guess, PrismaClient } from '@prisma/client';
 import { validateSchema } from '@/app/api/lib/validation';
 import type { MaskedLyrics } from '@/app/types';
+import { normalizeWord } from '@/app/api/lib/utils/text';
 import { createMaskedLyricsService } from './masked-lyrics';
 
 import {
@@ -29,7 +30,9 @@ export class GuessService {
     }
 
     // 3. Check for duplicate guess
-    const normalizedGuess = guess.toLowerCase().trim();
+    // Normalisé, pas seulement mis en minuscules : sinon `Etait` et `était` seraient
+    // deux essais distincts, et le joueur pourrait les jouer l'un après l'autre.
+    const normalizedGuess = normalizeWord(guess);
     const existingGuess = await this.prisma.guess.findFirst({
       where: {
         gameId: game.id,

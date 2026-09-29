@@ -272,6 +272,72 @@ describe('MaskedLyricsService Unit Tests', () => {
       expect(service.hasWord(' ', maskedLyrics)).toBe(false);
     });
 
+    // Couche 1 de l'ADR-0007 : le joueur cherche à reconnaître la chanson, pas à
+    // reproduire sa typographie. Ces cas viennent tous de paroles réelles.
+    it('should match across typographic apostrophes', () => {
+      // Genius rend `’` (U+2019) là où un clavier produit `'` (U+0027).
+      const masked = service.create('Test', 'Test', 'Hey won’t you say it');
+
+      expect(service.hasWord('won', masked)).toBe(true);
+      expect(service.hasWord('t', masked)).toBe(true);
+    });
+
+    it('should match accents typed without them', () => {
+      const masked = service.create('Test', 'Test', 'Il était une fois');
+
+      // Un joueur au clavier anglais tape `etait`.
+      expect(service.hasWord('etait', masked)).toBe(true);
+      expect(service.hasWord('etait ', masked)).toBe(true);
+      expect(service.hasWord('incorrect', masked)).toBe(false);
+    });
+
+    it('should match when the guess carries the accent and the lyrics do not', () => {
+      const masked = service.create('Test', 'Test', 'Il etait une fois');
+
+      expect(service.hasWord('était', masked)).toBe(true);
+    });
+
+    it('should fold full-width and ligature forms', () => {
+      const masked = service.create('Test', 'Test', 'ＡＢＣ test');
+
+      expect(service.hasWord('abc', masked)).toBe(true);
+    });
+
+    it('should still tell different words apart', () => {
+      const masked = service.create('Test', 'Test', 'Il était une fois');
+
+      // La normalisation ne doit pas rendre deux mots distincts interchangeables.
+      expect(service.hasWord('fois', masked)).toBe(true);
+      expect(service.hasWord('foi', masked)).toBe(false);
+      expect(service.hasWord('foiss', masked)).toBe(false);
+    });
+
+    // Le trait d'union : le masquage découpe sur les lettres, donc `rock-n-roll`
+    // est trois tokens - `rock`, `-`, `roll` - et le joueur voit les deux moitiés
+    // séparément. Ce sont donc elles qu'on accepte, et non le mot entier.
+    it('should match each half of a hyphenated word', () => {
+      const masked = service.create('Test', 'Test', 'We rock-n-roll tonight');
+
+      expect(service.hasWord('rock', masked)).toBe(true);
+      expect(service.hasWord('roll', masked)).toBe(true);
+      expect(service.hasWord('rock-n-roll', masked)).toBe(false);
+    });
+
+    it('should reveal only the half that was guessed', () => {
+      const masked = service.create('Test', 'Test', 'We rock-n-roll tonight');
+      const result = service.getText(masked, new Set(['rock']));
+
+      // Seul `rock` se révèle : `We`, `n`, `roll` et `tonight` restent masqués. Le
+      // `-` n'est pas un token devinable, il reste donc visible quel que soit
+      // l'essai : c'est la ponctuation, pas un mot.
+      expect(result.lyrics).toBe('__ rock-_-____ _______');
+
+      // Et le trait d'union ne fait qu'un mot à l'affichage : il reste trois tokens,
+      // donc deviner une moitié ne révèle pas l'autre.
+      const bothHalves = service.getText(masked, new Set(['rock', 'roll']));
+      expect(bothHalves.lyrics).toBe('__ rock-_-roll _______');
+    });
+
     it('should work with different track constants', () => {
       const beatItMasked = service.create(
         'Beat It',

@@ -1,4 +1,5 @@
 import type { MaskedLyrics, Token } from '@/app/types';
+import { normalizeWord } from '@/app/api/lib/utils/text';
 
 const WORD_REGEX = /\p{L}+|\p{N}+/gu;
 
@@ -78,11 +79,13 @@ export class MaskedLyricsService {
       return tokens.map(t => t.value).join('');
     }
 
-    const normalizedGuesses = new Set(Array.from(guessedWords).map(w => w.toLowerCase().trim()));
-    
+    // Les essais sont normalisés une fois ici, pas à chaque token : une chanson peut
+    // avoir des milliers de tokens pour une poignée d'essais.
+    const normalizedGuesses = new Set(Array.from(guessedWords).map(normalizeWord));
+
     return tokens.map(token => {
       if (!token.isToGuess) return token.value;
-      return normalizedGuesses.has(token.value.toLowerCase().trim())
+      return normalizedGuesses.has(normalizeWord(token.value))
         ? token.value
         : '_'.repeat(token.value.length);
     }).join('');
@@ -92,11 +95,11 @@ export class MaskedLyricsService {
    * Check if a word exists in any part of the masked lyrics
    */
   public hasWord(word: string, masked: MaskedLyrics): boolean {
-    const normalizedWord = word.toLowerCase().trim();
+    const normalizedWord = normalizeWord(word);
     const sections = [masked.title, masked.artist, masked.lyrics];
     
     return sections.some(tokens => 
-      tokens.some(t => t.isToGuess && t.value.toLowerCase().trim() === normalizedWord)
+      tokens.some(t => t.isToGuess && normalizeWord(t.value) === normalizedWord)
     );
   }
 }
