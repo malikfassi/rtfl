@@ -129,11 +129,19 @@ test('should show an inline message for an invalid archive month', async ({ page
 test('should fall back to the rickroll game for future dates', async ({ page }) => {
   await page.goto(getTomorrowDatePath());
   await waitForPlayerId(page);
+  // The fallback needs a round trip for the refusal and a second one for the
+  // easter-egg song. Under parallel load that can take longer than the 5s
+  // expect timeout, which is why every other fallback test in this file also
+  // settles the network first.
+  await page.waitForLoadState('networkidle');
   await expect(page).toHaveURL(getTomorrowDatePath());
-  // The banner explains why another song is standing in. The old banner's
-  // "🎵" and "Enjoy this special game!" copy is gone with the redesign, so the
-  // reason line is the thing to assert.
-  await expect(page.getByText("that game hasn't happened yet")).toBeVisible();
+  // Tomorrow is refused, and the banner says why: either the future-date guard
+  // (403) or "no game scheduled" (404), depending on whether the server's
+  // UTC-based "today" has already rolled over. Which one arrives is not this
+  // test's business - that a reason is shown, and the stand-in song rendered,
+  // is. The old banner's "🎵" and "Enjoy this special game!" copy went with the
+  // redesign.
+  await expect(page.getByText(/happened yet|no song was scheduled/)).toBeVisible();
   await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
 });
 

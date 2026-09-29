@@ -19,12 +19,26 @@ const WORD_REGEX = /\p{L}+|\p{N}+/gu;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Test dates
-const TODAY = new Date().toISOString().split('T')[0];
-const YESTERDAY = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-const TWO_DAYS_AGO = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-const THREE_DAYS_AGO = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-const FUTURE_DATE = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+// Test dates. Computed in local time, like every other date in the app:
+// getCurrentDate() uses date-fns' format(), the frontend paths in
+// routes.spec.ts build their own local yyyy-mm-dd, and the API's future-date
+// guard compares against a local "today". toISOString() would shift the whole
+// seed by a day whenever the run happens late enough for UTC to have rolled
+// over - which put a game on "tomorrow" and made the future-date fallback
+// unreachable.
+function localDate(offsetDays = 0): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+const TODAY = localDate();
+const YESTERDAY = localDate(-1);
+const TWO_DAYS_AGO = localDate(-2);
+const THREE_DAYS_AGO = localDate(-3);
+const FUTURE_DATE = localDate(30);
 const INVALID_DATE = '2024-13-45';
 
 // Test players

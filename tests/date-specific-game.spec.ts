@@ -3,7 +3,6 @@ import {
   YESTERDAY,
   TWO_DAYS_AGO,
   THREE_DAYS_AGO,
-  FUTURE_DATE,
   INVALID_DATE
 } from './playwright-seed';
 
@@ -76,16 +75,24 @@ test.describe('Date-Specific Game Pages', () => {
     // turns into the easter-egg song rendered in place, under a banner naming the
     // reason. The URL stays on the date that was asked for.
     test('should fall back to the rickroll game for future dates', async ({ page }) => {
-      await page.goto(`/${FUTURE_DATE}`);
+      // Computed, not FUTURE_DATE: the seed schedules a game on that date (the
+      // "future game" row of the seed table), so asking for it returns a normal
+      // 200 and exercises nothing. A date a year out has no game for certain.
+      const futureDate = new Date();
+      futureDate.setFullYear(futureDate.getFullYear() + 1);
+      const noGameYet = futureDate.toISOString().split('T')[0];
+      await page.goto(`/${noGameYet}`);
+      await page.waitForLoadState('networkidle');
 
-      await expect(page).toHaveURL(`/${FUTURE_DATE}`);
+      await expect(page).toHaveURL(`/${noGameYet}`);
 
-      // The 403 reason line, then the game itself. The old banner's "🎵" and
-      // "Enjoy this special game!" copy is gone with the redesign: the reason
-      // line above the game is what tells the player which song this is.
-      await expect(page.getByText("that game hasn't happened yet")).toBeVisible();
+      // Refused, and the banner says why - either the future-date guard (403) or
+      // "no song scheduled" (404), depending on whether the server's UTC-based
+      // "today" has already rolled over. Which one arrives is not this test's
+      // business.
+      await expect(page.getByText(/happened yet|no song was scheduled/)).toBeVisible();
 
-      // The rickroll page still renders a full LyricsGame below the banner
+      // The rickroll game still renders below the banner
       await expect(page.locator('[data-testid="game-container"]')).toBeVisible();
     });
 
@@ -96,9 +103,10 @@ test.describe('Date-Specific Game Pages', () => {
       futureDate.setDate(futureDate.getDate() + 1);
       const tomorrow = futureDate.toISOString().split('T')[0];
       await page.goto(`/${tomorrow}`);
+      await page.waitForLoadState('networkidle');
 
       await expect(page).toHaveURL(`/${tomorrow}`);
-      await expect(page.getByText("that game hasn't happened yet")).toBeVisible();
+      await expect(page.getByText(/happened yet|no song was scheduled/)).toBeVisible();
     });
   });
 

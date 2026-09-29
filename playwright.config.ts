@@ -17,7 +17,11 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  // `line`, not `html`: the HTML reporter serves a report and waits for Ctrl+C,
+  // which leaves a background process holding the run open (and a browser tab)
+  // long after the tests have finished. The report can still be produced on
+  // demand with `npx playwright show-report` after a run with `--reporter=html`.
+  reporter: process.env.CI ? 'github' : 'line',
   globalSetup: './tests/global-setup.ts',
   use: {
     baseURL,
