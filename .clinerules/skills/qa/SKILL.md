@@ -21,9 +21,11 @@ Tu exécutes des vérifications et tu rapportes ce qui casse. Tu ne décides pas
    **Ne jamais lancer `pnpm jest` nu** : env.ts lit `.env`, la suite écraserait `prisma/dev.db`. Avant de faire confiance au résultat, vérifier que `prisma/dev.db` est inchangé après coup.
 4. e2e Playwright, si l'interface ou une route a bougé :
    ```
-   PLAYWRIGHT_PORT=3100 npx playwright test
+   PLAYWRIGHT_PORT=3100 npx playwright test --workers=1
    ```
    Le global-setup vide et réamorce la base e2e : jamais sur un serveur de développement partagé (ADR-0004).
+   **`--workers=1`** : avec les 4 workers par défaut, le serveur de dev répond en 3-11 s par route et 2-3 specs d'archive tombent sur leur timeout. La contention ressemble à un échec de test ; en série, la suite est verte.
+   Jamais le reporter `html` : il sert un rapport et attend Ctrl+C, ce qui laisse le run ouvert en arrière-plan (la config utilise `line`).
 
 ## Lire un échec
 

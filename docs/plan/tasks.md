@@ -12,6 +12,8 @@ Statuts : `à faire` / `en cours` / `fait` / `bloqué` / `attente-décision`. Un
 | T-006 | Matching des guesses : normalisation puis alias LLM à l'ingestion | code + décision | décision Malik (partie LLM) | attente-décision | Couche 1 (apostrophes, accents, casse) sans LLM d'abord ; couche 2 = alias stockés par chanson, matching runtime déterministe ; ADR requis |
 | T-007 | Écran admin (screen 7 de la spec) | code | - | à faire | Optionnel ; entièrement spécé mais hors périmètre du handover |
 | T-008 | Fusionner `redesign-2026` dans `main` et pousser | git | décision Malik + revue T-002..T-005 | attente-décision | Les commits locaux ne sont pas poussés |
+| T-009 | Garde de date future : comparer en locale, comme le reste de l'app | code | - | à faire | `route.ts:86` calcule « aujourd'hui » en UTC ; le soir venu, « demain » passe pour « aujourd'hui » et reçoit 404 (« no song scheduled ») au lieu de 403 (« hasn't happened yet »). Un joueur peut donc voir le mauvais motif, et une date future sans jeu passe par le mauvais chemin |
+| T-010 | E2e : rendre la suite fiable sous charge | code | - | à faire | Avec les 4 workers par défaut, `next dev` répond en 3-11 s par route et 2-3 specs d'archive tombent en timeout. Options : `workers: 1` par défaut, `next build && next start` au lieu de `next dev` pour la suite, ou des timeouts d'attente plus longs |
 
 ## Comment les coder
 
